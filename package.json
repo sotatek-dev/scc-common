@@ -1,7 +1,7 @@
 {
-  "name": "sota-common",
+  "name": "@sotatek/scc-common",
   "version": "1.0.0",
-  "description": "",
+  "description": "SotaTek cryptocurrency common lib",
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -28,5 +28,13 @@
     "uuid": "3.3.2",
     "winston": "3.2.1",
     "winston-cloudwatch": "2.0.4"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sotatek-dev/scc-common.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sotatek-dev/scc-common/issues"
+  },
+  "homepage": "https://github.com/sotatek-dev/scc-common#readme"
 }
