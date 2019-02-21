@@ -1,0 +1,28 @@
+import BaseIntervalWorker from './BaseIntervalWorker';
+import BaseMQConsumer from './BaseMQConsumer';
+import BaseMQProducer from './BaseMQProducer';
+import BaseGateway from './BaseGateway';
+import { Options } from 'amqplib';
+import { getTokenBySymbol } from './EnvironmentData';
+
+const MixedClass = BaseMQConsumer(BaseMQProducer(BaseIntervalWorker));
+
+export abstract class CurrencyIntervalWorker extends MixedClass {
+  public abstract gatewayClass(): any;
+
+  /**
+   * TODO: will update
+   * @param currency
+   */
+  public getGateway(currency?: string): BaseGateway {
+    return this.gatewayClass().getInstance(
+      getTokenBySymbol(currency) ? getTokenBySymbol(currency).contractAddress : null
+    );
+  }
+
+  protected async connect(options: Options.Connect): Promise<void> {
+    await Promise.all([this.setupConsumer(options), this.setupProducer(options)]);
+  }
+}
+
+export default CurrencyIntervalWorker;
