@@ -1,5 +1,5 @@
 {
-  "name": "@sotatek/scc-common",
+  "name": "sota-common",
   "version": "1.0.0",
   "description": "SotaTek cryptocurrency common lib",
   "main": "index.ts",
