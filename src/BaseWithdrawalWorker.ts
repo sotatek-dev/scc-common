@@ -21,14 +21,6 @@ export abstract class BaseWithdrawalWorker extends CurrencyIntervalWorker {
       getAppId() + '_' + this.getBaseProducerQueue() + '_' + getListTokenSymbols().tokenSymbolsBuilder;
   }
 
-  /*protected*/ public async onConsumingMessage(msg: amqp.ConsumeMessage): Promise<boolean> {
-    logger.info(`${this.constructor.name}::onConsumingMessage msg=${msg.content.toString()}`);
-    await this.doProcess();
-
-    // Messages are always consumed
-    return true;
-  }
-
   protected async prepare(): Promise<void> {
     await this._options.prepare(this);
     const protocol = process.env.RABBITMQ_SERVER_PROTOCOL || 'amqp';
@@ -44,6 +36,14 @@ export abstract class BaseWithdrawalWorker extends CurrencyIntervalWorker {
         `${this.constructor.name}::prepare could not connect to rabbitmq server due to error: ${util.inspect(e)}`
       );
     });
+  }
+
+  protected async onConsumingMessage(msg: amqp.ConsumeMessage): Promise<boolean> {
+    logger.info(`${this.constructor.name}::onConsumingMessage msg=${msg.content.toString()}`);
+    await this.doProcess();
+
+    // Messages are always consumed
+    return true;
   }
 
   protected async doProcess(): Promise<void> {

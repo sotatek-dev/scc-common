@@ -102,6 +102,9 @@ export function setCurrencyConfig(c: Currency, configData: IConfig) {
 }
 
 export async function updateValidApiEndpoint(): Promise<string> {
+  if (!getCurrencyConfig(getCurrency()).apiEndpoint) {
+    return null;
+  }
   const apiEnpoints = getCurrencyConfig(getCurrency()).apiEndpoint.split(',');
   const validApiEndpoints: string[] = [];
   await Promise.all(

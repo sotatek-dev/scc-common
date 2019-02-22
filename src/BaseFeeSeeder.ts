@@ -10,7 +10,16 @@ export abstract class BaseFeeSeeder extends BaseWithdrawalWorker {
   protected _nextTickTimer: number = 60 * 1000;
   public abstract getFeeReserveAccount(): any;
 
-  /*protected*/ public async onConsumingMessage(msg: amqp.ConsumeMessage): Promise<boolean> {
+  protected getBaseConsumerQueue(): string {
+    return MessageQueueName.COLLECTING_DEPOSIT;
+  }
+
+  // Group them into transactions, and publish messages to signing queue
+  protected getBaseProducerQueue(): string {
+    return '';
+  }
+
+  protected async onConsumingMessage(msg: amqp.ConsumeMessage): Promise<boolean> {
     const content = msg.content.toString();
     logger.info(`${this.constructor.name}::onConsumingMessage msg=${content}`);
     const [method, depositId, toAddress] = content.split(',');
@@ -26,15 +35,6 @@ export abstract class BaseFeeSeeder extends BaseWithdrawalWorker {
 
     // Messages are always consumed
     return true;
-  }
-
-  protected getBaseConsumerQueue(): string {
-    return MessageQueueName.COLLECTING_DEPOSIT;
-  }
-
-  // Group them into transactions, and publish messages to signing queue
-  protected getBaseProducerQueue(): string {
-    return '';
   }
 }
 
