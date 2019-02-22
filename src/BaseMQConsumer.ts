@@ -7,18 +7,19 @@ type Constructor<T = {}> = new (...args: any[]) => T;
 
 export function BaseMQConsumer<TBase extends Constructor>(Base: TBase) {
   return class extends Base {
-    protected _consumerQueue: string;
+    // TODO: Have to change accessible level to declaration generator works
+    /*protected*/ public _consumerQueue: string;
 
     public setConsumerQueueName(queueName: string): void {
       this._consumerQueue = queueName;
     }
 
-    protected async onConsumingMessage(msg: amqp.ConsumeMessage): Promise<boolean> {
+    /*protected*/ public async onConsumingMessage(msg: amqp.ConsumeMessage): Promise<boolean> {
       logger.warn(`${this.constructor.name}::onConsumingMessage do nothing msg=${msg.content}`);
       return false;
     }
 
-    protected async setupConsumer(options: Options.Connect): Promise<void> {
+    /*protected*/ public async setupConsumer(options: Options.Connect): Promise<void> {
       if (!this._consumerQueue) {
         logger.warn(`${this.constructor.name} has empty queue name. Just skip setup connection...`);
         return;
