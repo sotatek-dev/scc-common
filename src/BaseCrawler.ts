@@ -51,7 +51,7 @@ export abstract class BaseCrawler {
    */
   public getBlockNumInOneGo(): number {
     if (this.getGateway().isFastGateway()) {
-      return 1000;
+      return 50;
     }
     return this.getRequiredConfirmations() + 1;
   }
