@@ -4,12 +4,13 @@ import BaseGateway from './BaseGateway';
 import { getTokenBySymbol } from './EnvironmentData';
 
 export abstract class BaseWebServer {
+  public host: string = 'localhost';
+  public port: number = 8888;
   private app: express.Express = express();
 
-  private host: string = 'localhost';
-  private port: number = 8888;
-
-  constructor() {
+  public constructor() {
+    this.port = parseInt(process.env.PORT, 10);
+    this.host = process.env.HOST;
     this.setup();
   }
 
