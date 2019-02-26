@@ -17,6 +17,11 @@ export abstract class Transaction implements ITransactionProps {
   public contractAddress: string;
   public confirmations: number;
 
+  public fromAddress: string;
+  public toAddress: string;
+  public amount: string;
+  public memo: string;
+
   constructor(props: ITransactionProps, block: BlockHeader) {
     Object.assign(this, props);
     this.block = block;

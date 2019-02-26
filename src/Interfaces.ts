@@ -15,6 +15,7 @@ export interface ITokenRemake {
   readonly contractAddress: string;
   readonly subversionName: string;
   readonly network: string;
+  readonly hasMemo: number;
 }
 
 export interface IConfig {

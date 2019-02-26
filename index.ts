@@ -37,6 +37,7 @@ export * from './src/BaseDepositCollector';
 export * from './src/BaseDepositCollectorVerifier';
 export * from './src/BaseInternalTransferVerifier';
 export * from './src/BaseContractGateway';
+export * from './src/BaseWebServer';
 export * from './src/BaseFeeSeeder';
 export * from './src/WithdrawalOptions';
 export * from './src/RPCClient';
