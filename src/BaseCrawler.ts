@@ -50,8 +50,9 @@ export abstract class BaseCrawler {
    * and required confirmations
    */
   public getBlockNumInOneGo(): number {
-    if (this.getGateway().isFastGateway()) {
-      return 50;
+    const numberOfTokens = getListTokenSymbols().tokenSymbols.length;
+    if (this.getGateway().isFastGateway() && numberOfTokens < 10) {
+      return 1000;
     }
     return this.getRequiredConfirmations() + 1;
   }
