@@ -46,12 +46,11 @@ export abstract class BaseWebServer {
     this.app.get('/api/:coin/tx/:txid', async (req, res) => {
       const { coin, txid } = req.params;
 
-      if (!txid.toString().match(/^0x([A-Fa-f0-9]{64})$/)) {
+      // TODO: Update check txid
+      /*if (!txid.toString().match(/^0x([A-Fa-f0-9]{64})$/)) {
         return res.status(400).json({ error: `Invalid txid format: ${txid}` });
-      }
-
+      } */
       const tx = await this.getGateway(coin).getOneTransaction(txid);
-
       const senderAddr = tx.fromAddress;
       const receiverAddr = tx.toAddress;
       const amount = parseInt(tx.amount, 10);
