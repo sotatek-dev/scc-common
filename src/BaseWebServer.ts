@@ -47,13 +47,10 @@ export abstract class BaseWebServer {
       const { coin, txid } = req.params;
 
       // TODO: Update check txid
-      /*if (!txid.toString().match(/^0x([A-Fa-f0-9]{64})$/)) {
-        return res.status(400).json({ error: `Invalid txid format: ${txid}` });
-      } */
       const tx = await this.getGateway(coin).getOneTransaction(txid);
       const senderAddr = tx.fromAddress;
       const receiverAddr = tx.toAddress;
-      const amount = parseInt(tx.amount, 10);
+      const amount = parseFloat(tx.amount);
 
       if (Number.isNaN(amount)) {
         return res.status(400).json({ error: `Transaction ${txid} is not transfer type.` });
