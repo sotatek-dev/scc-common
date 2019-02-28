@@ -64,29 +64,18 @@ export abstract class BaseWebServer {
       if (!tx) {
         return res.status(400).json({ error: `Transaction ${txid} is not transfer type.` });
       }
-      const senderAddr = tx.fromAddress;
-      const receiverAddr = tx.toAddress;
-      const amount = parseFloat(tx.amount);
-
-      if (Number.isNaN(amount)) {
-        return res.status(400).json({ error: `Transaction ${txid} is not transfer type.` });
-      }
 
       const hasMemo = getTokenBySymbol(coin).hasMemo;
-
       const entries: any[] = [];
-      entries.push({
-        address: senderAddr,
-        value: -amount,
-        valueString: (-amount).toString(),
+      const extractedEntries = tx.extractEntries();
+      extractedEntries.forEach(e => {
+        entries.push({
+          address: e.toAddress,
+          value: parseFloat(e.amount),
+          valueString: e.amount,
+        });
       });
-
-      entries.push({
-        address: receiverAddr,
-        value: amount,
-        valueString: amount.toString(),
-      });
-
+      
       let resObj = {
         id: txid,
         date: '',
