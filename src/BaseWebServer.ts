@@ -8,8 +8,8 @@ import { getLogger } from './Logger';
 const logger = getLogger('BaseWebServer');
 
 export abstract class BaseWebServer {
-  public host: string = 'localhost';
-  public port: number = 8888;
+  public host: string;
+  public port: number;
   private app: express.Express = express();
 
   public constructor() {
