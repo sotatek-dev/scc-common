@@ -60,6 +60,9 @@ export abstract class BaseWebServer {
 
       // TODO: Update check txid
       const tx = await this.getGateway(coin).getOneTransaction(txid);
+      if (!tx) {
+        return res.status(400).json({ error: `Transaction ${txid} is not transfer type.` });
+      }
       const senderAddr = tx.fromAddress;
       const receiverAddr = tx.toAddress;
       const amount = parseFloat(tx.amount);
@@ -68,6 +71,7 @@ export abstract class BaseWebServer {
         return res.status(400).json({ error: `Transaction ${txid} is not transfer type.` });
       }
 
+      console.log(tx.extractTransferOutputs());
       const hasMemo = getTokenBySymbol(coin).hasMemo;
 
       const entries: any[] = [];
