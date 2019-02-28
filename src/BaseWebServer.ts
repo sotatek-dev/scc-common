@@ -72,7 +72,6 @@ export abstract class BaseWebServer {
         return res.status(400).json({ error: `Transaction ${txid} is not transfer type.` });
       }
 
-      console.log(tx.extractTransferOutputs());
       const hasMemo = getTokenBySymbol(coin).hasMemo;
 
       const entries: any[] = [];
