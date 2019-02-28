@@ -26,6 +26,7 @@ export interface IConfig {
   readonly averageBlockTime: number;
   readonly apiEndpoint: string;
   readonly explorerEndpoint: string;
+  readonly internalApiEndpoint: string;
   readonly rpc: string;
   readonly requiredConfirmations: number;
   readonly feeUnit: number;

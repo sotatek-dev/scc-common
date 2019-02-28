@@ -1,16 +1,29 @@
 import express from 'express';
 import morgan from 'morgan';
 import BaseGateway from './BaseGateway';
-import { getTokenBySymbol } from './EnvironmentData';
+import { getCurrency, getCurrencyConfig, getTokenBySymbol } from './EnvironmentData';
+import * as URL from 'url';
+import { getLogger } from './Logger';
+
+const logger = getLogger('BaseWebServer');
 
 export abstract class BaseWebServer {
-  public host: string = 'localhost';
-  public port: number = 8888;
+  public host: string;
+  public port: number;
   private app: express.Express = express();
 
   public constructor() {
-    this.port = parseInt(process.env.PORT, 10);
-    this.host = process.env.HOST;
+    const config = getCurrencyConfig(getCurrency());
+    if (!config) {
+      throw new Error(`Cannot find configuration for ${getCurrency().toUpperCase()} at config table`);
+    }
+    const apiEndpoint = URL.parse(`http://${config.internalApiEndpoint}`);
+    if (!apiEndpoint.protocol || !apiEndpoint.hostname || !apiEndpoint.port) {
+      logger.info(`Set api endpoint: ${config.internalApiEndpoint}. Need corrected format: {host}:{port}`);
+      throw new Error(`Api endpoint for ${getCurrency().toUpperCase()} have un-correct format`);
+    }
+    this.host = apiEndpoint.hostname;
+    this.port = parseInt(apiEndpoint.port, 10);
     this.setup();
   }
 
@@ -48,6 +61,9 @@ export abstract class BaseWebServer {
 
       // TODO: Update check txid
       const tx = await this.getGateway(coin).getOneTransaction(txid);
+      if (!tx) {
+        return res.status(400).json({ error: `Transaction ${txid} is not transfer type.` });
+      }
       const senderAddr = tx.fromAddress;
       const receiverAddr = tx.toAddress;
       const amount = parseFloat(tx.amount);
