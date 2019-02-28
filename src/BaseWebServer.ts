@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import BaseGateway from './BaseGateway';
 import { getCurrency, getCurrencyConfig, getTokenBySymbol } from './EnvironmentData';
+import * as URL from 'url';
 import { getLogger } from './Logger';
 
 const logger = getLogger('BaseWebServer');
@@ -16,13 +17,13 @@ export abstract class BaseWebServer {
     if (!config) {
       throw new Error(`Cannot find configuration for ${getCurrency().toUpperCase()} at config table`);
     }
-    const apiEndpoint: string[] = config.internalApiEndpoint.split(':');
-    if (apiEndpoint.length < 2) {
+    const apiEndpoint = URL.parse(`http://${config.internalApiEndpoint}`);
+    if (!apiEndpoint.protocol || !apiEndpoint.hostname || !apiEndpoint.port) {
       logger.info(`Set api endpoint: ${config.internalApiEndpoint}. Need corrected format: {host}:{port}`);
       throw new Error(`Api endpoint for ${getCurrency().toUpperCase()} have un-correct format`);
     }
-    this.host = apiEndpoint[0];
-    this.port = parseInt(apiEndpoint[1], 10);
+    this.host = apiEndpoint.hostname;
+    this.port = parseInt(apiEndpoint.port, 10);
     this.setup();
   }
 
