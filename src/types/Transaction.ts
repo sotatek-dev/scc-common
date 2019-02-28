@@ -17,9 +17,6 @@ export abstract class Transaction implements ITransactionProps {
   public contractAddress: string;
   public confirmations: number;
 
-  public fromAddress: string;
-  public toAddress: string;
-  public amount: string;
   public memo: string;
 
   constructor(props: ITransactionProps, block: BlockHeader) {
@@ -28,11 +25,11 @@ export abstract class Transaction implements ITransactionProps {
   }
 
   /**
-   * Calculate and extract transfer output from a transaction
+   * Extract all every change  from a transaction
    *
    * @returns {TransferOutput[]} array of transfer outputs
    */
-  public abstract extractTransferOutputs(): TransferOutput[];
+  public abstract extractEntries(): TransferOutput[];
 
   /**
    * Extract recipient addresses.
@@ -51,6 +48,47 @@ export abstract class Transaction implements ITransactionProps {
       blockNumber: this.height,
       blockTimestamp: this.timestamp,
     };
+  }
+
+  /**
+   * Extract all positive entries
+   */
+  public extractTransferOutputs(): TransferOutput[] {
+    const res: TransferOutput[] = [];
+    const entries: TransferOutput[] = this.extractEntries();
+    entries.forEach(entry => {
+      if (parseFloat(entry.amount) >= 0) {
+        res.push(entry);
+      }
+    });
+    return res;
+  }
+
+  /**
+   * Merge all entries with unique addresses
+   * @param outputs
+   */
+  public mergeOutput(outputs: TransferOutput[]): TransferOutput[] {
+    const res: TransferOutput[] = [];
+    outputs.map(output => {
+      const item = res.find(i => i.toAddress === output.toAddress);
+      const itemIndex = res.findIndex(i => i.toAddress === output.toAddress);
+      if (!item) {
+        res.push(output);
+      } else {
+        res.splice(itemIndex, 1);
+        const newItem = {
+          amount: (parseFloat(item.amount) + parseFloat(output.amount)).toString(),
+          currency: output.currency,
+          subCurrency: output.currency,
+          toAddress: output.toAddress,
+          tx: output.tx,
+          txid: output.txid,
+        };
+        res.push(newItem);
+      }
+    });
+    return res;
   }
 
   public abstract getNetworkFee(): string;
