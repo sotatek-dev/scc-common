@@ -1,5 +1,6 @@
 import express from 'express';
 import morgan from 'morgan';
+import util from 'util';
 import BaseGateway from './BaseGateway';
 import { getCurrency, getCurrencyConfig, getTokenBySymbol } from './EnvironmentData';
 import * as URL from 'url';
@@ -17,7 +18,8 @@ export abstract class BaseWebServer {
     if (!config) {
       throw new Error(`Cannot find configuration for ${getCurrency().toUpperCase()} at config table`);
     }
-    const apiEndpoint = URL.parse(`http://${config.internalApiEndpoint}`);
+
+    const apiEndpoint = URL.parse(`${config.internalApiEndpoint}`);
     if (!apiEndpoint.protocol || !apiEndpoint.hostname || !apiEndpoint.port) {
       logger.info(`Set api endpoint: ${config.internalApiEndpoint}. Need corrected format: {host}:{port}`);
       throw new Error(`Api endpoint for ${getCurrency().toUpperCase()} have un-correct format`);
@@ -43,7 +45,7 @@ export abstract class BaseWebServer {
 
   protected async createNewAddress(req: any, res: any) {
     const coin: string = req.params.coin;
-    const address = this.getGateway(coin).createAccount();
+    const address = await this.getGateway(coin).createAccountAsync();
     res.json(address);
   }
 
@@ -92,10 +94,31 @@ export abstract class BaseWebServer {
   private setup() {
     this.app.use(morgan('dev'));
 
-    this.app.get('/api/:coin/address', this.createNewAddress.bind(this));
+    this.app.get('/api/:coin/address', async (req, res) => {
+      try {
+        await this.createNewAddress(req, res);
+      } catch (e) {
+        logger.error(`createNewAddress err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.toString() });
+      }
+    });
 
-    this.app.get('/api/:coin/address/:address/balance', this.getAddressBalance.bind(this));
+    this.app.get('/api/:coin/address/:address/balance', async (req, res) => {
+      try {
+        await this.getAddressBalance(req, res);
+      } catch (e) {
+        logger.error(`getAddressBalance err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.toString() });
+      }
+    });
 
-    this.app.get('/api/:coin/tx/:txid', this.getTransactionDetails.bind(this));
+    this.app.get('/api/:coin/tx/:txid', async (req, res) => {
+      try {
+        await this.getTransactionDetails(req, res);
+      } catch (e) {
+        logger.error(`getTransactionDetails err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.toString() });
+      }
+    });
   }
 }
