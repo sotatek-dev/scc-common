@@ -220,6 +220,15 @@ export abstract class BaseGateway {
   public abstract createAccount(): Account;
 
   /**
+   * With some currencies we cannot create account with a synchronous method
+   * Then we use this async method instead
+   * TBD: should we change behaviour to always using async method?
+   */
+  public async createAccountAsync(): Promise<Account> {
+    return this.createAccount();
+  }
+
+  /**
    * Returns all transactions in givent block.
    *
    * @param {string|number} blockHash: header hash or height of the block
