@@ -61,7 +61,7 @@ export abstract class BaseWebServer {
     // TODO: Update check txid
     const tx = await this.getGateway(coin).getOneTransaction(txid);
     if (!tx) {
-      return res.status(400).json({ error: `Transaction ${txid} is not transfer type.` });
+      return res.status(404).json({ error: `Transaction not found: ${txid}` });
     }
 
     const hasMemo = getTokenBySymbol(coin).hasMemo;
