@@ -6,6 +6,14 @@ export abstract class BaseDepositCollector extends BaseWithdrawalWorker {
   public abstract getAddressEntity(): any;
   public abstract getNextCheckAtAmount(): number;
 
+  /*
+   * Check whether a deposit is collectable
+   * There're a case the crawler crawl old deposit, which is already collected
+   **/
+  public async isCollectable(txid: string, address: string): Promise<boolean> {
+    return true;
+  }
+
   protected getBaseConsumerQueue(): string {
     return '';
   }
