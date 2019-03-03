@@ -190,7 +190,9 @@ export function buildListTokenSymbols(c: Currency, type?: string): any {
     tokenSymbolsBuilder = envTokenSymbols;
     tokenSymbols = tokenArray(tokenSymbolsBuilder);
   } else {
-    getLogger('Environment').warn(`Cannot find any token configuration in .env file. Missing TOKENS env. Will get all ${tokenType.toUpperCase()} tokens in currency table`);
+    getLogger('Environment').warn(
+      `Cannot find any token configuration in .env file. Missing TOKENS env. Will get all ${tokenType.toUpperCase()} tokens in currency table`
+    );
     const storedTokens = listTokenByType(type);
     if (!storedTokens.size) {
       getLogger('Environment').warn(`Cannot find any ${type} token configuration in database`);
@@ -233,6 +235,10 @@ export function getAppId(): string {
 
 export function getMinimumDepositAmount(c: string): string {
   return getTokenBySymbol(c).minimumDeposit;
+}
+
+export function getCurrencyDecimal(c: string): number {
+  return getTokenBySymbol(c).decimal;
 }
 
 export function getCurrency(): Currency {
