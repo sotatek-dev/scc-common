@@ -1,8 +1,9 @@
 import BaseWithdrawalWorker from './BaseWithdrawalWorker';
 import { MessageQueueName } from './Enums';
+import BN from 'bignumber.js';
 
 export abstract class BaseDepositCollector extends BaseWithdrawalWorker {
-  protected _nextTickTimer: number = 60 * 1000;
+  protected _nextTickTimer: number = 10 * 1000;
   public abstract getAddressEntity(): any;
   public abstract getNextCheckAtAmount(): number;
 
@@ -11,7 +12,12 @@ export abstract class BaseDepositCollector extends BaseWithdrawalWorker {
    * There're a case the crawler crawl old deposit, which is already collected
    **/
   public async isCollectable(txid: string, address: string, amount: string): Promise<boolean> {
-    return true;
+    const gateway = this.getGateway();
+    const balance = await gateway.getAddressBalance(address);
+    const balanceNumber = new BN(balance);
+    const amountNumber = new BN(amount);
+
+    return balanceNumber.gte(amountNumber);
   }
 
   protected getBaseConsumerQueue(): string {
