@@ -10,7 +10,7 @@ export abstract class BaseDepositCollector extends BaseWithdrawalWorker {
    * Check whether a deposit is collectable
    * There're a case the crawler crawl old deposit, which is already collected
    **/
-  public async isCollectable(txid: string, address: string): Promise<boolean> {
+  public async isCollectable(txid: string, address: string, amount: string): Promise<boolean> {
     return true;
   }
 
