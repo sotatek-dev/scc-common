@@ -17,8 +17,6 @@ export abstract class Transaction implements ITransactionProps {
   public contractAddress: string;
   public confirmations: number;
 
-  public memo: string;
-
   constructor(props: ITransactionProps, block: BlockHeader) {
     Object.assign(this, props);
     this.block = block;
@@ -90,6 +88,8 @@ export abstract class Transaction implements ITransactionProps {
     });
     return res;
   }
+
+  public abstract extractAdditionalField(): any;
 
   public abstract getNetworkFee(): string;
 }

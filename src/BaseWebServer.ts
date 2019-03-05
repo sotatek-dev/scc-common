@@ -65,7 +65,6 @@ export abstract class BaseWebServer {
         return res.status(400).json({ error: `Transaction ${txid} is not transfer type.` });
       }
 
-      const hasMemo = getTokenBySymbol(coin).hasMemo;
       const entries: any[] = [];
       const extractedEntries = tx.extractEntries();
       extractedEntries.forEach(e => {
@@ -75,7 +74,7 @@ export abstract class BaseWebServer {
           valueString: e.amount,
         });
       });
-      
+
       let resObj = {
         id: txid,
         date: '',
@@ -85,9 +84,7 @@ export abstract class BaseWebServer {
         confirmations: tx.confirmations,
         entries,
       };
-      if (hasMemo) {
-        resObj = Object.assign({}, resObj, { memo: tx.memo });
-      }
+      resObj = { ...resObj, ...tx.extractAdditionalField() };
 
       return res.json(resObj);
     });
