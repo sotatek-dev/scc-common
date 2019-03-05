@@ -55,6 +55,12 @@ export abstract class BaseWebServer {
     res.json({ balance });
   }
 
+  protected async validateAddress(req: any, res: any) {
+    const { coin, address } = req.params;
+    const isValid = await this.getGateway(coin).isValidAddressAsync(address);
+    res.json({ isValid });
+  }
+
   protected async getTransactionDetails(req: any, res: any) {
     const { coin, txid } = req.params;
 
@@ -108,6 +114,15 @@ export abstract class BaseWebServer {
         await this.getAddressBalance(req, res);
       } catch (e) {
         logger.error(`getAddressBalance err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.toString() });
+      }
+    });
+
+    this.app.get('/api/:coin/address/:address/validate', async (req, res) => {
+      try {
+        await this.validateAddress(req, res);
+      } catch (e) {
+        logger.error(`validateAddress err=${util.inspect(e)}`);
         res.status(500).json({ error: e.toString() });
       }
     });
