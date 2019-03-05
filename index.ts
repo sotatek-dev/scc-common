@@ -1,5 +1,3 @@
-import { override } from './src/Utils';
-
 try {
   require('dotenv-safe').config();
 } catch (e) {
@@ -9,9 +7,6 @@ try {
 
 import * as Utils from './src/Utils';
 export { Utils };
-
-import { setBlockchainNetworkEnv } from './src/EnvironmentData';
-/*setBlockchainNetworkEnv();*/
 
 export * from './src/Const';
 export * from './src/Logger';

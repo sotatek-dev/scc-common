@@ -1,4 +1,5 @@
 import amqp, { Options } from 'amqplib';
+import util from 'util';
 import { getLogger } from './Logger';
 
 const logger = getLogger('BaseMQConsumer');
@@ -38,7 +39,7 @@ export function BaseMQConsumer<TBase extends Constructor>(Base: TBase) {
               channel.nack(msg);
             }
           } catch (e) {
-            logger.error(`${this.constructor.name} error when consuming msg=${msg}`);
+            logger.error(`${this.constructor.name} error when consuming msg=${util.inspect(msg)}`);
             logger.error(e);
             // Skip the msg that causes exception
             channel.ack(msg);
