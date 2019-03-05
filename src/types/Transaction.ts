@@ -89,7 +89,12 @@ export abstract class Transaction implements ITransactionProps {
     return res;
   }
 
-  public abstract extractAdditionalField(): any;
+  /**
+   * Additional field for special field of some kind of transaction
+   */
+  public extractAdditionalField(): any {
+    return {}
+  };
 
   public abstract getNetworkFee(): string;
 }
