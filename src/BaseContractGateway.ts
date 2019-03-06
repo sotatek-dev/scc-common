@@ -80,25 +80,9 @@ export abstract class BaseContractGateway extends BaseGateway {
   }
 
   @implement
-  public getInteractContract(): any {
+  public getInteractContract(): ITokenContract {
     // if existed
-    if (this._interactedContract && this._interactedContract.contractAddress) {
-      return this._interactedContract;
-    }
-
-    // if currency has contract like usdt, eos
-    const tokenContract = getToken(getListTokenSymbols().tokenSymbolsBuilder, getType());
-    if (!tokenContract || !tokenContract.contractAddress) {
-      return null;
-    }
-    return {
-      token: {
-        contractAddress: tokenContract.contractAddress,
-        name: tokenContract.name,
-        symbol: tokenContract.symbol,
-      },
-      contractAddress: tokenContract.contractAddress,
-    };
+    return this._interactedContract && this._interactedContract.contractAddress ? this._interactedContract : null;
   }
 
   @implement
