@@ -2,7 +2,7 @@ import { getLogger } from './Logger';
 import { v1 as uuid } from 'uuid';
 import BaseCrawler from './BaseCrawler';
 import CrawlerOptions from './CrawlerOptions';
-import { getListTokenSymbols } from './EnvironmentData';
+import {getCurrency, getListTokenSymbols} from './EnvironmentData';
 import { Errors } from './Enums';
 
 const logger = getLogger('CrawlerManager');
@@ -13,6 +13,7 @@ const LATEST_PROCESSED_BLOCK = new Map<string, number>();
 class CrawlerManager {
   private _id: string;
   private _isStarted: boolean;
+  private _crawlerOptions: CrawlerOptions;
 
   constructor() {
     // Generate unique id for each process
@@ -31,6 +32,7 @@ class CrawlerManager {
     }
 
     this._isStarted = true;
+    this._crawlerOptions = options;
     this.doCrawl(CrawlerClass, options);
   }
 
@@ -49,14 +51,36 @@ class CrawlerManager {
         }, timeout);
       })
       .catch(err => {
-        logger.error(`==============================================================================`);
-        logger.error(err ? err.toString() : 'Error undefined');
-        logger.error(`Something went wrong while crawling data. Crawler will be restarted shortly...`);
-        logger.error(`==============================================================================`);
+        this.errorToString(err);
+        this.handleError(err);
         setTimeout(() => {
           this.doCrawl(CrawlerClass, options);
-        }, 3000);
+        }, 6000);
       });
+  }
+
+  /**
+   * With some can be handled error
+   * @param err
+   */
+  public handleError(err: any) {
+    if (err.code === Errors.missPreparedData.code) {
+      this._crawlerOptions.prepareWalletBalanceAll(getCurrency(), getListTokenSymbols().tokenSymbols).then(
+      ).catch(e => {
+        throw e;
+      })
+    }
+  }
+
+  /**
+   * Log error to console
+   * @param err
+   */
+  public errorToString(err: any) {
+    logger.error(`==============================================================================`);
+    logger.error(err ? err.toString() : 'Error undefined');
+    logger.error(`Something went wrong while crawling data. Crawler will be restarted shortly...`);
+    logger.error(`==============================================================================`);
   }
 
   /**

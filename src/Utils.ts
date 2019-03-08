@@ -36,15 +36,16 @@ export async function PromiseAll(values: any[]): Promise<any[]> {
   await (async () => {
     return await Promise.all(values.map(reflect));
   })().then(async res => {
-    const errors: string[] = [];
+    const errors: any[] = [];
     results = res.map(r => {
       if (r.status === 'rejected') {
-        errors.push(_removeDoubleQuote(r.error.message));
+        errors.push(r.error);
       }
       return r.data;
     });
     if (errors.length !== 0) {
-      throw new Error('errors: ' + JSON.stringify(errors));
+      // have lots of error, throw first error
+      throw errors[0];
     }
   });
   return results;
