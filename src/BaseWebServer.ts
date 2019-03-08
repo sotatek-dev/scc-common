@@ -11,7 +11,7 @@ const logger = getLogger('BaseWebServer');
 export abstract class BaseWebServer {
   public host: string;
   public port: number;
-  private app: express.Express = express();
+  protected app: express.Express = express();
 
   public constructor() {
     const config = getCurrencyConfig(getCurrency());
