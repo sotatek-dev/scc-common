@@ -94,7 +94,7 @@ export abstract class BaseWebServer {
     return res.json(resObj);
   }
 
-  private setup() {
+  protected setup() {
     this.app.use(morgan('dev'));
 
     this.app.get('/api/:coin/address', async (req, res) => {
