@@ -102,7 +102,7 @@ export abstract class BaseWebServer {
         await this.createNewAddress(req, res);
       } catch (e) {
         logger.error(`createNewAddress err=${util.inspect(e)}`);
-        res.status(500).json({ error: e.toString() });
+        res.status(500).json({ error: e.message || e.toString() });
       }
     });
 
@@ -111,7 +111,7 @@ export abstract class BaseWebServer {
         await this.getAddressBalance(req, res);
       } catch (e) {
         logger.error(`getAddressBalance err=${util.inspect(e)}`);
-        res.status(500).json({ error: e.toString() });
+        res.status(500).json({ error: e.message || e.toString() });
       }
     });
 
@@ -120,7 +120,7 @@ export abstract class BaseWebServer {
         await this.validateAddress(req, res);
       } catch (e) {
         logger.error(`validateAddress err=${util.inspect(e)}`);
-        res.status(500).json({ error: e.toString() });
+        res.status(500).json({ error: e.message || e.toString() });
       }
     });
 
@@ -129,7 +129,7 @@ export abstract class BaseWebServer {
         await this.getTransactionDetails(req, res);
       } catch (e) {
         logger.error(`getTransactionDetails err=${util.inspect(e)}`);
-        res.status(500).json({ error: e.toString() });
+        res.status(500).json({ error: e.message || e.toString() });
       }
     });
   }
