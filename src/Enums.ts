@@ -34,7 +34,7 @@ class ErrorDetails {
     this.code = code;
   }
   public toString(): string {
-    return this.cause? this.message + ` due to ${this.cause}`: this.message;
+    return this.cause ? this.message + ` due to ${this.cause}` : this.message;
   }
 
   public due(reason: string) {

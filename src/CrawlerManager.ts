@@ -2,7 +2,7 @@ import { getLogger } from './Logger';
 import { v1 as uuid } from 'uuid';
 import BaseCrawler from './BaseCrawler';
 import CrawlerOptions from './CrawlerOptions';
-import {getCurrency, getListTokenSymbols} from './EnvironmentData';
+import { getCurrency, getListTokenSymbols } from './EnvironmentData';
 import { Errors } from './Enums';
 
 const logger = getLogger('CrawlerManager');
@@ -65,10 +65,12 @@ class CrawlerManager {
    */
   public handleError(err: any) {
     if (err.code === Errors.missPreparedData.code) {
-      this._crawlerOptions.prepareWalletBalanceAll(getCurrency(), getListTokenSymbols().tokenSymbols).then(
-      ).catch(e => {
-        throw e;
-      })
+      this._crawlerOptions
+        .prepareWalletBalanceAll(getCurrency(), getListTokenSymbols().tokenSymbols)
+        .then()
+        .catch(e => {
+          throw e;
+        });
     }
   }
 
