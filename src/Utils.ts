@@ -1,4 +1,5 @@
 // Get current timestamp in millisecond
+import URL from 'url';
 import BigNumber from 'bignumber.js';
 import { getFamily, getTokenBySymbol } from './EnvironmentData';
 import BaseGateway from './BaseGateway';
@@ -14,6 +15,16 @@ export function now(): number {
 
 export function nowInSeconds(): number {
   return (nowInMillis() / 1000) | 0;
+}
+
+export function isValidURL(urlString: string): boolean {
+  try {
+    const parsedUrl = new URL.URL(urlString);
+  } catch (e) {
+    return false;
+  }
+
+  return true;
 }
 
 export function reflect(promise: any) {
