@@ -16,10 +16,12 @@ export abstract class Transaction implements ITransactionProps {
   // Its value is empty or a contract address
   public contractAddress: string;
   public confirmations: number;
+  public isFailed: boolean;
 
   constructor(props: ITransactionProps, block: BlockHeader) {
     Object.assign(this, props);
     this.block = block;
+    this.isFailed = false;
   }
 
   /**
