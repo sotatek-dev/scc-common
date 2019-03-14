@@ -50,6 +50,19 @@ export abstract class Transaction implements ITransactionProps {
     };
   }
 
+  // With entries that balance change avalue is negative,
+  // that is balance changing of senders
+  public extractSenderAddresses(): string[] {
+    const res: TransferOutput[] = [];
+    const entries: TransferOutput[] = this.extractEntries();
+    entries.forEach(entry => {
+      if (parseFloat(entry.amount) < 0) {
+        res.push(entry);
+      }
+    });
+    return res.map(t => t.toAddress);
+  }
+
   /**
    * Extract all positive entries
    */
