@@ -146,10 +146,11 @@ class CrawlerManager {
 
     /**
      * Actual crawl and process blocks
+     * about 10 minutes timeout based on speed of gateway
      */
-    // about 10 minutes timeout
     const timeOut = new Promise(resolve => {
-      const timer = setTimeout(resolve, 60000);
+      const time = crawler.getGateway().isFastGateway() ? 10000 : 600000;
+      const timer = setTimeout(resolve, time);
       Sub('endTimer', () => {
         resolve();
         clearTimeout(timer);
