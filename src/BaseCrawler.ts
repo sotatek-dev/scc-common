@@ -3,6 +3,7 @@ import { getLogger } from './Logger';
 import BaseGateway from './BaseGateway';
 import CrawlerOptions from './CrawlerOptions';
 import { getListTokenSymbols, getTokenBySymbol } from './EnvironmentData';
+import { Pub } from './PubSub';
 
 const logger = getLogger('BaseCrawler');
 
@@ -85,9 +86,9 @@ export abstract class BaseCrawler {
    * @returns {number} the highest block that is considered as confirmed
    */
   public async processBlocks(
-      fromBlockNumber: number,
-      toBlockNumber: number,
-      latestNetworkBlock: number
+    fromBlockNumber: number,
+    toBlockNumber: number,
+    latestNetworkBlock: number
   ): Promise<void> {
     const symbol = getListTokenSymbols().tokenSymbolsBuilder.toUpperCase();
     logger.info(`${symbol}::processBlocks BEGIN: ${fromBlockNumber}→${toBlockNumber} / ${latestNetworkBlock}`);
@@ -100,6 +101,7 @@ export abstract class BaseCrawler {
 
     logger.info(`${symbol}::_processBlocks FINISH: ${fromBlockNumber}→${toBlockNumber}, txs=${allTxs.length}`);
     this.processBlocksDone = true;
+    Pub('endTimer', true);
   }
 }
 
