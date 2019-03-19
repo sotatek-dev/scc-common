@@ -48,3 +48,5 @@ Errors.rpcError = new ErrorDetails('rpc node error', 1819);
 Errors.apiEndpointError = new ErrorDetails('api node error', 1819);
 Errors.missPreparedData = new ErrorDetails('some missing on prepared data from database', 1820);
 Errors.crawlerTimeout = new ErrorDetails('crawler blocks timeout', 1821);
+Errors.txInvalid = new ErrorDetails('withdrawal transaction invalid', 2818);
+Errors.txSentFailed = new ErrorDetails('send raw transaction failed', 2819);
