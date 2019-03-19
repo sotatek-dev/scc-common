@@ -95,9 +95,16 @@ class CrawlerManager {
     options: CrawlerOptions
   ): Promise<number> {
     const crawler = new CrawlerClass(options);
+    const duration = crawler.getGateway().isFastGateway() ? 10000 : 600000;
+    const timer = setTimeout(() => {
+      logger.error(`Timeout duration (${duration}ms) is exceeded. Crawler will be restarted shortly...`);
+      process.exit(1);
+    }, duration);
+
     // Check RPC node...
     const check = await crawler.getGateway().checkRPCNode(getListTokenSymbols().tokenSymbolsBuilder);
     if (!check) {
+      clearTimeout(timer);
       throw Errors.rpcError;
     }
 
@@ -127,6 +134,7 @@ class CrawlerManager {
       logger.info(
         `Block <${fromBlockNumber}> is the newest block can be processed (on network: ${latestNetworkBlock}). Wait for the next tick...`
       );
+      clearTimeout(timer);
       return crawler.getAverageBlockTime();
     }
 
@@ -140,6 +148,7 @@ class CrawlerManager {
 
     /**
      * Actual crawl and process blocks
+     * about 10 minutes timeout based on speed of gateway
      */
     await crawler.processBlocks(fromBlockNumber, toBlockNumber, latestNetworkBlock);
 
@@ -166,6 +175,7 @@ class CrawlerManager {
       timeout = crawler.getAverageBlockTime();
     }
 
+    clearTimeout(timer);
     return timeout;
   }
 }
