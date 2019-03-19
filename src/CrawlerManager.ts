@@ -4,6 +4,7 @@ import BaseCrawler from './BaseCrawler';
 import CrawlerOptions from './CrawlerOptions';
 import { getCurrency, getListTokenSymbols } from './EnvironmentData';
 import { Errors } from './Enums';
+import { Utils } from '../index';
 
 const logger = getLogger('CrawlerManager');
 
@@ -41,22 +42,22 @@ class CrawlerManager {
    * @param {Class} CrawlerClass - the class of crawler will be running
    */
   public doCrawl<T extends BaseCrawler>(
-    CrawlerClass: new (options: CrawlerOptions) => T,
-    options: CrawlerOptions
+      CrawlerClass: new (options: CrawlerOptions) => T,
+      options: CrawlerOptions
   ): void {
     this._doCrawl(CrawlerClass, options)
-      .then(timeout => {
-        setTimeout(() => {
-          this.doCrawl(CrawlerClass, options);
-        }, timeout);
-      })
-      .catch(err => {
-        this.errorToString(err);
-        this.handleError(err);
-        setTimeout(() => {
-          this.doCrawl(CrawlerClass, options);
-        }, 6000);
-      });
+        .then(timeout => {
+          setTimeout(() => {
+            this.doCrawl(CrawlerClass, options);
+          }, timeout);
+        })
+        .catch(err => {
+          this.errorToString(err);
+          this.handleError(err);
+          setTimeout(() => {
+            this.doCrawl(CrawlerClass, options);
+          }, 6000);
+        });
   }
 
   /**
@@ -66,11 +67,11 @@ class CrawlerManager {
   public handleError(err: any) {
     if (err.code === Errors.missPreparedData.code) {
       this._crawlerOptions
-        .prepareWalletBalanceAll(getCurrency(), getListTokenSymbols().tokenSymbols)
-        .then()
-        .catch(e => {
-          throw e;
-        });
+          .prepareWalletBalanceAll(getCurrency(), getListTokenSymbols().tokenSymbols)
+          .then()
+          .catch(e => {
+            throw e;
+          });
     }
   }
 
@@ -79,6 +80,10 @@ class CrawlerManager {
    * @param err
    */
   public errorToString(err: any) {
+    if (err.code === Errors.crawlerTimeout.code) {
+      logger.warn(`Crawler time out. It will be restarted shortly...`);
+      return;
+    }
     logger.error(`==============================================================================`);
     logger.error(err ? err.toString() : 'Error undefined');
     logger.error(`Something went wrong while crawling data. Crawler will be restarted shortly...`);
@@ -91,8 +96,8 @@ class CrawlerManager {
    * @returns {Number} timeout - the timeout duration until the next tick
    */
   public async _doCrawl<T extends BaseCrawler>(
-    CrawlerClass: new (options: CrawlerOptions) => T,
-    options: CrawlerOptions
+      CrawlerClass: new (options: CrawlerOptions) => T,
+      options: CrawlerOptions
   ): Promise<number> {
     const crawler = new CrawlerClass(options);
     // Check RPC node...
@@ -125,7 +130,7 @@ class CrawlerManager {
      */
     if (fromBlockNumber > latestNetworkBlock) {
       logger.info(
-        `Block <${fromBlockNumber}> is the newest block can be processed (on network: ${latestNetworkBlock}). Wait for the next tick...`
+          `Block <${fromBlockNumber}> is the newest block can be processed (on network: ${latestNetworkBlock}). Wait for the next tick...`
       );
       return crawler.getAverageBlockTime();
     }
@@ -141,7 +146,18 @@ class CrawlerManager {
     /**
      * Actual crawl and process blocks
      */
-    await crawler.processBlocks(fromBlockNumber, toBlockNumber, latestNetworkBlock);
+    // about 10 minutes timeout
+    const timeOut = new Promise(resolve => setTimeout(resolve, 600000));
+    // reset value of blocks processing
+    crawler.processBlocksDone = false;
+    await Utils.PromiseAll([
+      timeOut.then(() => {
+        if (!crawler.processBlocksDone) {
+          throw Errors.crawlerTimeout;
+        }
+      }),
+      crawler.processBlocks(fromBlockNumber, toBlockNumber, latestNetworkBlock),
+    ]);
 
     /**
      * Safe block number is the highest crawled block that has enough confirmations

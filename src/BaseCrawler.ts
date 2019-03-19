@@ -8,6 +8,7 @@ const logger = getLogger('BaseCrawler');
 
 export abstract class BaseCrawler {
   public _gateway: BaseGateway;
+  public processBlocksDone: boolean = false;
   private readonly _id: string;
   private readonly _options: CrawlerOptions;
 
@@ -84,9 +85,9 @@ export abstract class BaseCrawler {
    * @returns {number} the highest block that is considered as confirmed
    */
   public async processBlocks(
-    fromBlockNumber: number,
-    toBlockNumber: number,
-    latestNetworkBlock: number
+      fromBlockNumber: number,
+      toBlockNumber: number,
+      latestNetworkBlock: number
   ): Promise<void> {
     const symbol = getListTokenSymbols().tokenSymbolsBuilder.toUpperCase();
     logger.info(`${symbol}::processBlocks BEGIN: ${fromBlockNumber}→${toBlockNumber} / ${latestNetworkBlock}`);
@@ -98,6 +99,7 @@ export abstract class BaseCrawler {
     await this._options.onCrawlingTxs(this, allTxs);
 
     logger.info(`${symbol}::_processBlocks FINISH: ${fromBlockNumber}→${toBlockNumber}, txs=${allTxs.length}`);
+    this.processBlocksDone = true;
   }
 }
 
