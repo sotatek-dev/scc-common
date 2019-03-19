@@ -41,22 +41,22 @@ class CrawlerManager {
    * @param {Class} CrawlerClass - the class of crawler will be running
    */
   public doCrawl<T extends BaseCrawler>(
-    CrawlerClass: new (options: CrawlerOptions) => T,
-    options: CrawlerOptions
+      CrawlerClass: new (options: CrawlerOptions) => T,
+      options: CrawlerOptions
   ): void {
     this._doCrawl(CrawlerClass, options)
-      .then(timeout => {
-        setTimeout(() => {
-          this.doCrawl(CrawlerClass, options);
-        }, timeout);
-      })
-      .catch(err => {
-        this.errorToString(err);
-        this.handleError(err);
-        setTimeout(() => {
-          this.doCrawl(CrawlerClass, options);
-        }, 6000);
-      });
+        .then(timeout => {
+          setTimeout(() => {
+            this.doCrawl(CrawlerClass, options);
+          }, timeout);
+        })
+        .catch(err => {
+          this.errorToString(err);
+          this.handleError(err);
+          setTimeout(() => {
+            this.doCrawl(CrawlerClass, options);
+          }, 6000);
+        });
   }
 
   /**
@@ -66,11 +66,11 @@ class CrawlerManager {
   public handleError(err: any) {
     if (err.code === Errors.missPreparedData.code) {
       this._crawlerOptions
-        .prepareWalletBalanceAll(getCurrency(), getListTokenSymbols().tokenSymbols)
-        .then()
-        .catch(e => {
-          throw e;
-        });
+          .prepareWalletBalanceAll(getCurrency(), getListTokenSymbols().tokenSymbols)
+          .then()
+          .catch(e => {
+            throw e;
+          });
     }
   }
 
@@ -91,13 +91,18 @@ class CrawlerManager {
    * @returns {Number} timeout - the timeout duration until the next tick
    */
   public async _doCrawl<T extends BaseCrawler>(
-    CrawlerClass: new (options: CrawlerOptions) => T,
-    options: CrawlerOptions
+      CrawlerClass: new (options: CrawlerOptions) => T,
+      options: CrawlerOptions
   ): Promise<number> {
     const crawler = new CrawlerClass(options);
+    const timer = setTimeout(() => {
+      process.exit(1);
+    }, crawler.getGateway().isFastGateway() ? 10000 : 600000);
+
     // Check RPC node...
     const check = await crawler.getGateway().checkRPCNode(getListTokenSymbols().tokenSymbolsBuilder);
     if (!check) {
+      clearTimeout(timer);
       throw Errors.rpcError;
     }
 
@@ -125,8 +130,9 @@ class CrawlerManager {
      */
     if (fromBlockNumber > latestNetworkBlock) {
       logger.info(
-        `Block <${fromBlockNumber}> is the newest block can be processed (on network: ${latestNetworkBlock}). Wait for the next tick...`
+          `Block <${fromBlockNumber}> is the newest block can be processed (on network: ${latestNetworkBlock}). Wait for the next tick...`
       );
+      clearTimeout(timer);
       return crawler.getAverageBlockTime();
     }
 
@@ -140,6 +146,7 @@ class CrawlerManager {
 
     /**
      * Actual crawl and process blocks
+     * about 10 minutes timeout based on speed of gateway
      */
     await crawler.processBlocks(fromBlockNumber, toBlockNumber, latestNetworkBlock);
 
@@ -166,6 +173,7 @@ class CrawlerManager {
       timeout = crawler.getAverageBlockTime();
     }
 
+    clearTimeout(timer);
     return timeout;
   }
 }
