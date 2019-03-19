@@ -57,3 +57,7 @@ export interface IVIn {
   fromAddress: string;
   amount: string;
 }
+
+export interface ISubmittedTransaction {
+  readonly txid: string;
+}

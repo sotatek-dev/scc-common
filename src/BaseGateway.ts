@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import LRU from 'lru-cache';
 import { Account, Block, Transaction, Transactions } from './types';
 import { TransactionStatus } from './Enums';
-import { IRawTransaction, IVOut, ISignedRawTransaction, IConfig } from './Interfaces';
+import { IRawTransaction, IVOut, ISignedRawTransaction, IConfig, ISubmittedTransaction } from './Interfaces';
 import { FetchError } from 'node-fetch';
 import { Currency } from './Currency';
 import { implement } from './Utils';
@@ -269,7 +269,7 @@ export abstract class BaseGateway {
    * @param {String} rawTx: the hex-encoded transaction data
    * @returns {String}: the transaction hash in hex
    */
-  public abstract async sendRawTransaction(rawTx: string): Promise<any>;
+  public abstract async sendRawTransaction(rawTx: string): Promise<ISubmittedTransaction>;
 
   /**
    * Get balance of an address
@@ -316,7 +316,7 @@ export abstract class BaseGateway {
     fromAddress: string,
     toAddress: string,
     amount: string
-  ): Promise<any>;
+  ): Promise<ISubmittedTransaction>;
 
   /**
    * Check whether a transaction is finalized on blockchain network
@@ -345,13 +345,9 @@ export abstract class BaseGateway {
     fromAddress: string,
     toAddress: string,
     amount: string
-  ): Promise<any> {
-    const rawTx = await this.createRawTransaction(fromAddress, [
-      {
-        toAddress,
-        amount,
-      },
-    ]);
+  ): Promise<ISubmittedTransaction> {
+    const vouts = [{ toAddress, amount }];
+    const rawTx = await this.createRawTransaction(fromAddress, vouts);
     const signedTx = await this.signRawTxBySinglePrivateKey(rawTx.unsignedRaw, privateKey);
     return this.sendRawTransaction(signedTx.signedRaw);
   }
