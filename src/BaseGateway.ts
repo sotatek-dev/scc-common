@@ -98,10 +98,11 @@ export abstract class BaseGateway {
    */
   @implement
   public async getTransactionsByIds(txids: string[]): Promise<Transactions> {
-    if (!txids) {
-      return null;
-    }
     const result = new Transactions();
+    if (!txids || !txids.length) {
+      return result;
+    }
+
     const getOneTx = async (txid: string) => {
       const tx = await this.getOneTransaction(txid);
       if (tx) {
@@ -161,11 +162,7 @@ export abstract class BaseGateway {
       blockNumbers.map(async blockNumber => {
         const txs = await this.getBlockTransactions(blockNumber);
         const transactions = _.compact(txs);
-        // TODO: Find a more elegant way to concat customized array types
-        // result = result.concat(txs);
-        if (transactions) {
-          transactions.forEach(tx => result.push(tx));
-        }
+        result.push(...transactions);
       })
     );
     return result;
