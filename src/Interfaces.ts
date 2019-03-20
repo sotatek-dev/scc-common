@@ -60,4 +60,5 @@ export interface IVIn {
 
 export interface ISubmittedTransaction {
   readonly txid: string;
+  readonly blockNumber?: number;
 }
