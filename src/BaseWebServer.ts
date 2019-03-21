@@ -59,6 +59,12 @@ export abstract class BaseWebServer {
     res.json({ balance });
   }
 
+  protected async getCurrencyInfo(req: any, res: any) {
+    const { address } = req.params;
+    const result = await this.getGateway().getCurrencyInfo(address);
+    res.json(result);
+  }
+
   protected async validateAddress(req: any, res: any) {
     const { coin, address } = req.params;
     const isValid = await this.getGateway(coin).isValidAddressAsync(address);
@@ -142,7 +148,16 @@ export abstract class BaseWebServer {
       }
     });
 
-    this.app.get('/api/:coin/restart', async (req, res) => {
+    this.app.get('/api/config/:address', async (req, res) => {
+      try {
+        await this.getCurrencyInfo(req, res);
+      } catch (e) {
+        logger.error(`err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.message || e.toString() });
+      }
+    });
+
+    this.app.get('/api/restart', async (req, res) => {
       try {
         await this.restart(req, res);
       } catch (e) {
