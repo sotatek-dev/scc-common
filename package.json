@@ -18,6 +18,7 @@
     "@types/morgan": "1.7.35",
     "@types/mysql": "2.15.5",
     "@types/node-fetch": "2.1.4",
+    "@types/redis": "^2.8.11",
     "@types/uuid": "3.4.4",
     "amqplib": "0.5.3",
     "aws-sdk": "2.400.0",
@@ -30,6 +31,7 @@
     "morgan": "1.9.1",
     "mysql": "2.16.0",
     "node-fetch": "2.3.0",
+    "redis": "^2.8.0",
     "uuid": "3.3.2",
     "winston": "3.2.1",
     "winston-cloudwatch": "2.0.4"

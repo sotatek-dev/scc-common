@@ -5,6 +5,7 @@ import BaseGateway from './BaseGateway';
 import { getCurrency, getCurrencyConfig, getTokenBySymbol } from './EnvironmentData';
 import * as URL from 'url';
 import { getLogger } from './Logger';
+import { subForTokenChanged } from './RedisChannel';
 
 const logger = getLogger('BaseWebServer');
 
@@ -27,6 +28,9 @@ export abstract class BaseWebServer {
     this.host = apiEndpoint.hostname;
     this.port = parseInt(apiEndpoint.port, 10);
     this.setup();
+
+    // redis
+    subForTokenChanged();
   }
 
   public abstract gatewayClass(): any;
@@ -53,6 +57,12 @@ export abstract class BaseWebServer {
     const { coin, address } = req.params;
     const balance = await this.getGateway(coin).getAddressBalance(address);
     res.json({ balance });
+  }
+
+  protected async getCurrencyInfo(req: any, res: any) {
+    const { address } = req.params;
+    const result = await this.getGateway().getCurrencyInfo(address);
+    res.json(result);
   }
 
   protected async validateAddress(req: any, res: any) {
@@ -129,6 +139,15 @@ export abstract class BaseWebServer {
         await this.getTransactionDetails(req, res);
       } catch (e) {
         logger.error(`getTransactionDetails err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.message || e.toString() });
+      }
+    });
+
+    this.app.get('/api/currency_config/:address', async (req, res) => {
+      try {
+        await this.getCurrencyInfo(req, res);
+      } catch (e) {
+        logger.error(`err=${util.inspect(e)}`);
         res.status(500).json({ error: e.message || e.toString() });
       }
     });
