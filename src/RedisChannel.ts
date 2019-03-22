@@ -10,10 +10,3 @@ export function subForTokenChanged() {
     sub.subscribe(`${getType()}tokenAddedChan`);
   }
 }
-
-export function shutDownRequest() {
-  if (getType()) {
-    const pub = createClient();
-    pub.publish(`${getType()}tokenAddedChan`, 'newToken');
-  }
-}

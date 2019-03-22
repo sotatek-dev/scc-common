@@ -5,7 +5,7 @@ import BaseGateway from './BaseGateway';
 import { getCurrency, getCurrencyConfig, getTokenBySymbol } from './EnvironmentData';
 import * as URL from 'url';
 import { getLogger } from './Logger';
-import { shutDownRequest, subForTokenChanged } from './RedisChannel';
+import { subForTokenChanged } from './RedisChannel';
 
 const logger = getLogger('BaseWebServer');
 
@@ -69,11 +69,6 @@ export abstract class BaseWebServer {
     const { coin, address } = req.params;
     const isValid = await this.getGateway(coin).isValidAddressAsync(address);
     res.json({ isValid });
-  }
-
-  protected async restart(req: any, res: any) {
-    shutDownRequest();
-    res.json({ restart: 'ok' });
   }
 
   protected async getTransactionDetails(req: any, res: any) {
@@ -151,15 +146,6 @@ export abstract class BaseWebServer {
     this.app.get('/api/config/:address', async (req, res) => {
       try {
         await this.getCurrencyInfo(req, res);
-      } catch (e) {
-        logger.error(`err=${util.inspect(e)}`);
-        res.status(500).json({ error: e.message || e.toString() });
-      }
-    });
-
-    this.app.get('/api/restart', async (req, res) => {
-      try {
-        await this.restart(req, res);
       } catch (e) {
         logger.error(`err=${util.inspect(e)}`);
         res.status(500).json({ error: e.message || e.toString() });
