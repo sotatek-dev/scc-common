@@ -2,7 +2,14 @@ import * as _ from 'lodash';
 import LRU from 'lru-cache';
 import { Account, Block, Transaction, Transactions } from './types';
 import { TransactionStatus } from './Enums';
-import { IRawTransaction, IVOut, ISignedRawTransaction, IConfig, ISubmittedTransaction } from './Interfaces';
+import {
+  IRawTransaction,
+  IVOut,
+  ISignedRawTransaction,
+  IConfig,
+  ISubmittedTransaction,
+  ITokenRemake,
+} from './Interfaces';
 import { FetchError } from 'node-fetch';
 import { Currency } from './Currency';
 import { implement } from './Utils';
@@ -37,6 +44,10 @@ export abstract class BaseGateway {
       throw new Error('Network type required');
     }
     return process.env.NETWORK;
+  }
+
+  public async getCurrencyInfo(address: string): Promise<ITokenRemake> {
+    return null;
   }
 
   @implement

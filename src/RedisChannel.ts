@@ -1,14 +1,19 @@
 import { createClient } from 'redis';
+import { getType } from './EnvironmentData';
 
 export function subForTokenChanged() {
-  const sub = createClient();
-  sub.on('message', (channel, message) => {
-    process.exit(1);
-  });
-  sub.subscribe('tokenAddedChan');
+  if (getType()) {
+    const sub = createClient();
+    sub.on('message', (channel, message) => {
+      process.exit(1);
+    });
+    sub.subscribe(`${getType()}tokenAddedChan`);
+  }
 }
 
 export function shutDownRequest() {
-  const pub = createClient();
-  pub.publish('tokenAddedChan', 'newToken');
+  if (getType()) {
+    const pub = createClient();
+    pub.publish(`${getType()}tokenAddedChan`, 'newToken');
+  }
 }
