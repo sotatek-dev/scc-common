@@ -143,7 +143,7 @@ export abstract class BaseWebServer {
       }
     });
 
-    this.app.get('/api/config/:address', async (req, res) => {
+    this.app.get('/api/currency_config/:address', async (req, res) => {
       try {
         await this.getCurrencyInfo(req, res);
       } catch (e) {
