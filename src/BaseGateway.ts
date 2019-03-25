@@ -329,7 +329,8 @@ export abstract class BaseGateway {
     privateKey: string | string[],
     fromAddress: string | string[],
     toAddress: string,
-    amount: string
+    amount: string,
+    basedTxIds?: string[]
   ): Promise<ISubmittedTransaction>;
 
   /**
