@@ -299,7 +299,10 @@ export abstract class BaseGateway {
    *
    * @returns {IRawTransaction}
    */
-  public abstract async createRawTransaction(fromAddress: string, vouts: IVOut[]): Promise<IRawTransaction>;
+  public abstract async createRawTransaction(
+    fromAddress: string[] | string,
+    vouts: IVOut[] | IVOut
+  ): Promise<IRawTransaction>;
 
   /**
    * Sign a raw transaction with single private key
@@ -310,7 +313,10 @@ export abstract class BaseGateway {
    *
    * @returns the signed transaction
    */
-  public abstract signRawTxBySinglePrivateKey(unsignedRaw: string, privateKey: string): Promise<ISignedRawTransaction>;
+  public abstract signRawTxBySinglePrivateKey(
+    unsignedRaw: string,
+    privateKey: string | string[]
+  ): Promise<ISignedRawTransaction>;
 
   /**
    * No param
@@ -320,8 +326,8 @@ export abstract class BaseGateway {
   public abstract getAvgFee(): string;
 
   public abstract async forwardTransaction(
-    privateKey: string,
-    fromAddress: string,
+    privateKey: string | string[],
+    fromAddress: string | string[],
     toAddress: string,
     amount: string
   ): Promise<ISubmittedTransaction>;
@@ -349,8 +355,8 @@ export abstract class BaseGateway {
 
   @implement
   protected async _forwardTransaction(
-    privateKey: string,
-    fromAddress: string,
+    privateKey: string | string[],
+    fromAddress: string | string[],
     toAddress: string,
     amount: string
   ): Promise<ISubmittedTransaction> {
