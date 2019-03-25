@@ -181,7 +181,8 @@ export abstract class BaseGateway {
 
   @implement
   public async seedFee(privateKey: string, fromAddress: string, toAddress: string, amount: string) {
-    return this._forwardTransaction(privateKey, fromAddress, toAddress, amount);
+    const signTx = await this._forwardTransaction(privateKey, fromAddress, toAddress, amount);
+    return this.sendRawTransaction(signTx.signedRaw);
   }
 
   /**
@@ -331,7 +332,7 @@ export abstract class BaseGateway {
     toAddress: string,
     amount: string,
     basedTxIds?: string[]
-  ): Promise<ISubmittedTransaction>;
+  ): Promise<ISignedRawTransaction>;
 
   /**
    * Check whether a transaction is finalized on blockchain network
@@ -360,11 +361,11 @@ export abstract class BaseGateway {
     fromAddress: string | string[],
     toAddress: string,
     amount: string
-  ): Promise<ISubmittedTransaction> {
+  ): Promise<ISignedRawTransaction> {
     const vouts = [{ toAddress, amount }];
     const rawTx = await this.createRawTransaction(fromAddress, vouts);
     const signedTx = await this.signRawTxBySinglePrivateKey(rawTx.unsignedRaw, privateKey);
-    return this.sendRawTransaction(signedTx.signedRaw);
+    return signedTx;
   }
 
   /**
