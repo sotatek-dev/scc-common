@@ -1,14 +1,14 @@
 import * as _ from 'lodash';
 import LRU from 'lru-cache';
 import { Account, Block, Transaction, Transactions } from './types';
-import { TransactionStatus } from './Enums';
+import { TransactionStatus, TransferType } from "./Enums";
 import {
-  IRawTransaction,
-  IVOut,
-  ISignedRawTransaction,
   IConfig,
+  IRawTransaction,
+  ISignedRawTransaction,
   ISubmittedTransaction,
   ITokenRemake,
+  IVOut,
 } from './Interfaces';
 import { FetchError } from 'node-fetch';
 import { Currency } from './Currency';
@@ -263,6 +263,13 @@ export abstract class BaseGateway {
     const block = await this.getOneBlock(blockNumber);
     const txs = await this.getTransactionsByIds(_.compact(block.txids));
     return txs;
+  }
+
+  /**
+   * Default account base type
+   */
+  public getTransferType(): TransferType {
+    return TransferType.ACCOUNT_BASED;
   }
 
   /**
