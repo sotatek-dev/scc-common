@@ -309,7 +309,8 @@ export abstract class BaseGateway {
    */
   public abstract async createRawTransaction(
     fromAddress: string[] | string,
-    vouts: IVOut[] | IVOut
+    vouts: IVOut[] | IVOut,
+    basedTxIds?: string[]
   ): Promise<IRawTransaction>;
 
   /**
@@ -367,10 +368,11 @@ export abstract class BaseGateway {
     privateKey: string | string[],
     fromAddress: string | string[],
     toAddress: string,
-    amount: string
+    amount: string,
+    basedTxIds?: string[]
   ): Promise<ISignedRawTransaction> {
     const vouts = [{ toAddress, amount }];
-    const rawTx = await this.createRawTransaction(fromAddress, vouts);
+    const rawTx = await this.createRawTransaction(fromAddress, vouts, basedTxIds);
     const signedTx = await this.signRawTxBySinglePrivateKey(rawTx.unsignedRaw, privateKey);
     return signedTx;
   }
