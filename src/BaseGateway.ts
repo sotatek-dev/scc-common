@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import LRU from 'lru-cache';
 import { Account, Block, Transaction, Transactions } from './types';
-import { TransactionStatus, TransferType } from "./Enums";
+import { TransactionStatus, TransferType } from './Enums';
 import {
   IConfig,
   IRawTransaction,
