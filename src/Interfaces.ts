@@ -62,3 +62,8 @@ export interface ISubmittedTransaction {
   readonly txid: string;
   readonly blockNumber?: number;
 }
+
+export interface IEnvConfig {
+  key: string;
+  value: string;
+}
