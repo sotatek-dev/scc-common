@@ -4,12 +4,16 @@ import BaseMQProducer from './BaseMQProducer';
 import BaseGateway from './BaseGateway';
 import { Options } from 'amqplib';
 import { getTokenBySymbol } from './EnvironmentData';
+import { subForTokenChanged } from './RedisChannel';
 
 const MixedClass = BaseMQConsumer(BaseMQProducer(BaseIntervalWorker));
 
 export abstract class CurrencyIntervalWorker extends MixedClass {
+  protected constructor() {
+    super();
+    subForTokenChanged();
+  }
   public abstract gatewayClass(): any;
-
   /**
    * TODO: will update
    * @param currency

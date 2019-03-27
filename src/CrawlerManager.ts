@@ -4,6 +4,7 @@ import BaseCrawler from './BaseCrawler';
 import CrawlerOptions from './CrawlerOptions';
 import { getCurrency, getListTokenSymbols } from './EnvironmentData';
 import { Errors } from './Enums';
+import { subForTokenChanged } from './RedisChannel';
 
 const logger = getLogger('CrawlerManager');
 
@@ -19,6 +20,8 @@ class CrawlerManager {
     // Generate unique id for each process
     this._id = uuid();
     this._isStarted = false;
+    // redis
+    subForTokenChanged();
   }
 
   /**
