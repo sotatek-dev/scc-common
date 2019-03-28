@@ -9,7 +9,7 @@ setInterval(() => {
   if (ERROR_STASHES.length > 0) {
     const envConfig = getEnvConfigs();
     if (envConfig) {
-      sendEmail(envConfig.mailerAccount, envConfig.mailerPassword, ERROR_STASHES);
+      sendEmail(envConfig.mailerAccount, envConfig.mailerPassword, envConfig.mailerReceiver, ERROR_STASHES);
       ERROR_STASHES = [];
     }
   }
@@ -90,7 +90,7 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
   };
 }
 
-async function sendEmail(mailAccount: string, mailPassword: string, message: string[]) {
+async function sendEmail(mailAccount: string, mailPassword: string, mailReceiver: string, message: string[]) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -101,7 +101,7 @@ async function sendEmail(mailAccount: string, mailPassword: string, message: str
 
   const mailOptions = {
     from: mailAccount,
-    to: 'mai.nguyen@sotatek.com', // fixed receiver email
+    to: mailReceiver,
     subject: 'Exchange wallet: Error Notifier',
     html: `${message}`,
   };
@@ -112,10 +112,11 @@ async function sendEmail(mailAccount: string, mailPassword: string, message: str
 }
 
 function getEnvConfigs() {
-  if (getEnvConfig('MAILER_ACCOUNT') && getEnvConfig('MAILER_PASSWORD')) {
+  if (getEnvConfig('MAILER_ACCOUNT') && getEnvConfig('MAILER_PASSWORD') && getEnvConfig('MAILER_RECEIVER')) {
     return {
       mailerAccount: getEnvConfig('MAILER_ACCOUNT'),
       mailerPassword: getEnvConfig('MAILER_PASSWORD'),
+      mailerReceiver: getEnvConfig('MAILER_RECEIVER'),
     };
   }
   return null;
