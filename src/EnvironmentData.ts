@@ -1,5 +1,5 @@
 import Currency from './Currency';
-import { IConfig, ITokenRemake } from './Interfaces';
+import { IConfig, ITokenRemake, IEnvConfig } from './Interfaces';
 import { Const } from './Const';
 import { getLogger } from './Logger';
 import { Utils } from '../index';
@@ -14,6 +14,7 @@ const allTokens = new Map<string, ITokenRemake>();
 const allTokensBySymbol = new Map<string, ITokenRemake>();
 const allTokenByContract = new Map<string, ITokenRemake>();
 const config = new Map<Currency, IConfig>();
+const envConfig = new Map<string, string>();
 
 // Inside this process
 let tokenSymbols: string[] = [];
@@ -243,4 +244,14 @@ export function getCurrencyDecimal(c: string): number {
 
 export function getCurrency(): Currency {
   return currency;
+}
+
+export function getEnvConfig(key: string): string {
+  return envConfig.get(key);
+}
+
+export function setEnvConfig(configs: IEnvConfig[]) {
+  configs.map(cf => {
+    envConfig.set(cf.key, cf.value);
+  });
 }
