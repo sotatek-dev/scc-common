@@ -115,7 +115,8 @@ export async function updateValidApiEndpoint(): Promise<string> {
           return;
         }
         const fullEndpoint = new URL(apiEndpoint);
-        const protocol = fullEndpoint.protocol !== 'https' || 'http' ? 'http' : fullEndpoint.protocol;
+        const protocol =
+          fullEndpoint.protocol !== 'http' && fullEndpoint.protocol !== 'https' ? 'http' : fullEndpoint.protocol;
         await fetch(`${protocol}://${fullEndpoint.hostname}:${fullEndpoint.port}${fullEndpoint.pathname}`);
         const end = Utils.nowInMillis();
         const ping = end - start;
