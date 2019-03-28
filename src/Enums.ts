@@ -55,3 +55,4 @@ Errors.missPreparedData = new ErrorDetails('some missing on prepared data from d
 
 Errors.txInvalid = new ErrorDetails('withdrawal transaction invalid', 2818);
 Errors.txSentFailed = new ErrorDetails('send raw transaction failed', 2819);
+Errors.notEnoughFeeError = new ErrorDetails('transaction can not be constructed because of fee', 2820);
