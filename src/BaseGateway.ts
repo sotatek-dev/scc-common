@@ -1,14 +1,14 @@
 import * as _ from 'lodash';
 import LRU from 'lru-cache';
 import { Account, Block, Transaction, Transactions } from './types';
-import { TransactionStatus } from './Enums';
+import { TransactionStatus, TransferType } from './Enums';
 import {
-  IRawTransaction,
-  IVOut,
-  ISignedRawTransaction,
   IConfig,
+  IRawTransaction,
+  ISignedRawTransaction,
   ISubmittedTransaction,
   ITokenRemake,
+  IVOut,
 } from './Interfaces';
 import { FetchError } from 'node-fetch';
 import { Currency } from './Currency';
@@ -181,7 +181,8 @@ export abstract class BaseGateway {
 
   @implement
   public async seedFee(privateKey: string, fromAddress: string, toAddress: string, amount: string) {
-    return this._forwardTransaction(privateKey, fromAddress, toAddress, amount);
+    const signTx = await this._forwardTransaction(privateKey, fromAddress, toAddress, amount);
+    return this.sendRawTransaction(signTx.signedRaw);
   }
 
   /**
@@ -265,6 +266,13 @@ export abstract class BaseGateway {
   }
 
   /**
+   * Default account base type
+   */
+  public getTransferType(): TransferType {
+    return TransferType.ACCOUNT_BASED;
+  }
+
+  /**
    * No param
    * Returns the number of blocks in the local best block chain.
    * @returns {number}: the height of latest block on the block chain
@@ -299,7 +307,11 @@ export abstract class BaseGateway {
    *
    * @returns {IRawTransaction}
    */
-  public abstract async createRawTransaction(fromAddress: string, vouts: IVOut[]): Promise<IRawTransaction>;
+  public abstract async createRawTransaction(
+    fromAddress: string[] | string,
+    vouts: IVOut[] | IVOut,
+    basedTxIds?: string[]
+  ): Promise<IRawTransaction>;
 
   /**
    * Sign a raw transaction with single private key
@@ -310,7 +322,10 @@ export abstract class BaseGateway {
    *
    * @returns the signed transaction
    */
-  public abstract signRawTxBySinglePrivateKey(unsignedRaw: string, privateKey: string): Promise<ISignedRawTransaction>;
+  public abstract signRawTxBySinglePrivateKey(
+    unsignedRaw: string,
+    privateKey: string | string[]
+  ): Promise<ISignedRawTransaction>;
 
   /**
    * No param
@@ -320,11 +335,12 @@ export abstract class BaseGateway {
   public abstract getAvgFee(): string;
 
   public abstract async forwardTransaction(
-    privateKey: string,
-    fromAddress: string,
+    privateKey: string | string[],
+    fromAddress: string | string[],
     toAddress: string,
-    amount: string
-  ): Promise<ISubmittedTransaction>;
+    amount: string,
+    basedTxIds?: string[]
+  ): Promise<ISignedRawTransaction>;
 
   /**
    * Check whether a transaction is finalized on blockchain network
@@ -349,15 +365,16 @@ export abstract class BaseGateway {
 
   @implement
   protected async _forwardTransaction(
-    privateKey: string,
-    fromAddress: string,
+    privateKey: string | string[],
+    fromAddress: string | string[],
     toAddress: string,
-    amount: string
-  ): Promise<ISubmittedTransaction> {
+    amount: string,
+    basedTxIds?: string[]
+  ): Promise<ISignedRawTransaction> {
     const vouts = [{ toAddress, amount }];
-    const rawTx = await this.createRawTransaction(fromAddress, vouts);
+    const rawTx = await this.createRawTransaction(fromAddress, vouts, basedTxIds);
     const signedTx = await this.signRawTxBySinglePrivateKey(rawTx.unsignedRaw, privateKey);
-    return this.sendRawTransaction(signedTx.signedRaw);
+    return signedTx;
   }
 
   /**

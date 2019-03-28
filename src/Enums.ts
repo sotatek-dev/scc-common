@@ -21,6 +21,11 @@ export enum HotWalletType {
   Multisig = 'multisig',
 }
 
+export enum TransferType {
+  ACCOUNT_BASED = 'account',
+  UTXO_BASED = 'utxo',
+}
+
 interface IError {
   [index: string]: ErrorDetails;
 }
