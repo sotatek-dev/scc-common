@@ -98,7 +98,7 @@ class CrawlerManager {
     options: CrawlerOptions
   ): Promise<number> {
     const crawler = new CrawlerClass(options);
-    const duration = crawler.getGateway().isFastGateway() ? 10000 : 600000;
+    const duration = 300000;
     const timer = setTimeout(() => {
       logger.error(`Timeout duration (${duration}ms) is exceeded. Crawler will be restarted shortly...`);
       process.exit(1);
