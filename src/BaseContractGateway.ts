@@ -126,7 +126,12 @@ export abstract class BaseContractGateway extends BaseGateway {
     const getTransactionNormalWay = async (contractAddress?: string) => {
       const listTxs = await super.getMultiBlocksTransactions(fromBlockNumber, toBlockNumber);
       return contractAddress
-        ? listTxs.filter(tx => tx.contractAddress && tx.contractAddress === contractAddress)
+        ? listTxs.filter(tx => {
+            if (tx) {
+              return tx.contractAddress && tx.contractAddress.toLowerCase() === contractAddress.toLowerCase();
+            }
+            return false;
+          })
         : listTxs;
     };
     const txs = new Transactions();
@@ -135,17 +140,27 @@ export abstract class BaseContractGateway extends BaseGateway {
       // TODO: Hard code
       const isFastestWay: boolean = this._investigatedContracts.length <= 10;
       try {
-        for (const interactContract of this._investigatedContracts) {
-          // set current interacted contract
-          this._interactedContract = interactContract;
-          if (isFastestWay) {
-            txs.push(
-              ...(await this.getMultiBlocksContractTransactions(fromBlockNumber, toBlockNumber, interactContract))
-            );
-          } else {
-            txs.push(...(await getTransactionNormalWay()));
-          }
+        // get txs in the first time
+        const firstContract = this._investigatedContracts[0];
+        if (isFastestWay) {
+          txs.push(...(await this.getMultiBlocksContractTransactions(fromBlockNumber, toBlockNumber, firstContract)));
+        } else {
+          txs.push(...(await getTransactionNormalWay(firstContract.contractAddress)));
         }
+
+        // for next contracts
+        await Promise.all(
+          this._investigatedContracts.slice(1, this._investigatedContracts.length).map(async interactContract => {
+            // set current interacted contract
+            if (isFastestWay) {
+              txs.push(
+                ...(await this.getMultiBlocksContractTransactions(fromBlockNumber, toBlockNumber, interactContract))
+              );
+            } else {
+              txs.push(...(await getTransactionNormalWay(interactContract.contractAddress)));
+            }
+          })
+        );
 
         return txs;
       } catch (e) {
@@ -162,20 +177,6 @@ export abstract class BaseContractGateway extends BaseGateway {
       txs.push(...(await getTransactionNormalWay()));
       return txs;
     }
-  }
-
-  @override
-  public async getOneTransaction(txid: string): Promise<Transaction> {
-    const tx = await super.getOneTransaction(txid);
-    // check transaction if transaction and its contract was existed
-    if (
-      tx &&
-      (!this.getInteractContract() ||
-        (this.getInteractContract() && tx.contractAddress === this.getInteractContract().contractAddress))
-    ) {
-      return tx;
-    }
-    return null;
   }
 
   @override
