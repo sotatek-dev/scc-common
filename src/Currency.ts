@@ -15,6 +15,7 @@ enum Currency {
   NEO = 'neo',
   Tomo = 'tomo',
   USDT = 'usdt',
+  Nem = 'nem',
 
   // Token
   ERC20 = 'erc20',
