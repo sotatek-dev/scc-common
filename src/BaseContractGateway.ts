@@ -1,5 +1,5 @@
 import BaseGateway from './BaseGateway';
-import { ITokenContract } from './Interfaces';
+import { ITokenContract, ITokenRemake } from './Interfaces';
 import { Transaction, Transactions } from './types';
 import {
   getFamily,
@@ -12,6 +12,7 @@ import {
 import { implement, override } from './Utils';
 import { getLogger } from './Logger';
 import { Errors } from './Enums';
+import LRU = require('lru-cache');
 
 const logger = getLogger('BaseContractGateway');
 
@@ -48,6 +49,8 @@ export abstract class BaseContractGateway extends BaseGateway {
    */
   public _investigatedContracts: ITokenContract[] = [];
 
+  protected _cachedCurrencyInfo: LRU.Cache<string, ITokenRemake>;
+
   // Gateways are singletons
   // So we hide the constructor from outsiders
   protected constructor(interactedAddress?: string) {
@@ -77,6 +80,8 @@ export abstract class BaseContractGateway extends BaseGateway {
         });
       });
     }
+
+    this._cachedCurrencyInfo = new LRU(this._getCacheOptions());
   }
 
   @implement
@@ -118,12 +123,18 @@ export abstract class BaseContractGateway extends BaseGateway {
    */
   @override
   public async getMultiBlocksTransactions(fromBlockNumber: number, toBlockNumber: number): Promise<Transactions> {
+    const getTransactionNormalWay = async (contractAddress?: string) => {
+      const listTxs = await super.getMultiBlocksTransactions(fromBlockNumber, toBlockNumber);
+      return contractAddress
+        ? listTxs.filter(tx => tx.contractAddress && tx.contractAddress === contractAddress)
+        : listTxs;
+    };
+    const txs = new Transactions();
     // if investigated contracts was existed
     if (this.isExistedContracts()) {
       // TODO: Hard code
       const isFastestWay: boolean = this._investigatedContracts.length <= 10;
       try {
-        const txs = new Transactions();
         for (const interactContract of this._investigatedContracts) {
           // set current interacted contract
           this._interactedContract = interactContract;
@@ -132,20 +143,25 @@ export abstract class BaseContractGateway extends BaseGateway {
               ...(await this.getMultiBlocksContractTransactions(fromBlockNumber, toBlockNumber, interactContract))
             );
           } else {
-            txs.push(...(await super.getMultiBlocksTransactions(fromBlockNumber, toBlockNumber)));
+            txs.push(...(await getTransactionNormalWay()));
           }
         }
 
         return txs;
       } catch (e) {
         // return result at next
-        if (e.code !== Errors.unImplementedError.code) {
+        if (e.code === Errors.unImplementedError.code) {
           logger.error(e.toString());
           logger.error('Try to use get multi blocks transactions with normal way');
+          txs.push(...(await getTransactionNormalWay()));
+          return txs;
         }
+        throw e;
       }
+    } else {
+      txs.push(...(await getTransactionNormalWay()));
+      return txs;
     }
-    return await super.getMultiBlocksTransactions(fromBlockNumber, toBlockNumber);
   }
 
   @override

@@ -14,6 +14,7 @@ import { FetchError } from 'node-fetch';
 import { Currency } from './Currency';
 import { implement } from './Utils';
 import { getCurrency, getCurrencyConfig } from './EnvironmentData';
+import { Utils } from '../index';
 
 /**
  * The gateway provides methods/interfaces for our service
@@ -82,19 +83,14 @@ export abstract class BaseGateway {
    */
   @implement
   public async getOneTransaction(txid: string): Promise<Transaction> {
-    let tx = this._cacheTxByHash.get(txid);
-    if (!tx) {
-      tx = await this._getOneTransaction(txid);
+    const hasTx = this._cacheTxByHash.has(txid);
+    if (!hasTx) {
+      const tx = await this._getOneTransaction(txid);
+      this._cacheTxByHash.set(txid, tx);
     }
 
-    if (!tx) {
-      return null;
-    }
-
-    const lastNetworkBlock = await this.getBlockCount();
-    tx.confirmations = lastNetworkBlock - tx.block.number + 1;
-    this._cacheTxByHash.set(txid, tx);
-    return tx;
+    const cachedTx = this._cacheTxByHash.get(txid);
+    return !cachedTx ? null : cachedTx;
   }
 
   public getLimitRun(): any {
@@ -163,6 +159,15 @@ export abstract class BaseGateway {
    */
   @implement
   public async getMultiBlocksTransactions(fromBlockNumber: number, toBlockNumber: number): Promise<Transactions> {
+    const latestBlock = await this.getBlockCount();
+    await Promise.all(
+      this._cacheTxByHash.values().map(tx => {
+        if (tx) {
+          tx.confirmations = latestBlock - tx.block.number + 1;
+        }
+      })
+    );
+
     if (fromBlockNumber > toBlockNumber) {
       throw new Error(`fromBlockNumber must be less than toBlockNumber`);
     }
@@ -359,7 +364,7 @@ export abstract class BaseGateway {
   protected _getCacheOptions(): LRU.Options {
     return {
       max: 1024,
-      maxAge: 1000 * 60 * 60, // 1 hour
+      maxAge: 1000 * 30, // 30s
     };
   }
 
