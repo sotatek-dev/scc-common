@@ -4,6 +4,7 @@ import { Const } from './Const';
 import { getLogger } from './Logger';
 import { Utils } from '../index';
 import fetch from 'node-fetch';
+import URL from 'url';
 /**
  * Environment data is usually loaded from database at runtime
  * These are some pre-defined types of data
@@ -114,7 +115,7 @@ export async function updateValidApiEndpoint(): Promise<string> {
         if (!apiEndpoint) {
           return;
         }
-        const fullEndpoint = new URL(apiEndpoint);
+        const fullEndpoint = URL.parse(apiEndpoint);
         if (fullEndpoint.protocol !== 'http:' && fullEndpoint.protocol !== 'https:') {
           fullEndpoint.protocol = 'https:';
         }

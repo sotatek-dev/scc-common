@@ -2,7 +2,7 @@ import { v1 as uuid } from 'uuid';
 import { getLogger } from './Logger';
 import BaseGateway from './BaseGateway';
 import CrawlerOptions from './CrawlerOptions';
-import { getListTokenSymbols, getTokenBySymbol } from './EnvironmentData';
+import { getCurrency, getCurrencyConfig, getListTokenSymbols, getTokenBySymbol } from "./EnvironmentData";
 
 const logger = getLogger('BaseCrawler');
 
@@ -65,7 +65,9 @@ export abstract class BaseCrawler {
 
   public abstract getAverageBlockTime(): number;
 
-  public abstract getRequiredConfirmations(): number;
+  public getRequiredConfirmations(): number {
+    return getCurrencyConfig(getCurrency()).requiredConfirmations;
+  }
 
   public async getLatestBlockOnNetwork(): Promise<number> {
     return await this.getGateway().getBlockCount();
