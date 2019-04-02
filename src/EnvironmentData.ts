@@ -219,11 +219,6 @@ export function getListTokenSymbols() {
   };
 }
 
-export function isPlatform(tokenSymbol: string): boolean {
-  const token = getTokenBySymbol(tokenSymbol);
-  return tokenSymbol.toLowerCase() === token.family.toLowerCase();
-}
-
 /**
  * Split "token1, token2" to array [ 'token1', 'token2' ]
  * @param tokensBuilder
