@@ -47,10 +47,6 @@ export function getTokenFamilyOfType(type: string): string {
   return ret;
 }
 
-export function getToken(symbol: string, type: string): ITokenRemake {
-  return allTokens.get(`${symbol}_${type}`);
-}
-
 export function getTokenBySymbol(symbol: string): ITokenRemake {
   if (!symbol) {
     return null;
