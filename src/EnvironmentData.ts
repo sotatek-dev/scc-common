@@ -3,7 +3,7 @@ import Currency from './Currency';
 import { IConfig, ITokenRemake, IEnvConfig } from './Interfaces';
 import { Const } from './Const';
 import { getLogger } from './Logger';
-import { Utils } from '../index';
+import { BaseGateway, Utils } from '../index';
 import fetch from 'node-fetch';
 /**
  * Environment data is usually loaded from database at runtime
@@ -24,6 +24,10 @@ let tokenType: string;
 let tokenFamily: string;
 let currency: Currency;
 let uniqueApiEndpoint: string;
+
+// gateway module
+let currencyGateway: BaseGateway;
+let currencyTokenGateway: BaseGateway;
 
 export function listTokenByType(type: string): Map<string, ITokenRemake> {
   const res = new Map<string, ITokenRemake>();
@@ -259,4 +263,62 @@ export function setEnvConfig(configs: IEnvConfig[]) {
   configs.map(cf => {
     envConfig.set(cf.key, cf.value);
   });
+}
+
+const gatewaysMap = new Map<string, BaseGateway>();
+export function getInstance(contractAddress?: string) {
+  if (contractAddress) {
+    const gw = gatewaysMap.get(contractAddress);
+    if (gw) {
+      return gw;
+    }
+
+    const newGateway = new (getGateway() as any)(contractAddress);
+    gatewaysMap.set(contractAddress, newGateway);
+    return newGateway;
+  } else {
+    const gw = gatewaysMap.get(getCurrency());
+    if (gw) {
+      return gw;
+    }
+
+    const newGateway = new (getGateway() as any)();
+    gatewaysMap.set(getCurrency(), newGateway);
+    return newGateway;
+  }
+}
+
+export async function setGateway() {
+  const getModule: any = async () => await import(`../../sota-${getCurrency()}`);
+  if (!getModule()) {
+    console.log('Cannot find module sota-' + getCurrency());
+  }
+
+  const m = await getModule();
+  currencyGateway = m[`${upperFirst(getCurrency())}Gateway`];
+}
+
+/**
+ * TBD, will be used after separating currency and currency token currencyGateway
+ */
+export async function setTokenGateway() {
+  const getModule: any = async () => await import(`../../sota-${getCurrency()}`);
+  if (!getModule()) {
+    console.log('Cannot find getModule sota-' + getCurrency());
+  }
+
+  const m = await getModule();
+  currencyTokenGateway = m[`${upperFirst(getType())}Gateway`];
+}
+
+export function upperFirst(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+export function getGateway() {
+  return currencyGateway;
+}
+
+export function getTokenGateway() {
+  return currencyTokenGateway;
 }
