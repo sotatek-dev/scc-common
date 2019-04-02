@@ -16,6 +16,13 @@ export enum MessageQueueName {
   COLLECTED_DEPOSIT = 'collected_deposit',
 }
 
+export enum TokenType {
+  ERC20 = 'erc20',
+  OMNI = 'omni',
+  TRC20 = 'trc20',
+  NEP5 = 'nep5',
+}
+
 export enum HotWalletType {
   Normal = 'normal',
   Multisig = 'multisig',
