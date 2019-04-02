@@ -1,3 +1,4 @@
+import URL from 'url';
 import Currency from './Currency';
 import { IConfig, ITokenRemake, IEnvConfig } from './Interfaces';
 import { Const } from './Const';
@@ -114,7 +115,7 @@ export async function updateValidApiEndpoint(): Promise<string> {
         if (!apiEndpoint) {
           return;
         }
-        const fullEndpoint = new URL(apiEndpoint);
+        const fullEndpoint = new URL.URL(apiEndpoint);
         if (fullEndpoint.protocol !== 'http:' && fullEndpoint.protocol !== 'https:') {
           fullEndpoint.protocol = 'https:';
         }
