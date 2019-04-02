@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 import LRU from 'lru-cache';
 import { Account, Block, Transaction, Transactions } from './types';
 import { TransactionStatus, TransferType } from './Enums';
@@ -26,9 +26,9 @@ export abstract class BaseGateway {
     throw new Error(`Must be implemented in derived class.`);
   }
 
-  protected _cacheBlock: LRU.Cache<string | number, Block>;
+  protected _cacheBlock: LRU<string | number, Block>;
 
-  protected _cacheTxByHash: LRU.Cache<string, Transaction>;
+  protected _cacheTxByHash: LRU<string, Transaction>;
 
   // Gateways are singletons
   // So we hide the constructor from outsiders
@@ -68,7 +68,7 @@ export abstract class BaseGateway {
    * @param address
    */
   @implement
-  public handleAddress(address: string) {
+  public normalizeAddress(address: string) {
     return address;
   }
 
@@ -356,9 +356,9 @@ export abstract class BaseGateway {
    * @returns {LRU.Options} options for cache storage
    */
   @implement
-  protected _getCacheOptions(): LRU.Options {
+  protected _getCacheOptions() {
     return {
-      max: 1024,
+      max: 1024 * 1024,
       maxAge: 1000 * 60 * 60, // 1 hour
     };
   }

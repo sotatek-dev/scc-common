@@ -60,7 +60,7 @@ export function getTokenBySymbol(symbol: string): ITokenRemake {
   return token;
 }
 
-export function getTheTokenByContract(address: string, type: string): ITokenRemake {
+function getTheTokenByContract(address: string, type: string): ITokenRemake {
   const listTokens = listTokenByType(type);
   let res: ITokenRemake = null;
   listTokens.forEach(token => {
@@ -214,7 +214,7 @@ export function buildListTokenSymbols(c: Currency, type?: string): any {
   };
 }
 
-export function getListTokenSymbols(): any {
+export function getListTokenSymbols() {
   return {
     tokenSymbolsBuilder,
     tokenSymbols,

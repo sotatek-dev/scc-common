@@ -2,29 +2,16 @@ import { v1 as uuid } from 'uuid';
 import { getLogger } from './Logger';
 import BaseGateway from './BaseGateway';
 import CrawlerOptions from './CrawlerOptions';
-import { getListTokenSymbols, getTokenBySymbol } from './EnvironmentData';
+import { getListTokenSymbols } from './EnvironmentData';
 
 const logger = getLogger('BaseCrawler');
 
 export abstract class BaseCrawler {
-  public _gateway: BaseGateway;
-  private readonly _id: string;
-  private readonly _options: CrawlerOptions;
+  protected _gateway: BaseGateway;
+  protected readonly _id: string;
+  protected readonly _options: CrawlerOptions;
 
   constructor(options: CrawlerOptions) {
-    const contractAddresses: string[] = [];
-    const tokensObj = getListTokenSymbols();
-
-    tokensObj.tokenSymbols.map((tokenSymbol: string) => {
-      const token = getTokenBySymbol(tokenSymbol);
-      if (!token) {
-        throw new Error(`Could not find token in config: symbol=${tokenSymbol}, network=${process.env.NETWORK}`);
-      }
-      if (token.contractAddress) {
-        contractAddresses.push(token.contractAddress);
-      }
-    });
-
     this._gateway = this.gatewayClass().getInstance();
     this._id = uuid();
     this._options = options;
