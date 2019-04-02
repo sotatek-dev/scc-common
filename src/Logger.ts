@@ -64,12 +64,12 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
       return winston.loggers.get(name).debug(msg);
     },
     warn(msg: any) {
-      ERROR_STASHES.push(`${msg}<br><br>`);
+      ERROR_STASHES.push(`[WARN] ${msg}<br><br>`);
       return winston.loggers.get(name).warn(msg);
     },
     error(msg: any) {
       // Setup error
-      ERROR_STASHES.push(`${msg}<br><br>`);
+      ERROR_STASHES.push(`[ERROR] ${msg}<br><br>`);
 
       // const credentials = s3.config.credentials;
       const env = process.env.NODE_ENV || 'development';
