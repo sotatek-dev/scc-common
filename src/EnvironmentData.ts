@@ -5,6 +5,7 @@ import { Const } from './Const';
 import { getLogger } from './Logger';
 import { Utils } from '../index';
 import fetch from 'node-fetch';
+import { TokenType } from './Enums';
 /**
  * Environment data is usually loaded from database at runtime
  * These are some pre-defined types of data
@@ -25,7 +26,7 @@ let tokenFamily: string;
 let currency: Currency;
 let uniqueApiEndpoint: string;
 
-export function listTokenByType(type: string): Map<string, ITokenRemake> {
+export function listTokenByType(type: TokenType): Map<string, ITokenRemake> {
   const res = new Map<string, ITokenRemake>();
   allTokens.forEach((token, key) => {
     if (type === token.type) {
@@ -61,7 +62,7 @@ export function getTokenBySymbol(symbol: string): ITokenRemake {
   return token;
 }
 
-function getTheTokenByContract(address: string, type: string): ITokenRemake {
+function getTheTokenByContract(address: string, type: TokenType): ITokenRemake {
   const listTokens = listTokenByType(type);
   let res: ITokenRemake = null;
   listTokens.forEach(token => {
@@ -82,7 +83,7 @@ export async function setTokenData(tokens: ITokenRemake[]) {
   });
 }
 
-export function getTokenByContract(type: string, address: string): ITokenRemake {
+export function getTokenByContract(type: TokenType, address: string): ITokenRemake {
   return getTheTokenByContract(address, type);
 }
 
@@ -168,7 +169,7 @@ export function getFamily(): string {
  * @param c
  * @param type
  */
-export function buildListTokenSymbols(c: Currency, type?: string): any {
+export function buildListTokenSymbols(c: Currency, type?: TokenType): any {
   const envTokenSymbols = process.env.TOKENS;
   currency = c;
 
