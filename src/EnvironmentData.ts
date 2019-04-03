@@ -256,3 +256,63 @@ export function setEnvConfig(configs: IEnvConfig[]) {
     envConfig.set(cf.key, cf.value);
   });
 }
+
+const gatewaysMap = new Map<string, BaseGateway>();
+
+export function getGateway(currcy?: string) {
+  const contractAddress = getTokenBySymbol(currcy) ? getTokenBySymbol(currcy).contractAddress : null;
+  if (contractAddress) {
+    const gw = gatewaysMap.get(contractAddress);
+    if (gw) {
+      return gw;
+    }
+
+    const newGateway = new (getTokenGateway() as any)(contractAddress);
+    gatewaysMap.set(contractAddress, newGateway);
+    return newGateway;
+  } else {
+    const gw = gatewaysMap.get(getCurrency());
+    if (gw) {
+      return gw;
+    }
+
+    const newGateway = new (getCurrencyGateway() as any)();
+    gatewaysMap.set(getCurrency(), newGateway);
+    return newGateway;
+  }
+}
+
+export async function setCurrencyGateway() {
+  const getModule: any = async () => await import(`../../sota-${getCurrency()}`);
+  if (!getModule()) {
+    console.log('Cannot find module sota-' + getCurrency());
+  }
+
+  const m = await getModule();
+  currencyGateway = m[`${upperFirst(getCurrency())}Gateway`];
+}
+
+/**
+ * TBD, will be used after separating currency and currency token currencyGateway
+ */
+export async function setTokenGateway() {
+  const getModule: any = async () => await import(`../../sota-${getCurrency()}`);
+  if (!getModule()) {
+    console.log('Cannot find getModule sota-' + getCurrency());
+  }
+
+  const m = await getModule();
+  currencyTokenGateway = m[`${upperFirst(getType())}Gateway`];
+}
+
+export function upperFirst(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+export function getCurrencyGateway() {
+  return currencyGateway;
+}
+
+export function getTokenGateway() {
+  return currencyTokenGateway;
+}
