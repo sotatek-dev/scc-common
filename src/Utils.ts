@@ -37,6 +37,10 @@ export function reflect(promise: any) {
     });
 }
 
+export async function timeout(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /**
  * promise all and handle error message
  * @param values

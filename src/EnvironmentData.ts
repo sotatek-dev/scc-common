@@ -5,6 +5,7 @@ import { Const } from './Const';
 import { getLogger } from './Logger';
 import { BaseGateway, Utils } from '../index';
 import fetch from 'node-fetch';
+import { TokenType } from './Enums';
 /**
  * Environment data is usually loaded from database at runtime
  * These are some pre-defined types of data
@@ -29,7 +30,7 @@ let uniqueApiEndpoint: string;
 let currencyGateway: BaseGateway;
 let currencyTokenGateway: BaseGateway;
 
-export function listTokenByType(type: string): Map<string, ITokenRemake> {
+export function listTokenByType(type: TokenType): Map<string, ITokenRemake> {
   const res = new Map<string, ITokenRemake>();
   allTokens.forEach((token, key) => {
     if (type === token.type) {
@@ -50,10 +51,6 @@ export function getTokenFamilyOfType(type: string): string {
   return ret;
 }
 
-export function getToken(symbol: string, type: string): ITokenRemake {
-  return allTokens.get(`${symbol}_${type}`);
-}
-
 export function getTokenBySymbol(symbol: string): ITokenRemake {
   if (!symbol) {
     return null;
@@ -65,7 +62,7 @@ export function getTokenBySymbol(symbol: string): ITokenRemake {
   return token;
 }
 
-export function getTheTokenByContract(address: string, type: string): ITokenRemake {
+function getTheTokenByContract(address: string, type: TokenType): ITokenRemake {
   const listTokens = listTokenByType(type);
   let res: ITokenRemake = null;
   listTokens.forEach(token => {
@@ -86,7 +83,7 @@ export async function setTokenData(tokens: ITokenRemake[]) {
   });
 }
 
-export function getTokenByContract(type: string, address: string): ITokenRemake {
+export function getTokenByContract(type: TokenType, address: string): ITokenRemake {
   return getTheTokenByContract(address, type);
 }
 
@@ -172,7 +169,7 @@ export function getFamily(): string {
  * @param c
  * @param type
  */
-export function buildListTokenSymbols(c: Currency, type?: string): any {
+export function buildListTokenSymbols(c: Currency, type?: TokenType): any {
   const envTokenSymbols = process.env.TOKENS;
   currency = c;
 
@@ -219,16 +216,11 @@ export function buildListTokenSymbols(c: Currency, type?: string): any {
   };
 }
 
-export function getListTokenSymbols(): any {
+export function getListTokenSymbols() {
   return {
     tokenSymbolsBuilder,
     tokenSymbols,
   };
-}
-
-export function isPlatform(tokenSymbol: string): boolean {
-  const token = getTokenBySymbol(tokenSymbol);
-  return tokenSymbol.toLowerCase() === token.family.toLowerCase();
 }
 
 /**
@@ -263,62 +255,4 @@ export function setEnvConfig(configs: IEnvConfig[]) {
   configs.map(cf => {
     envConfig.set(cf.key, cf.value);
   });
-}
-
-const gatewaysMap = new Map<string, BaseGateway>();
-export function getInstance(contractAddress?: string) {
-  if (contractAddress) {
-    const gw = gatewaysMap.get(contractAddress);
-    if (gw) {
-      return gw;
-    }
-
-    const newGateway = new (getGateway() as any)(contractAddress);
-    gatewaysMap.set(contractAddress, newGateway);
-    return newGateway;
-  } else {
-    const gw = gatewaysMap.get(getCurrency());
-    if (gw) {
-      return gw;
-    }
-
-    const newGateway = new (getGateway() as any)();
-    gatewaysMap.set(getCurrency(), newGateway);
-    return newGateway;
-  }
-}
-
-export async function setGateway() {
-  const getModule: any = async () => await import(`../../sota-${getCurrency()}`);
-  if (!getModule()) {
-    console.log('Cannot find module sota-' + getCurrency());
-  }
-
-  const m = await getModule();
-  currencyGateway = m[`${upperFirst(getCurrency())}Gateway`];
-}
-
-/**
- * TBD, will be used after separating currency and currency token currencyGateway
- */
-export async function setTokenGateway() {
-  const getModule: any = async () => await import(`../../sota-${getCurrency()}`);
-  if (!getModule()) {
-    console.log('Cannot find getModule sota-' + getCurrency());
-  }
-
-  const m = await getModule();
-  currencyTokenGateway = m[`${upperFirst(getType())}Gateway`];
-}
-
-export function upperFirst(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-export function getGateway() {
-  return currencyGateway;
-}
-
-export function getTokenGateway() {
-  return currencyTokenGateway;
 }

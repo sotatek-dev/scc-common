@@ -5,6 +5,7 @@ import CrawlerOptions from './CrawlerOptions';
 import { getCurrency, getListTokenSymbols } from './EnvironmentData';
 import { Errors } from './Enums';
 import { subForTokenChanged } from './RedisChannel';
+import Currency from './Currency';
 
 const logger = getLogger('CrawlerManager');
 
@@ -84,6 +85,9 @@ class CrawlerManager {
   public errorToString(err: any) {
     logger.error(`==============================================================================`);
     logger.error(err ? err.toString() : 'Error undefined');
+    if (err instanceof Error) {
+      logger.error(err.stack);
+    }
     logger.error(`Something went wrong while crawling data. Crawler will be restarted shortly...`);
     logger.error(`==============================================================================`);
   }
@@ -105,7 +109,7 @@ class CrawlerManager {
     }, duration);
 
     // Check RPC node...
-    const check = await crawler.getGateway().checkRPCNode(getListTokenSymbols().tokenSymbolsBuilder);
+    const check = await crawler.getGateway().checkRPCNode(getListTokenSymbols().tokenSymbolsBuilder as Currency);
     if (!check) {
       clearTimeout(timer);
       throw Errors.rpcError;
