@@ -3,7 +3,7 @@ import BaseMQConsumer from './BaseMQConsumer';
 import BaseMQProducer from './BaseMQProducer';
 import BaseGateway from './BaseGateway';
 import { Options } from 'amqplib';
-import { getTokenBySymbol } from './EnvironmentData';
+import { getGateway } from './EnvironmentData';
 import { subForTokenChanged } from './RedisChannel';
 
 const MixedClass = BaseMQConsumer(BaseMQProducer(BaseIntervalWorker));
@@ -15,13 +15,10 @@ export abstract class CurrencyIntervalWorker extends MixedClass {
   }
   public abstract gatewayClass(): any;
   /**
-   * TODO: will update
    * @param currency
    */
   public getGateway(currency?: string): BaseGateway {
-    return this.gatewayClass().getInstance(
-      getTokenBySymbol(currency) ? getTokenBySymbol(currency).contractAddress : null
-    );
+    return getGateway(currency);
   }
 
   protected async connect(options: Options.Connect): Promise<void> {
