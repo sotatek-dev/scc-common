@@ -259,6 +259,11 @@ export function setEnvConfig(configs: IEnvConfig[]) {
 
 const gatewaysMap = new Map<string, BaseGateway>();
 
+/**
+ * If contract address of a currency is existed, will return a token gateway
+ * else return gateway of its family
+ * @param currcy
+ */
 export function getGateway(currcy?: string) {
   const contractAddress = getTokenBySymbol(currcy) ? getTokenBySymbol(currcy).contractAddress : null;
   if (contractAddress) {
@@ -271,13 +276,13 @@ export function getGateway(currcy?: string) {
     gatewaysMap.set(contractAddress, newGateway);
     return newGateway;
   } else {
-    const gw = gatewaysMap.get(getCurrency());
+    const gw = gatewaysMap.get(getFamily());
     if (gw) {
       return gw;
     }
 
     const newGateway = new (getCurrencyGateway() as any)();
-    gatewaysMap.set(getCurrency(), newGateway);
+    gatewaysMap.set(getFamily(), newGateway);
     return newGateway;
   }
 }
@@ -285,21 +290,21 @@ export function getGateway(currcy?: string) {
 export async function setCurrencyGateway() {
   const getModule: any = async () => await import(`../../sota-${getFamily()}`);
   if (!getModule()) {
-    console.log('Cannot find module sota-' + getCurrency());
+    console.log('Cannot find module sota-' + getFamily());
   }
 
-  const m = await getModule();
-  currencyGateway = m[`${upperFirst(getCurrency())}Gateway`];
+  const module = await getModule();
+  currencyGateway = module[`${upperFirst(getFamily())}Gateway`];
 }
 
 export async function setTokenGateway() {
   const getModule: any = async () => await import(`../../sota-${getFamily()}`);
   if (!getModule()) {
-    console.log('Cannot find getModule sota-' + getCurrency());
+    console.log('Cannot find getModule sota-' + getFamily());
   }
 
-  const m = await getModule();
-  currencyTokenGateway = m[`${upperFirst(getType())}Gateway`];
+  const module = await getModule();
+  currencyTokenGateway = module[`${upperFirst(getType())}Gateway`];
 }
 
 export function upperFirst(value: string) {

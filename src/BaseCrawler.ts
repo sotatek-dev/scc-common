@@ -2,25 +2,26 @@ import { v1 as uuid } from 'uuid';
 import { getLogger } from './Logger';
 import BaseGateway from './BaseGateway';
 import CrawlerOptions from './CrawlerOptions';
-import { getListTokenSymbols } from './EnvironmentData';
+import { getGateway, getListTokenSymbols } from './EnvironmentData';
 
 const logger = getLogger('BaseCrawler');
 
 export abstract class BaseCrawler {
-  protected _gateway: BaseGateway;
   protected readonly _id: string;
   protected readonly _options: CrawlerOptions;
 
   constructor(options: CrawlerOptions) {
-    this._gateway = this.gatewayClass().getInstance();
     this._id = uuid();
     this._options = options;
   }
 
   public abstract gatewayClass(): any;
 
-  public getGateway(): BaseGateway {
-    return this._gateway;
+  /**
+   * @param currency
+   */
+  public getGateway(currency?: string): BaseGateway {
+    return getGateway(currency);
   }
 
   public getInstanceId(): string {

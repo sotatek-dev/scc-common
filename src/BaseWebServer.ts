@@ -2,7 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import util from 'util';
 import BaseGateway from './BaseGateway';
-import { getCurrency, getCurrencyConfig, getTokenBySymbol } from './EnvironmentData';
+import { getCurrency, getCurrencyConfig, getGateway, getTokenBySymbol } from "./EnvironmentData";
 import * as URL from 'url';
 import { getLogger } from './Logger';
 import { subForTokenChanged } from './RedisChannel';
@@ -33,12 +33,8 @@ export abstract class BaseWebServer {
     subForTokenChanged();
   }
 
-  public abstract gatewayClass(): any;
-
   public getGateway(currency?: string): BaseGateway {
-    return this.gatewayClass().getInstance(
-      getTokenBySymbol(currency) ? getTokenBySymbol(currency).contractAddress : null
-    );
+    return getGateway(currency);
   }
 
   public start() {
