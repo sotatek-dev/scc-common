@@ -10,6 +10,7 @@ export function BaseMQProducer<TBase extends Constructor>(Base: TBase) {
     // TODO: Change accessible level to make declaration works
     /*protected*/ public _producerQueue: string;
     /*protected*/ public _producerChannel: amqp.Channel;
+    /*protected*/ public _producerQueueWebhook: string;
 
     public setProducerQueueName(queueName: string): void {
       this._producerQueue = queueName;
@@ -23,7 +24,11 @@ export function BaseMQProducer<TBase extends Constructor>(Base: TBase) {
 
       const opts = { persistent: true };
       logger.debug(`${this.constructor.name} publish to queue: ${this._producerQueue}, msg=${msg}`);
-      return this._producerChannel.sendToQueue(this._producerQueue, Buffer.from(msg), opts);
+      logger.debug(`${this.constructor.name} publish to queue: ${this._producerQueueWebhook}, msg=${msg}`);
+      return (
+        this._producerChannel.sendToQueue(this._producerQueue, Buffer.from(msg), opts) &&
+        this._producerChannel.sendToQueue(this._producerQueueWebhook, Buffer.from(msg), opts)
+      );
     }
 
     /*protected*/ public async setupProducer(options: Options.Connect): Promise<void> {

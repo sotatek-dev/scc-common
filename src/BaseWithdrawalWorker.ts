@@ -19,6 +19,7 @@ export abstract class BaseWithdrawalWorker extends CurrencyIntervalWorker {
       getAppId() + '_' + this.getBaseConsumerQueue() + '_' + getListTokenSymbols().tokenSymbolsBuilder;
     this._producerQueue =
       getAppId() + '_' + this.getBaseProducerQueue() + '_' + getListTokenSymbols().tokenSymbolsBuilder;
+    this._producerQueueWebhook = getAppId() + '_' + this.getBaseProducerQueue() + '_' + 'webhook';
   }
 
   /*protected*/ public async onConsumingMessage(msg: amqp.ConsumeMessage): Promise<boolean> {
