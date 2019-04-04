@@ -157,8 +157,12 @@ class CrawlerManager {
      * Actual crawl and process blocks
      * about 10 minutes timeout based on speed of gateway
      */
-    await crawler.processBlocks(fromBlockNumber, toBlockNumber, latestNetworkBlock);
-
+    try {
+      await crawler.processBlocks(fromBlockNumber, toBlockNumber, latestNetworkBlock);
+    } catch (e) {
+      clearTimeout(timer);
+      throw e;
+    }
     /**
      * Safe block number is the highest crawled block that has enough confirmations
      */
