@@ -2,7 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import util from 'util';
 import BaseGateway from './BaseGateway';
-import { getCurrency, getCurrencyConfig, getGateway, getTokenBySymbol } from "./EnvironmentData";
+import { getCurrency, getCurrencyConfig, getGateway, getTokenBySymbol } from './EnvironmentData';
 import * as URL from 'url';
 import { getLogger } from './Logger';
 import { subForTokenChanged } from './RedisChannel';
@@ -100,6 +100,18 @@ export abstract class BaseWebServer {
     return res.json(resObj);
   }
 
+  protected async normalizeAddress(req: any, res: any) {
+    const address: string = req.params.address;
+    const checksumAddress = await this.getGateway().normalizeAddress(address);
+    logger.info(
+      `WebService::convertChecksumAddress params=${JSON.stringify(req.params)} result=${JSON.stringify(
+        checksumAddress
+      )}`
+    );
+
+    return res.json(checksumAddress);
+  }
+
   protected setup() {
     this.app.use(morgan('dev'));
 
@@ -145,6 +157,15 @@ export abstract class BaseWebServer {
       } catch (e) {
         logger.error(`err=${util.inspect(e)}`);
         res.status(500).json({ error: e.message || e.toString() });
+      }
+    });
+
+    this.app.get('/api/:coin/:address/normalized', async (req, res) => {
+      try {
+        await this.normalizeAddress(req, res);
+      } catch (e) {
+        logger.error(`convertChecksumAddress err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.toString() });
       }
     });
   }
