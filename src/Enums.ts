@@ -21,6 +21,7 @@ export enum TokenType {
   OMNI = 'omni',
   TRC20 = 'trc20',
   NEP5 = 'nep5',
+  EOS = 'eos',
 }
 
 export enum HotWalletType {
