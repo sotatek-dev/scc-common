@@ -283,7 +283,7 @@ export function getGateway(currcy?: string) {
 }
 
 export async function setCurrencyGateway() {
-  const getModule: any = async () => await import(`../../sota-${getCurrency()}`);
+  const getModule: any = async () => await import(`../../sota-${getFamily()}`);
   if (!getModule()) {
     console.log('Cannot find module sota-' + getCurrency());
   }
@@ -292,11 +292,8 @@ export async function setCurrencyGateway() {
   currencyGateway = m[`${upperFirst(getCurrency())}Gateway`];
 }
 
-/**
- * TBD, will be used after separating currency and currency token currencyGateway
- */
 export async function setTokenGateway() {
-  const getModule: any = async () => await import(`../../sota-${getCurrency()}`);
+  const getModule: any = async () => await import(`../../sota-${getFamily()}`);
   if (!getModule()) {
     console.log('Cannot find getModule sota-' + getCurrency());
   }
