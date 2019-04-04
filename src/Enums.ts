@@ -12,6 +12,7 @@ export enum MessageQueueName {
   SENT_WITHDRAWAL = 'sent_withdrawal',
   VERIFIED_WITHDRAWAL = 'verified_withdrawal',
 
+  CREATED_DEPOSIT = 'created_deposit',
   COLLECTING_DEPOSIT = 'collecting_deposit',
   COLLECTED_DEPOSIT = 'collected_deposit',
 }

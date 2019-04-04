@@ -37,4 +37,5 @@ export * from './src/RPCClient';
 export * from './src/RPCHelper';
 export * from './src/Enums';
 export * from './src/Logger';
+export * from './src/BaseWebhookWorker';
 export { override, implement } from './src/Utils';
