@@ -83,6 +83,10 @@ class CrawlerManager {
    * @param err
    */
   public errorToString(err: any) {
+    if (err.code === Errors.apiDataNotUpdated.code) {
+      logger.warn(Errors.apiDataNotUpdated.toString());
+      return;
+    }
     logger.error(`==============================================================================`);
     logger.error(err ? err.toString() : 'Error undefined');
     if (err instanceof Error) {
