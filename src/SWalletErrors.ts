@@ -1,39 +1,3 @@
-export enum TransactionStatus {
-  UNKNOWN = 0,
-  CONFIRMING = 1,
-  COMPLETED = 2,
-  FAILED = 3,
-}
-
-export enum MessageQueueName {
-  UNSIGNED_WITHDRAWAL = 'unsigned_withdrawal',
-  SIGNING_WITHDRAWAL = 'signing_withdrawal',
-  SIGNED_WITHDRAWAL = 'signed_withdrawal',
-  SENT_WITHDRAWAL = 'sent_withdrawal',
-  VERIFIED_WITHDRAWAL = 'verified_withdrawal',
-
-  COLLECTING_DEPOSIT = 'collecting_deposit',
-  COLLECTED_DEPOSIT = 'collected_deposit',
-}
-
-export enum TokenType {
-  ERC20 = 'erc20',
-  OMNI = 'omni',
-  TRC20 = 'trc20',
-  NEP5 = 'nep5',
-  EOS = 'eos',
-}
-
-export enum HotWalletType {
-  Normal = 'normal',
-  Multisig = 'multisig',
-}
-
-export enum TransferType {
-  ACCOUNT_BASED = 'account',
-  UTXO_BASED = 'utxo',
-}
-
 interface IError {
   [index: string]: ErrorDetails;
 }

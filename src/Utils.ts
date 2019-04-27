@@ -1,8 +1,5 @@
 // Get current timestamp in millisecond
 import URL from 'url';
-import BigNumber from 'bignumber.js';
-import { getFamily, getTokenBySymbol } from './EnvironmentData';
-import BaseGateway from './BaseGateway';
 
 export function nowInMillis(): number {
   return Date.now();
@@ -75,23 +72,6 @@ function _removeDoubleQuote(value: string) {
   return value.replace(/\\\"/g, '').replace(/\"/g, '');
 }
 
-/**
- * Precision is gotten from environment or config
- * @param amount
- * @param currency
- */
-export function handleAmountPrecision(amount: string, currency: string): string {
-  const res = new BigNumber(amount);
-  let precision = 0;
-  const token = getTokenBySymbol(currency);
-  if (token) {
-    precision = token.precision;
-  } else {
-    console.log(`Cannot find ${currency} currency at any configurations`);
-  }
-  return res.toFixed(precision);
-}
-
 /* Put this in a helper library somewhere */
 export function override(container: any, key: any) {
   const baseType = Object.getPrototypeOf(container);
@@ -109,15 +89,4 @@ export function implement(container: any, key: any) {
     const overrideError: string = 'Method ' + key + ' of ' + container.constructor.name + ' implemented on base class';
     throw new Error(overrideError);
   }
-}
-
-/**
- * TODO: will update
- * one family one gateway
- * @param currency
- */
-export function getGateway(gatewayClass: any): BaseGateway {
-  // get interact contract with family
-  const family = getFamily();
-  return gatewayClass.getInstance(getTokenBySymbol(family) ? getTokenBySymbol(family).contractAddress : null);
 }

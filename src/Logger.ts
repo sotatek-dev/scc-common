@@ -1,5 +1,5 @@
-import { getEnvConfig } from './EnvironmentData';
 import winston from 'winston';
+import { CCEnv } from '..';
 const WinstonCloudWatch = require('winston-cloudwatch');
 const nodemailer = require('nodemailer');
 
@@ -7,11 +7,8 @@ let ERROR_STASHES: string[] = [];
 
 setInterval(() => {
   if (ERROR_STASHES.length > 0) {
-    const envConfig = getEnvConfigs();
-    if (envConfig) {
-      sendEmail(envConfig.mailerAccount, envConfig.mailerPassword, envConfig.mailerReceiver, ERROR_STASHES);
-      ERROR_STASHES = [];
-    }
+    notifyErrors(ERROR_STASHES);
+    ERROR_STASHES = [];
   }
 }, 60000);
 
@@ -90,18 +87,26 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
   };
 }
 
-async function sendEmail(mailAccount: string, mailPassword: string, mailReceiver: string, message: string[]) {
+async function notifyErrors(message: string[]) {
+  const mailerAccount = CCEnv.getCustomEnvConfig('MAILER_ACCOUNT');
+  const mailerPassword = CCEnv.getCustomEnvConfig('MAILER_PASSWORD');
+  const mailerReceiver = CCEnv.getCustomEnvConfig('MAILER_RECEIVER');
+
+  if (!mailerAccount || !mailerPassword || !mailerReceiver) {
+    return;
+  }
+
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: mailAccount,
-      pass: mailPassword,
+      user: mailerAccount,
+      pass: mailerPassword,
     },
   });
 
   const mailOptions = {
-    from: mailAccount,
-    to: mailReceiver,
+    from: mailerAccount,
+    to: mailerReceiver,
     subject: 'Exchange wallet: Error Notifier',
     html: `${message}`,
   };
@@ -109,15 +114,4 @@ async function sendEmail(mailAccount: string, mailPassword: string, mailReceiver
   const info = await transporter.sendMail(mailOptions);
   console.log('Message sent: %s', info.messageId);
   console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-}
-
-function getEnvConfigs() {
-  if (getEnvConfig('MAILER_ACCOUNT') && getEnvConfig('MAILER_PASSWORD') && getEnvConfig('MAILER_RECEIVER')) {
-    return {
-      mailerAccount: getEnvConfig('MAILER_ACCOUNT'),
-      mailerPassword: getEnvConfig('MAILER_PASSWORD'),
-      mailerReceiver: getEnvConfig('MAILER_RECEIVER'),
-    };
-  }
-  return null;
 }

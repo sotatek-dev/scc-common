@@ -1,320 +1,244 @@
-import URL from 'url';
-import Currency from './Currency';
-import { IConfig, ITokenRemake, IEnvConfig } from './Interfaces';
-import { Const } from './Const';
+// Make sure the EnvironmentData is singleton in whole process
+if (process.env.isEnvSet_KnV5Ha0UlAAEME69I6KA === '1') {
+  throw new Error(`Something went wrong. EnvironmentData is declared multiple times.`);
+}
+process.env.isEnvSet_KnV5Ha0UlAAEME69I6KA = '1';
+
 import { getLogger } from './Logger';
-import { BaseGateway, Utils } from '../index';
-import fetch from 'node-fetch';
-import { TokenType } from './Enums';
+import { ICurrency, nativeCurrencies } from './interfaces/ICurrency';
+import { BlockchainPlatform, NetworkType, TokenType } from './enums';
+import { ICurrencyConfig, IOmniAsset, IErc20Token, IGlobalEnvConfig } from './interfaces';
+import BaseGateway from './BaseGateway';
 /**
  * Environment data is usually loaded from database at runtime
  * These are some pre-defined types of data
  * Is there any case we need to defined it as generic?
  */
-
-const allTokens = new Map<string, ITokenRemake>();
-const allTokensBySymbol = new Map<string, ITokenRemake>();
-const allTokenByContract = new Map<string, ITokenRemake>();
-const config = new Map<Currency, IConfig>();
+const logger = getLogger('EnvironmentData');
+const allCurrencies = new Map<string, ICurrency>();
+const allCurrencyConfigs = new Map<string, ICurrencyConfig>();
+const allCurrencyGateways = new Map<string, BaseGateway>();
+const allErc20Tokens: IErc20Token[] = [];
+const allOmniAssets: IOmniAsset[] = [];
 const envConfig = new Map<string, string>();
 
-// Inside this process
-let tokenSymbols: string[] = [];
-let tokenSymbolsBuilder: string;
-let tokenType: string;
-let tokenFamily: string;
-let currency: Currency;
-let uniqueApiEndpoint: string;
+let _globalEnvConfig: IGlobalEnvConfig = null;
+let _appId: string = 'PP70ExC8Hr';
 
-// gateway module
-let currencyGateway: BaseGateway;
-let currencyTokenGateway: BaseGateway;
+// Add native currencies to the list first
+nativeCurrencies.forEach(c => registerCurrency(c));
 
-export function listTokenByType(type: TokenType): Map<string, ITokenRemake> {
-  const res = new Map<string, ITokenRemake>();
-  allTokens.forEach((token, key) => {
-    if (type === token.type) {
-      res.set(key, token);
-    }
-  });
-  return res;
-}
-
-export function getTokenFamilyOfType(type: string): string {
-  let ret: string = null;
-  allTokens.forEach(token => {
-    if (type === token.type) {
-      ret = token.family;
-      return;
-    }
-  });
-  return ret;
-}
-
-export function getTokenBySymbol(symbol: string): ITokenRemake {
-  if (!symbol) {
-    return null;
+/**
+ * Register a currency on environment data
+ * Native assets have been registered above
+ * Most likely the tokens or other kind of programmatic assets will be added here
+ *
+ * @param c currency
+ */
+function registerCurrency(c: ICurrency): boolean {
+  if (allCurrencies.has(c.symbol)) {
+    logger.warn(`Currency register multiple times: ${c.symbol}`);
+    return false;
   }
-  const token = allTokensBySymbol.get(`${symbol}`);
-  if (!token) {
-    throw new Error(`Cannot find ${symbol.toUpperCase()} configuration. Will exit process`);
-  }
-  return token;
+
+  allCurrencies.set(c.symbol, c);
+  return true;
 }
 
-function getTheTokenByContract(address: string, type: TokenType): ITokenRemake {
-  const listTokens = listTokenByType(type);
-  let res: ITokenRemake = null;
-  listTokens.forEach(token => {
-    if (token.contractAddress.toLowerCase() === address.toLowerCase()) {
-      res = token;
-    }
-  });
-  return res;
+export function registerOmniAsset(propertyId: number, networkSymbol: string, name: string, scale: number): boolean {
+  logger.info(`register Omni: propertyId=${propertyId}, networkSymbol=${networkSymbol}, name=${name}, scale=${scale}`);
+  const platform = BlockchainPlatform.Bitcoin;
+  const symbol = [platform, propertyId].join('|');
+  const currency: IOmniAsset = {
+    symbol,
+    networkSymbol,
+    tokenType: TokenType.OMNI,
+    name,
+    platform,
+    isNative: false,
+    propertyId,
+    scale,
+  };
+
+  return registerCurrency(currency);
 }
 
-export async function setTokenData(tokens: ITokenRemake[]) {
-  tokens.forEach(token => {
-    allTokens.set(`${token.symbol}_${token.type}`, token);
-    allTokensBySymbol.set(`${token.symbol}`, token);
-    if (token.contractAddress) {
-      allTokenByContract.set(token.contractAddress.toLowerCase(), token);
-    }
-  });
+export function findOmniAsset(propertyId: number): IOmniAsset {
+  const platform = BlockchainPlatform.Bitcoin;
+  const symbol = [platform, propertyId].join('|');
+  return findOneCurrency(symbol) as IOmniAsset;
 }
 
-export function getTokenByContract(type: TokenType, address: string): ITokenRemake {
-  return getTheTokenByContract(address, type);
+export function getAllOmniAssets(): IOmniAsset[] {
+  return allOmniAssets;
 }
 
-export function setBlockchainNetworkEnv(): void {
-  const token = getTokenBySymbol(getFamily());
-  if (!token) {
-    console.log(`${getFamily().toUpperCase()} config is missing from currency table`);
-  }
-  process.env.NETWORK = token.network;
-}
-
-export function getCurrencyConfig(c: Currency): IConfig {
-  return config.get(c);
-}
-
-export function setCurrencyConfig(c: Currency, configData: IConfig) {
-  config.set(c, configData);
-}
-
-export async function updateValidApiEndpoint(): Promise<string> {
-  if (!getCurrencyConfig(getCurrency()).apiEndpoint) {
-    return null;
-  }
-  const apiEnpoints = getCurrencyConfig(getCurrency()).apiEndpoint.split(',');
-  const validApiEndpoints: string[] = [];
-  await Promise.all(
-    apiEnpoints.map(async apiEndpoint => {
-      try {
-        const start = Utils.nowInMillis();
-        if (!apiEndpoint) {
-          return;
-        }
-        const fullEndpoint = new URL.URL(apiEndpoint);
-        if (fullEndpoint.protocol !== 'http:' && fullEndpoint.protocol !== 'https:') {
-          fullEndpoint.protocol = 'https:';
-        }
-        await fetch(`${fullEndpoint}`);
-        const end = Utils.nowInMillis();
-        const ping = end - start;
-        if (ping > 5000) {
-          return;
-        }
-      } catch (e) {
-        return;
-      }
-      validApiEndpoints.push(apiEndpoint);
-    })
+export function registerErc20Token(
+  contractAddress: string,
+  networkSymbol: string,
+  name: string,
+  decimals: number
+): boolean {
+  logger.info(
+    `register erc20: contract=${contractAddress}, networkSymbol=${networkSymbol}, name=${name}, decimals=${decimals}`
   );
+  const platform = BlockchainPlatform.Ethereum;
+  const symbol = [platform, contractAddress].join('|');
+  const currency: IErc20Token = {
+    symbol,
+    networkSymbol,
+    tokenType: TokenType.ERC20,
+    name,
+    platform,
+    isNative: false,
+    contractAddress,
+    decimals,
+    scale: 0,
+  };
 
-  uniqueApiEndpoint = validApiEndpoints.length > 0 ? validApiEndpoints[0] : null;
-  if (validApiEndpoints.length > 0) {
-    uniqueApiEndpoint = validApiEndpoints[0];
-  } else {
-    throw new Error(
-      `Cannot reach to any ${getCurrency().toUpperCase()} api endpoints: ${
-        getCurrencyConfig(getCurrency()).apiEndpoint
-      }. Re-configure api link in config database`
-    );
-  }
-  return validApiEndpoints.length > 0 ? validApiEndpoints[0] : null;
+  return registerCurrency(currency);
 }
 
-export function getApiEndpoint(): string {
-  return uniqueApiEndpoint;
+export function findErc20Token(contractAddress: string): IErc20Token {
+  const platform = BlockchainPlatform.Ethereum;
+  const symbol = [platform, contractAddress].join('|');
+  return findOneCurrency(symbol) as IErc20Token;
 }
 
-// after prepare
-export function getType(): string {
-  return tokenType;
-}
-
-// after prepare
-export function getFamily(): string {
-  return tokenFamily;
+export function getAllErc20Tokens(): IErc20Token[] {
+  return allErc20Tokens;
 }
 
 /**
- * Build to object
- * {
- *   tokenSymbolsBuilder: "token1, token2",
- *   tokenSymbols: [ 'token1', 'token2' ]
- * }
+ * Just return all currencies that were registered
+ */
+export function getAllCurrencies(): ICurrency[] {
+  return Array.from(allCurrencies.values());
+}
+
+/**
+ * Get information of one currency by its symbol
+ *
+ * @param symbol
+ */
+export function findOneCurrency(symbol: string): ICurrency {
+  if (!allCurrencies.has(symbol)) {
+    logger.error(`CCEnv::findOneCurrency cannot find currency has symbol: ${symbol}`);
+    return null;
+  }
+
+  return allCurrencies.get(symbol);
+}
+
+export function getOneNativeCurrency(symbol: BlockchainPlatform): ICurrency {
+  if (!allCurrencies.has(symbol)) {
+    logger.error(`CCEnv::findOneCurrency cannot find currency has symbol: ${symbol}`);
+    return null;
+  }
+
+  return allCurrencies.get(symbol);
+}
+
+/**
+ * Update config for a currency
+ *
  * @param c
- * @param type
+ * @param config
  */
-export function buildListTokenSymbols(c: Currency, type?: TokenType): any {
-  const envTokenSymbols = process.env.TOKENS;
-  currency = c;
+export function setCurrencyConfig(c: ICurrency, config: ICurrencyConfig) {
+  const symbol = c.symbol;
+  let finalConfig: ICurrencyConfig;
 
-  // if type is not defined, build tokenType and tokenFamily from default currency
-  if (!type) {
-    const token = getTokenBySymbol(c);
-    if (!token) {
-      throw new Error(`Cannot build token data due to cannot find ${c} currency configuration`);
-    }
-    tokenType = getTokenBySymbol(c).type.toString();
-    tokenFamily = getTokenBySymbol(c).family.toString();
-    // default: currency not family
-    tokenSymbolsBuilder = c.toString();
-    tokenSymbols.push(c.toString());
-    return {
-      tokenSymbolsBuilder,
-      tokenSymbols,
-    };
+  // Keep configs that is already set on the environment
+  if (allCurrencyConfigs.has(symbol)) {
+    const oldConfig = allCurrencyConfigs.get(symbol);
+    finalConfig = Object.assign(finalConfig, oldConfig);
   }
 
-  tokenType = type;
-  tokenFamily = getTokenFamilyOfType(tokenType);
+  // And merge it with desired config
+  finalConfig = Object.assign(finalConfig, config);
 
-  if (envTokenSymbols) {
-    tokenSymbolsBuilder = envTokenSymbols;
-    tokenSymbols = tokenArray(tokenSymbolsBuilder);
-  } else {
-    getLogger('Environment').warn(
-      `Cannot find any token configuration in .env file. Missing TOKENS env. Will get all ${tokenType.toUpperCase()} tokens in currency table`
-    );
-    const storedTokens = listTokenByType(type);
-    if (!storedTokens.size) {
-      getLogger('Environment').warn(`Cannot find any ${type} token configuration in database`);
-      process.exit(1);
-    }
-    storedTokens.forEach(value => {
-      tokenSymbols.push(value.symbol);
-    });
-    tokenSymbolsBuilder = tokenSymbols.join(',');
-  }
-  return {
-    tokenSymbolsBuilder,
-    tokenSymbols,
-  };
-}
-
-export function getListTokenSymbols() {
-  return {
-    tokenSymbolsBuilder,
-    tokenSymbols,
-  };
+  // Put it to the environment again
+  allCurrencyConfigs.set(symbol, finalConfig);
 }
 
 /**
- * Split "token1, token2" to array [ 'token1', 'token2' ]
- * @param tokensBuilder
+ * Get config of a single currency
+ * @param c
  */
-export function tokenArray(tokensBuilder: string): string[] {
-  return tokensBuilder.trim().split(Const.TOKEN_SEPARATOR);
+export function getCurrencyConfig(c: ICurrency): ICurrencyConfig {
+  const symbol = c.symbol;
+  if (!allCurrencies.has(symbol)) {
+    logger.error(`CCEnv::getOneCurrencyConfig cannot find currency has symbol: ${symbol}`);
+    return null;
+  }
+
+  return allCurrencyConfigs.get(symbol);
 }
 
-export function getAppId(): string {
-  return 'PP70ExC8Hr';
-}
-
-export function getMinimumDepositAmount(c: string): string {
-  return getTokenBySymbol(c).minimumDeposit;
-}
-
-export function getCurrencyDecimal(c: string): number {
-  return getTokenBySymbol(c).decimal;
-}
-
-export function getCurrency(): Currency {
-  return currency;
-}
-
-export function getEnvConfig(key: string): string {
+export function getCustomEnvConfig(key: string): string {
   return envConfig.get(key);
 }
 
-export function setEnvConfig(configs: IEnvConfig[]) {
-  configs.map(cf => {
-    envConfig.set(cf.key, cf.value);
-  });
-}
+export function setCustomEnvConfig(key: string, value: string) {
+  switch (key) {
+    case 'NETWORK':
+      if (!(value in NetworkType)) {
+        throw new Error(`Trying to set invalid value for network: ${value}`);
+      }
+      _globalEnvConfig = Object.assign(_globalEnvConfig, { network: value });
+      break;
 
-const gatewaysMap = new Map<string, BaseGateway>();
-
-/**
- * If contract address of a currency is existed, will return a token gateway
- * else return gateway of its family
- * @param currcy
- */
-export function getGateway(currcy?: string) {
-  const contractAddress = getTokenBySymbol(currcy) ? getTokenBySymbol(currcy).contractAddress : null;
-  if (contractAddress) {
-    const gw = gatewaysMap.get(contractAddress);
-    if (gw) {
-      return gw;
-    }
-
-    const newGateway = new (getTokenGateway() as any)(contractAddress);
-    gatewaysMap.set(contractAddress, newGateway);
-    return newGateway;
-  } else {
-    const gw = gatewaysMap.get(getFamily());
-    if (gw) {
-      return gw;
-    }
-
-    const newGateway = new (getCurrencyGateway() as any)();
-    gatewaysMap.set(getFamily(), newGateway);
-    return newGateway;
-  }
-}
-
-export async function setCurrencyGateway() {
-  const getModule: any = async () => await import(`../../sota-${getFamily()}`);
-  if (!getModule()) {
-    console.log('Cannot find module sota-' + getFamily());
+    default:
+      break;
   }
 
-  const module = await getModule();
-  currencyGateway = module[`${upperFirst(getFamily())}Gateway`];
+  return envConfig.set(key, value);
 }
 
-export async function setTokenGateway() {
-  const getModule: any = async () => await import(`../../sota-${getFamily()}`);
-  if (!getModule()) {
-    console.log('Cannot find getModule sota-' + getFamily());
+export function getGlobalEnvConfig(): IGlobalEnvConfig {
+  return _globalEnvConfig;
+}
+
+export function getAppId(): string {
+  return _appId;
+}
+
+export function setAppId(appId: string) {
+  return (_appId = appId);
+}
+
+export function getNetwork(): NetworkType {
+  return _globalEnvConfig.network;
+}
+
+// Check whether the environment is mainnet
+export function isMainnet(): boolean {
+  return getNetwork() === NetworkType.MainNet;
+}
+
+// Check whether the environment is public testnet
+export function isTestnet(): boolean {
+  return getNetwork() === NetworkType.TestNet;
+}
+
+// Check whether the environment is private net
+export function isPrivnet(): boolean {
+  return getNetwork() === NetworkType.PrivateNet;
+}
+
+export function registerCurrencyGateway(currency: ICurrency, gatewayInstance: BaseGateway) {
+  if (allCurrencyGateways.has(currency.symbol)) {
+    logger.warn(`Register currency gateway multiple times: ${currency.symbol}`);
   }
 
-  const module = await getModule();
-  currencyTokenGateway = module[`${upperFirst(getType())}Gateway`];
+  allCurrencyGateways.set(currency.symbol, gatewayInstance);
 }
 
-export function upperFirst(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
+export function getCurrencyGateway(currency: ICurrency): BaseGateway {
+  if (allCurrencyGateways.has(currency.symbol)) {
+    throw new Error(`Could not get gateway instance for currency: ${currency.symbol}`);
+  }
 
-export function getCurrencyGateway() {
-  return currencyGateway;
-}
-
-export function getTokenGateway() {
-  return currencyTokenGateway;
+  return allCurrencyGateways.get(currency.symbol);
 }

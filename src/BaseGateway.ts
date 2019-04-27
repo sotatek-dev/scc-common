@@ -1,20 +1,23 @@
 import _ from 'lodash';
 import LRU from 'lru-cache';
-import { Account, Block, Transaction, Transactions } from './types';
-import { TransactionStatus, TransferType } from './Enums';
+import util from 'util';
 import {
-  IConfig,
-  IRawTransaction,
-  ISignedRawTransaction,
-  ISubmittedTransaction,
-  ITokenRemake,
-  IVOut,
-} from './Interfaces';
-import { FetchError } from 'node-fetch';
-import { Currency } from './Currency';
-import { implement } from './Utils';
-import { getCurrency, getCurrencyConfig } from './EnvironmentData';
+  Account,
+  Block,
+  Transaction,
+  Transactions,
+  TransactionStatus,
+  RPCClient,
+  ICurrency,
+  implement,
+  Utils,
+  BigNumber,
+  CCEnv,
+  getLogger,
+} from '..';
+import { ICurrencyConfig } from './interfaces';
 
+const logger = getLogger('BaseGateway');
 /**
  * The gateway provides methods/interfaces for our service
  * to connect to blockchain network
@@ -22,45 +25,58 @@ import { getCurrency, getCurrencyConfig } from './EnvironmentData';
  * They can be done via RPC calls, RESTful APIs, ...
  */
 export abstract class BaseGateway {
-  public static getInstance(options?: any): BaseGateway {
+  public static getInstance(): BaseGateway {
     throw new Error(`Must be implemented in derived class.`);
   }
 
   protected _cacheBlock: LRU<string | number, Block>;
-
   protected _cacheTxByHash: LRU<string, Transaction>;
+  protected readonly _rpcClient: RPCClient;
+  protected readonly _currency: ICurrency;
 
   // Gateways are singletons
   // So we hide the constructor from outsiders
-  protected constructor() {
+  protected constructor(currency: ICurrency) {
     // Initiate the caches
     this._cacheBlock = new LRU(this._getCacheOptions());
     this._cacheTxByHash = new LRU(this._getCacheOptions());
-  }
+    this._currency = currency;
 
-  @implement
-  public getNetwork(): string {
-    if (!process.env.NETWORK) {
-      throw new Error('Network type required');
+    const rpcRawConfig = CCEnv.getCurrencyConfig(currency).rpcConfig;
+    if (rpcRawConfig) {
+      try {
+        const rpcConfig = JSON.parse(rpcRawConfig);
+        this._rpcClient = new RPCClient(rpcConfig);
+      } catch (e) {
+        logger.error(`BaseGateway::constructor could not contruct RPC Client due to error: ${util.inspect(e)}`);
+      }
     }
-    return process.env.NETWORK;
   }
 
-  public async getCurrencyInfo(address: string): Promise<ITokenRemake> {
-    return null;
+  public getCurrency(): ICurrency {
+    return this._currency;
   }
 
-  @implement
-  public getConfig(): IConfig {
-    return getCurrencyConfig(getCurrency());
+  public getCurrencyConfig(): ICurrencyConfig {
+    return CCEnv.getCurrencyConfig(this._currency);
   }
 
   /**
-   * Default: 1
+   * Create a new random account/address
+   * With some currencies we cannot create account with a synchronous method
+   * Then now we always handle creating account by async function
+   * @returns {Account} the account object
    */
-  @implement
-  public isFastGateway(): boolean {
-    return false;
+  public abstract async createAccountAsync(): Promise<Account>;
+
+  /**
+   * Check a given address is valid
+   * Default just accept all value, need to be implemented on all derived classes
+   *
+   * @param address
+   */
+  public async isValidAddressAsync(address: string): Promise<boolean> {
+    return true;
   }
 
   /**
@@ -68,7 +84,7 @@ export abstract class BaseGateway {
    * @param address
    */
   @implement
-  public normalizeAddress(address: string) {
+  public normalizeAddress(address: string): string {
     return address;
   }
 
@@ -98,6 +114,7 @@ export abstract class BaseGateway {
   }
 
   public getLimitRun(): any {
+    // TODO: FIXME
     return null;
   }
 
@@ -120,6 +137,7 @@ export abstract class BaseGateway {
         result.push(tx);
       }
     };
+
     const tasks = txids.map(async txid => {
       if (this.getLimitRun()) {
         return this.getLimitRun()(async () => {
@@ -130,7 +148,7 @@ export abstract class BaseGateway {
       }
     });
 
-    await Promise.all(tasks);
+    await Utils.PromiseAll(tasks);
     return result;
   }
 
@@ -166,6 +184,7 @@ export abstract class BaseGateway {
     if (fromBlockNumber > toBlockNumber) {
       throw new Error(`fromBlockNumber must be less than toBlockNumber`);
     }
+
     const count = toBlockNumber - fromBlockNumber + 1;
     const blockNumbers = Array.from(new Array(count), (val, index) => index + fromBlockNumber);
     const result = new Transactions();
@@ -177,74 +196,6 @@ export abstract class BaseGateway {
       })
     );
     return result;
-  }
-
-  @implement
-  public async seedFee(privateKey: string, fromAddress: string, toAddress: string, amount: string) {
-    const signTx = await this._forwardTransaction(privateKey, fromAddress, toAddress, amount);
-    return this.sendRawTransaction(signTx.signedRaw);
-  }
-
-  /**
-   * Error handler
-   * @param e
-   * @param params
-   */
-  @implement
-  public handleError(e: any, ...params: any[]): Error {
-    if (e instanceof FetchError) {
-      return new Error(
-        `Api endpoints request error with param ${JSON.stringify({
-          params,
-          message: e.message,
-        })}`
-      );
-    }
-
-    // if error is rpc type
-    // TODO: add error type for rpc call
-    if (e.request !== undefined) {
-      if (e.status === 500) {
-        return new Error(
-          `Couldn't get information because of node errors ${JSON.stringify(e.response)} or wrong params ${params}`
-        );
-      }
-      if (e.status === 401 || e.status === undefined) {
-        return new Error(`Couldn't get information because of rpc node problems "${e.message}"`);
-      }
-    }
-    return e;
-  }
-
-  @implement
-  public async checkRPCNode(currency: Currency): Promise<boolean> {
-    return true;
-  }
-
-  /**
-   * Create a new random account/address
-   *
-   * @returns {Account} the account object
-   */
-  public abstract createAccount(): Account;
-
-  /**
-   * With some currencies we cannot create account with a synchronous method
-   * Then we use this async method instead
-   * TBD: should we change behaviour to always using async method?
-   */
-  public async createAccountAsync(): Promise<Account> {
-    return this.createAccount();
-  }
-
-  /**
-   * Check a given address is valid
-   *
-   * @param address
-   */
-  public async isValidAddressAsync(address: string): Promise<boolean> {
-    // Default just accept all value, need to be implemented on all derived classes
-    return true;
   }
 
   /**
@@ -266,13 +217,6 @@ export abstract class BaseGateway {
   }
 
   /**
-   * Default account base type
-   */
-  public getTransferType(): TransferType {
-    return TransferType.ACCOUNT_BASED;
-  }
-
-  /**
    * No param
    * Returns the number of blocks in the local best block chain.
    * @returns {number}: the height of latest block on the block chain
@@ -280,67 +224,12 @@ export abstract class BaseGateway {
   public abstract async getBlockCount(): Promise<number>;
 
   /**
-   * Validate a transaction and broadcast it to the blockchain network
-   *
-   * @param {String} rawTx: the hex-encoded transaction data
-   * @returns {String}: the transaction hash in hex
-   */
-  public abstract async sendRawTransaction(rawTx: string): Promise<ISubmittedTransaction>;
-
-  /**
    * Get balance of an address
    *
    * @param {String} address: address that want to query balance
    * @returns {string}: the current balance of address
    */
-  public abstract async getAddressBalance(address: string): Promise<string>;
-
-  /**
-   * Create a raw transaction that tranfers currencies
-   * from an address (in most cast it's a hot wallet address)
-   * to one or multiple addresses
-   * This method is async because we need to check state of sender address
-   * Errors can be throw if the sender's balance is not sufficient
-   *
-   * @param {string} fromAddress
-   * @param {IVout[]} vouts
-   *
-   * @returns {IRawTransaction}
-   */
-  public abstract async createRawTransaction(
-    fromAddress: string[] | string,
-    vouts: IVOut[] | IVOut,
-    basedTxIds?: string[]
-  ): Promise<IRawTransaction>;
-
-  /**
-   * Sign a raw transaction with single private key
-   * Most likely is used to sign transaction sent from normal hot wallet
-   *
-   * @param {string} unsignedRaw is result of "createRawTransaction" method
-   * @param {string} privateKey private key to sign, in string format
-   *
-   * @returns the signed transaction
-   */
-  public abstract signRawTxBySinglePrivateKey(
-    unsignedRaw: string,
-    privateKey: string | string[]
-  ): Promise<ISignedRawTransaction>;
-
-  /**
-   * No param
-   * Returns the avg fee to transfer a basic transaction.
-   * @returns {string}: amount
-   */
-  public abstract getAvgFee(): string;
-
-  public abstract async forwardTransaction(
-    privateKey: string | string[],
-    fromAddress: string | string[],
-    toAddress: string,
-    amount: string,
-    basedTxIds?: string[]
-  ): Promise<ISignedRawTransaction>;
+  public abstract async getAddressBalance(address: string): Promise<BigNumber>;
 
   /**
    * Check whether a transaction is finalized on blockchain network
@@ -349,33 +238,6 @@ export abstract class BaseGateway {
    * @returns {string}: the tx status
    */
   public abstract async getTransactionStatus(txid: string): Promise<TransactionStatus>;
-
-  /**
-   * Get cache options. Override this in derived class if needed
-   *
-   * @returns {LRU.Options} options for cache storage
-   */
-  @implement
-  protected _getCacheOptions() {
-    return {
-      max: 1024 * 1024,
-      maxAge: 1000 * 60 * 60, // 1 hour
-    };
-  }
-
-  @implement
-  protected async _forwardTransaction(
-    privateKey: string | string[],
-    fromAddress: string | string[],
-    toAddress: string,
-    amount: string,
-    basedTxIds?: string[]
-  ): Promise<ISignedRawTransaction> {
-    const vouts = [{ toAddress, amount }];
-    const rawTx = await this.createRawTransaction(fromAddress, vouts, basedTxIds);
-    const signedTx = await this.signRawTxBySinglePrivateKey(rawTx.unsignedRaw, privateKey);
-    return signedTx;
-  }
 
   /**
    * Get block detailstxidstxids: string[]*
@@ -391,6 +253,19 @@ export abstract class BaseGateway {
    * @returns {Transaction}: the transaction details
    */
   protected abstract async _getOneTransaction(txid: string): Promise<Transaction>;
+
+  /**
+   * Get cache options. Override this in derived class if needed
+   *
+   * @returns {LRU.Options} options for cache storage
+   */
+  @implement
+  protected _getCacheOptions() {
+    return {
+      max: 1024 * 1024,
+      maxAge: 1000 * 60 * 60, // 1 hour
+    };
+  }
 }
 
 export default BaseGateway;

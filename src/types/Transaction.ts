@@ -1,5 +1,6 @@
-import BlockHeader from './BlockHeader';
-import TransferOutput from './TransferOutput';
+import BigNumber from 'bignumber.js';
+import { Address, BlockHeader, TransferEntry } from '../..';
+import { ICurrency } from '../interfaces';
 
 interface ITransactionProps {
   readonly txid: string;
@@ -8,40 +9,99 @@ interface ITransactionProps {
   confirmations: number;
 }
 
+/**
+ * This class is usually used when crawling and analyzing data from network
+ * That means these kind of transactions were sent and processed already
+ * We'll not use this class for constructing new transactions
+ */
 export abstract class Transaction implements ITransactionProps {
+  public readonly currency: ICurrency;
   public readonly txid: string;
   public readonly height: number;
   public readonly timestamp: number;
   public readonly block: BlockHeader;
-  // Its value is empty or a contract address
-  public contractAddress: string;
   public confirmations: number;
   public isFailed: boolean;
 
-  constructor(props: ITransactionProps, block: BlockHeader) {
+  protected _allEntries: TransferEntry[];
+
+  constructor(currency: ICurrency, props: ITransactionProps, block: BlockHeader) {
     Object.assign(this, props);
+    this.currency = currency;
     this.block = block;
     this.isFailed = false;
+    this._allEntries = [];
   }
 
   /**
-   * Extract all every change  from a transaction
-   *
-   * @returns {TransferOutput[]} array of transfer outputs
+   * Calculate the network fee that was consumed in the transaction
    */
-  public abstract extractEntries(): TransferOutput[];
+  public abstract getNetworkFee(): BigNumber;
+
+  /**
+   * Extract all changes from a transaction
+   *
+   * @returns {TransferEntry[]} array of transfer entries
+   */
+  public extractEntries(): TransferEntry[] {
+    if (!this._allEntries.length) {
+      this._allEntries = this._extractEntries();
+    }
+
+    return this._allEntries;
+  }
+
+  /**
+   * Extract all positive entries
+   * These are recipients' enties
+   */
+  public extractOutputEntries(): TransferEntry[] {
+    const entries: TransferEntry[] = this.extractEntries();
+    return entries.filter(e => e.amount.gte(0));
+  }
+
+  /**
+   * Extract all negative entries
+   * These are senders' enties
+   */
+  public extractInputEntries(): TransferEntry[] {
+    const entries: TransferEntry[] = this.extractEntries();
+    return entries.filter(e => e.amount.lt(0));
+  }
 
   /**
    * Extract recipient addresses.
    *
    * @returns {string[]} array of addresses under string format
    */
-  public extractRecipientAddresses(): string[] {
+  public extractRecipientAddresses(): Address[] {
     // Recipients are addresses from transfer outputs
     // which have positive amount
-    return this.extractTransferOutputs().map(t => t.toAddress);
+    return this.extractOutputEntries().map(t => t.address);
   }
 
+  /**
+   * Extract sender addresses
+   */
+  public extractSenderAddresses(): Address[] {
+    // With entries that balance change avalue is negative,
+    // that is balance changing of senders
+    return this.extractInputEntries().map(t => t.address);
+  }
+
+  /**
+   * Additional field for special field of some kind of transaction
+   * This is sicked though
+   * TODO: FIXME
+   */
+  public extractAdditionalField(): any {
+    return {};
+  }
+
+  /**
+   * Another pain...
+   * TODO: FIXME
+   */
   public getExtraDepositData(): any {
     return {
       blockHash: this.block.hash,
@@ -50,68 +110,7 @@ export abstract class Transaction implements ITransactionProps {
     };
   }
 
-  // With entries that balance change avalue is negative,
-  // that is balance changing of senders
-  public extractSenderAddresses(): string[] {
-    const res: TransferOutput[] = [];
-    const entries: TransferOutput[] = this.extractEntries();
-    entries.forEach(entry => {
-      if (parseFloat(entry.amount) < 0) {
-        res.push(entry);
-      }
-    });
-    return res.map(t => t.toAddress);
-  }
-
-  /**
-   * Extract all positive entries
-   */
-  public extractTransferOutputs(): TransferOutput[] {
-    const res: TransferOutput[] = [];
-    const entries: TransferOutput[] = this.extractEntries();
-    entries.forEach(entry => {
-      if (parseFloat(entry.amount) >= 0) {
-        res.push(entry);
-      }
-    });
-    return res;
-  }
-
-  /**
-   * Merge all entries with unique addresses
-   * @param outputs
-   */
-  public mergeOutput(outputs: TransferOutput[]): TransferOutput[] {
-    const res: TransferOutput[] = [];
-    outputs.map(output => {
-      const item = res.find(i => i.toAddress === output.toAddress);
-      const itemIndex = res.findIndex(i => i.toAddress === output.toAddress);
-      if (!item) {
-        res.push(output);
-      } else {
-        res.splice(itemIndex, 1);
-        const newItem = {
-          amount: (parseFloat(item.amount) + parseFloat(output.amount)).toString(),
-          currency: output.currency,
-          subCurrency: output.currency,
-          toAddress: output.toAddress,
-          tx: output.tx,
-          txid: output.txid,
-        };
-        res.push(newItem);
-      }
-    });
-    return res;
-  }
-
-  /**
-   * Additional field for special field of some kind of transaction
-   */
-  public extractAdditionalField(): any {
-    return {};
-  }
-
-  public abstract getNetworkFee(): string;
+  public abstract _extractEntries(): TransferEntry[];
 }
 
 export default Transaction;

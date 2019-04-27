@@ -2,10 +2,11 @@ import express from 'express';
 import morgan from 'morgan';
 import util from 'util';
 import BaseGateway from './BaseGateway';
-import { getCurrency, getCurrencyConfig, getGateway, getTokenBySymbol } from './EnvironmentData';
+import { CCEnv } from '..';
 import * as URL from 'url';
 import { getLogger } from './Logger';
 import { subForTokenChanged } from './RedisChannel';
+import { ICurrency } from './interfaces';
 
 const logger = getLogger('BaseWebServer');
 
@@ -14,28 +15,27 @@ export abstract class BaseWebServer {
   public port: number;
   protected app: express.Express = express();
 
-  public constructor() {
-    const config = getCurrencyConfig(getCurrency());
+  public constructor(currency: ICurrency) {
+    const config = CCEnv.getCurrencyConfig(currency);
     if (!config) {
-      throw new Error(`Cannot find configuration for ${getCurrency().toUpperCase()} at config table`);
+      throw new Error(`Cannot find configuration for ${currency.symbol} at config table`);
     }
 
-    const apiEndpoint = URL.parse(`${config.internalApiEndpoint}`);
-    if (!apiEndpoint.protocol || !apiEndpoint.hostname || !apiEndpoint.port) {
-      logger.info(`Set api endpoint: ${config.internalApiEndpoint}. Need corrected format: {host}:{port}`);
-      throw new Error(`Api endpoint for ${getCurrency().toUpperCase()} have un-correct format`);
+    const internalEndpoint = URL.parse(`${config.internalEndpoint}`);
+    if (!internalEndpoint.protocol || !internalEndpoint.hostname || !internalEndpoint.port) {
+      logger.info(`Set api endpoint: ${config.internalEndpoint}. Need corrected format: {host}:{port}`);
+      throw new Error(`Api endpoint for ${currency.symbol} have un-correct format`);
     }
-    this.host = apiEndpoint.hostname;
-    this.port = parseInt(apiEndpoint.port, 10);
+
+    this.host = internalEndpoint.hostname;
+    this.port = parseInt(internalEndpoint.port, 10);
     this.setup();
 
     // redis
     subForTokenChanged();
   }
 
-  public getGateway(currency?: string): BaseGateway {
-    return getGateway(currency);
-  }
+  public abstract getGateway(currency: ICurrency): BaseGateway;
 
   public start() {
     this.app.listen(this.port, this.host, () => {
@@ -44,9 +44,10 @@ export abstract class BaseWebServer {
   }
 
   protected async createNewAddress(req: any, res: any) {
-    const coin: string = req.params.coin;
-    const address = await this.getGateway(coin).createAccountAsync();
-    res.json(address);
+    // TODO: Revive me
+    // const coin: string = req.params.coin;
+    // const address = await this.getGateway(coin).createAccountAsync();
+    // res.json(address);
   }
 
   protected async getAddressBalance(req: any, res: any) {
@@ -56,9 +57,10 @@ export abstract class BaseWebServer {
   }
 
   protected async getCurrencyInfo(req: any, res: any) {
-    const { address } = req.params;
-    const result = await this.getGateway().getCurrencyInfo(address);
-    res.json(result);
+    // TODO: Revive me
+    // const { address } = req.params;
+    // const result = await this.getGateway().getCurrencyInfo(address);
+    // res.json(result);
   }
 
   protected async validateAddress(req: any, res: any) {
@@ -68,48 +70,45 @@ export abstract class BaseWebServer {
   }
 
   protected async getTransactionDetails(req: any, res: any) {
-    const { coin, txid } = req.params;
-
-    // TODO: Update check txid
-    const tx = await this.getGateway(coin).getOneTransaction(txid);
-    if (!tx) {
-      return res.status(404).json({ error: `Transaction not found: ${txid}` });
-    }
-
-    const entries: any[] = [];
-    const extractedEntries = tx.extractEntries();
-    extractedEntries.forEach(e => {
-      entries.push({
-        address: e.toAddress,
-        value: parseFloat(e.amount),
-        valueString: e.amount,
-      });
-    });
-
-    let resObj = {
-      id: txid,
-      date: '',
-      timestamp: tx.block.timestamp,
-      blockHash: tx.block.hash,
-      blockHeight: tx.block.number,
-      confirmations: tx.confirmations,
-      entries,
-    };
-    resObj = { ...resObj, ...tx.extractAdditionalField() };
-
-    return res.json(resObj);
+    // TODO: Revive me
+    // const { coin, txid } = req.params;
+    // // TODO: Update check txid
+    // const tx = await this.getGateway(coin).getOneTransaction(txid);
+    // if (!tx) {
+    //   return res.status(404).json({ error: `Transaction not found: ${txid}` });
+    // }
+    // const entries: any[] = [];
+    // const extractedEntries = tx.extractEntries();
+    // extractedEntries.forEach(e => {
+    //   entries.push({
+    //     address: e.toAddress,
+    //     value: parseFloat(e.amount),
+    //     valueString: e.amount,
+    //   });
+    // });
+    // let resObj = {
+    //   id: txid,
+    //   date: '',
+    //   timestamp: tx.block.timestamp,
+    //   blockHash: tx.block.hash,
+    //   blockHeight: tx.block.number,
+    //   confirmations: tx.confirmations,
+    //   entries,
+    // };
+    // resObj = { ...resObj, ...tx.extractAdditionalField() };
+    // return res.json(resObj);
   }
 
   protected async normalizeAddress(req: any, res: any) {
-    const address: string = req.params.address;
-    const checksumAddress = await this.getGateway().normalizeAddress(address);
-    logger.info(
-      `WebService::convertChecksumAddress params=${JSON.stringify(req.params)} result=${JSON.stringify(
-        checksumAddress
-      )}`
-    );
-
-    return res.json(checksumAddress);
+    // TODO: Revive me
+    // const address: string = req.params.address;
+    // const checksumAddress = await this.getGateway().normalizeAddress(address);
+    // logger.info(
+    //   `WebService::convertChecksumAddress params=${JSON.stringify(req.params)} result=${JSON.stringify(
+    //     checksumAddress
+    //   )}`
+    // );
+    // return res.json(checksumAddress);
   }
 
   protected setup() {

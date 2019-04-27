@@ -1,34 +1,36 @@
 import { v1 as uuid } from 'uuid';
-import { getLogger } from './Logger';
-import BaseGateway from './BaseGateway';
-import CrawlerOptions from './CrawlerOptions';
-import { getGateway, getListTokenSymbols } from './EnvironmentData';
+import { BaseGateway, BaseIntervalWorker, Block, Transactions, ICurrency, getLogger, implement, CCEnv } from '..';
 
 const logger = getLogger('BaseCrawler');
 
-export abstract class BaseCrawler {
-  protected readonly _id: string;
-  protected readonly _options: CrawlerOptions;
+// Store in-progress block
+const LATEST_PROCESSED_BLOCK = new Map<string, number>();
 
-  constructor(options: CrawlerOptions) {
+// Crawler options, usually are funtions to handle project-related logic
+// Something like getting and updating data to database, ...
+export interface ICrawlerOptions {
+  readonly getLatestCrawledBlockNumber: (crawler: BaseCrawler) => Promise<number>;
+  readonly onBlockCrawled: (crawler: BaseCrawler, block: Block) => Promise<void>;
+  readonly onCrawlingTxs: (crawler: BaseCrawler, txs: Transactions) => Promise<void>;
+}
+
+export abstract class BaseCrawler extends BaseIntervalWorker {
+  protected readonly _id: string;
+  protected readonly _options: ICrawlerOptions;
+  protected readonly _nativeCurrency: ICurrency;
+
+  constructor(currency: ICurrency, options: ICrawlerOptions) {
+    super();
     this._id = uuid();
     this._options = options;
-  }
-
-  public abstract gatewayClass(): any;
-
-  /**
-   * @param currency
-   */
-  public getGateway(currency?: string): BaseGateway {
-    return getGateway(currency);
+    this._nativeCurrency = currency;
   }
 
   public getInstanceId(): string {
     return this._id;
   }
 
-  public getOptions(): CrawlerOptions {
+  public getOptions(): ICrawlerOptions {
     return this._options;
   }
 
@@ -38,10 +40,6 @@ export abstract class BaseCrawler {
    * and required confirmations
    */
   public getBlockNumInOneGo(): number {
-    const numberOfTokens = getListTokenSymbols().tokenSymbols.length;
-    if (this.getGateway().isFastGateway() && numberOfTokens < 10) {
-      return 1000;
-    }
     return this.getRequiredConfirmations() + 1;
   }
 
@@ -49,44 +47,111 @@ export abstract class BaseCrawler {
     return 10;
   }
 
-  public abstract getFirstBlockNumberToCrawl(): number;
-
-  public abstract getAverageBlockTime(): number;
-
-  public abstract getRequiredConfirmations(): number;
-
   public async getLatestBlockOnNetwork(): Promise<number> {
-    return await this.getGateway().getBlockCount();
+    return this.getPlatformGateway().getBlockCount();
   }
 
-  public getCrawlType(): string {
-    return this._options.crawlType;
+  public getAverageBlockTime(): number {
+    const currency = this.getPlatformGateway().getCurrency();
+    return CCEnv.getCurrencyConfig(currency).averageBlockTime;
   }
 
-  /**
-   * Process several blocks in one go. Just use single database transaction
-   * @param {number} fromBlockNumber - begin of crawling blocks range
-   * @param {number} toBlockNumber - end of crawling blocks range
-   * @param {number} latestNetworkBlock - recent height of blockchain in the network
-   *
-   * @returns {number} the highest block that is considered as confirmed
-   */
-  public async processBlocks(
+  public getRequiredConfirmations(): number {
+    const currency = this.getPlatformGateway().getCurrency();
+    return CCEnv.getCurrencyConfig(currency).requiredConfirmations;
+  }
+
+  public abstract getPlatformGateway(): BaseGateway;
+
+  @implement
+  protected async prepare(): Promise<void> {
+    // Do we need any preparation here yet?
+  }
+
+  @implement
+  protected async doProcess(): Promise<void> {
+    // Firstly try to get latest block number from network
+    const latestNetworkBlock = await this.getLatestBlockOnNetwork();
+
+    // And looking for the latest processed block in local
+    let latestProcessedBlock = LATEST_PROCESSED_BLOCK.get(this._id);
+
+    // If there's no data in-process, then try to find it from environment variable
+    if (!latestProcessedBlock && process.env.FORCE_CRAWL_BLOCK) {
+      latestProcessedBlock = parseInt(process.env.FORCE_CRAWL_BLOCK, 10);
+    }
+
+    // If still no data, use the callback in options to get the inital value for this process
+    if (!latestProcessedBlock || isNaN(latestProcessedBlock)) {
+      latestProcessedBlock = await this._options.getLatestCrawledBlockNumber(this);
+    }
+
+    /**
+     * Start with the next block of the latest processed one
+     */
+    const fromBlockNumber = latestProcessedBlock + 1;
+
+    /**
+     * If crawled the newest block already
+     * Wait for a period that is equal to average block time
+     * Then try crawl again (hopefully new block will be available then)
+     */
+    if (fromBlockNumber > latestNetworkBlock) {
+      logger.info(
+        `Block <${fromBlockNumber}> is the newest block can be processed (on network: ${latestNetworkBlock}). Wait for the next tick...`
+      );
+      return;
+    }
+
+    /**
+     * Try to process several blocks at once, up to the newest one on the network
+     */
+    let toBlockNumber = latestProcessedBlock + this.getBlockNumInOneGo();
+    if (toBlockNumber > latestNetworkBlock) {
+      toBlockNumber = latestNetworkBlock;
+    }
+
+    /**
+     * Actual crawl and process blocks
+     * about 10 minutes timeout based on speed of gateway
+     */
+    await this.processBlocks(fromBlockNumber, toBlockNumber, latestNetworkBlock);
+
+    /**
+     * Safe block number is the highest crawled block that has enough confirmations
+     */
+    let safeBlockNumber = latestNetworkBlock - this.getRequiredConfirmations();
+    if (safeBlockNumber > toBlockNumber) {
+      safeBlockNumber = toBlockNumber;
+    }
+    const recentBlock = await this.getPlatformGateway().getOneBlock(safeBlockNumber);
+    if (recentBlock) {
+      await this.getOptions().onBlockCrawled(this, recentBlock);
+    }
+
+    /**
+     * Cache the latest processed block number
+     * Do the loop again in the next tick
+     */
+    LATEST_PROCESSED_BLOCK.set(this._id, safeBlockNumber);
+
+    if (toBlockNumber >= latestNetworkBlock) {
+      // If the newest block is processed already, will check the next tick after 1 block time duration
+      logger.info(`Have processed newest block already. Will wait for a while until next check...`);
+      this.setNextTickTimer(this.getAverageBlockTime());
+    } else {
+      // Otherwise try to continue processing immediately
+      this.setNextTickTimer(1);
+    }
+
+    return;
+  }
+
+  protected abstract async processBlocks(
     fromBlockNumber: number,
     toBlockNumber: number,
     latestNetworkBlock: number
-  ): Promise<void> {
-    const symbol = getListTokenSymbols().tokenSymbolsBuilder.toUpperCase();
-    logger.info(`${symbol}::processBlocks BEGIN: ${fromBlockNumber}→${toBlockNumber} / ${latestNetworkBlock}`);
-
-    // Get all transactions in the block
-    const allTxs = await this.getGateway().getMultiBlocksTransactions(fromBlockNumber, toBlockNumber);
-
-    // Use callback to process all crawled transactions
-    await this._options.onCrawlingTxs(this, allTxs);
-
-    logger.info(`${symbol}::_processBlocks FINISH: ${fromBlockNumber}→${toBlockNumber}, txs=${allTxs.length}`);
-  }
+  ): Promise<void>;
 }
 
 export default BaseCrawler;

@@ -1,8 +1,11 @@
-export class Account {
-  public readonly address: string;
-  public readonly privateKey: string;
+import { Address } from './Address';
+import { PrivateKey } from './PrivateKey';
 
-  constructor(privateKey: string, address: string) {
+export class Account {
+  public readonly address: Address;
+  public readonly privateKey: PrivateKey;
+
+  constructor(privateKey: PrivateKey, address: Address) {
     this.address = address;
     this.privateKey = privateKey;
   }

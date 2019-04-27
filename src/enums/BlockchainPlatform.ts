@@ -1,4 +1,4 @@
-enum Currency {
+export enum BlockchainPlatform {
   Bitcoin = 'btc',
   Ethereum = 'eth',
   Ripple = 'xrp',
@@ -6,23 +6,16 @@ enum Currency {
   BitcoinSV = 'bsv',
   EOS = 'eos',
   Stellar = 'xlm',
-  Tether = 'usdt',
   Litecoin = 'ltc',
   Tron = 'trx',
   Cardano = 'ada',
   Dash = 'dash',
+  Monero = 'xmr',
   EthereumClassic = 'etc',
   NEO = 'neo',
   Tomo = 'tomo',
-  USDT = 'usdt',
   Nem = 'nem',
-
-  // Token
-  ERC20 = 'erc20',
-  TRC20 = 'trc20',
-  NEP5 = 'nep5',
-  OMNI = 'omni',
+  Iota = 'iota',
 }
 
-export default Currency;
-export { Currency };
+export default BlockchainPlatform;
