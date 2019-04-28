@@ -9,6 +9,7 @@ const LATEST_PROCESSED_BLOCK = new Map<string, number>();
 // Crawler options, usually are funtions to handle project-related logic
 // Something like getting and updating data to database, ...
 export interface ICrawlerOptions {
+  readonly crawlingCurrenciesName: () => string;
   readonly getLatestCrawledBlockNumber: (crawler: BaseCrawler) => Promise<number>;
   readonly onBlockCrawled: (crawler: BaseCrawler, block: Block) => Promise<void>;
   readonly onCrawlingTxs: (crawler: BaseCrawler, txs: Transactions) => Promise<void>;
@@ -32,6 +33,10 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
 
   public getOptions(): ICrawlerOptions {
     return this._options;
+  }
+
+  public getNativeCurrency(): ICurrency {
+    return this._nativeCurrency;
   }
 
   /**
@@ -84,6 +89,11 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
     // If still no data, use the callback in options to get the inital value for this process
     if (!latestProcessedBlock || isNaN(latestProcessedBlock)) {
       latestProcessedBlock = await this._options.getLatestCrawledBlockNumber(this);
+    }
+
+    // If there's no data, just process from the newest block on the network
+    if (!latestProcessedBlock) {
+      latestProcessedBlock = latestNetworkBlock - 1;
     }
 
     /**

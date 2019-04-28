@@ -1,6 +1,9 @@
-import { Transaction, Block, TransferEntry, BigNumber } from '../../';
-import { IBoiledVIn, IBoiledVOut, IUtxoTxInfo, ICurrency } from '../interfaces';
+import { Block } from './Block';
+import { Transaction } from './Transaction';
+import { TransferEntry } from './TransferEntry';
 import { implement } from '../Utils';
+import { IBoiledVIn, IBoiledVOut, IUtxoTxInfo, ICurrency } from '../interfaces';
+import BigNumber from 'bignumber.js';
 
 export class UTXOBasedTransaction extends Transaction {
   public readonly vIns: IBoiledVIn[];
@@ -89,7 +92,7 @@ export class UTXOBasedTransaction extends Transaction {
     const scriptPubKey = vOut.scriptPubKey;
     // If output is not a coin-transfer, just ignore it
     // We don't care about things other than coin transferring in this project
-    if (!scriptPubKey.addresses || !scriptPubKey.addresses.length || !!scriptPubKey.addresses[0]) {
+    if (!scriptPubKey.addresses || !scriptPubKey.addresses.length || !scriptPubKey.addresses[0]) {
       return null;
     }
 

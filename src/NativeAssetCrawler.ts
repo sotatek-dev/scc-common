@@ -1,4 +1,4 @@
-import { BaseGateway, BaseCrawler, ICurrency, Utils, getLogger } from '..';
+import { BaseCrawler, getLogger } from '..';
 
 const logger = getLogger('CustomAssetCrawler');
 /**

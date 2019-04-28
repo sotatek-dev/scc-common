@@ -42,7 +42,7 @@ export abstract class BaseGateway {
     this._cacheTxByHash = new LRU(this._getCacheOptions());
     this._currency = currency;
 
-    const rpcRawConfig = CCEnv.getCurrencyConfig(currency).rpcConfig;
+    const rpcRawConfig = CCEnv.getCurrencyConfig(currency).rpcEndpoint;
     if (rpcRawConfig) {
       try {
         const rpcConfig = JSON.parse(rpcRawConfig);

@@ -22,7 +22,9 @@ const allErc20Tokens: IErc20Token[] = [];
 const allOmniAssets: IOmniAsset[] = [];
 const envConfig = new Map<string, string>();
 
-let _globalEnvConfig: IGlobalEnvConfig = null;
+let _globalEnvConfig: IGlobalEnvConfig = {
+  network: NetworkType.TestNet,
+};
 let _appId: string = 'PP70ExC8Hr';
 
 // Add native currencies to the list first
@@ -48,7 +50,7 @@ function registerCurrency(c: ICurrency): boolean {
 export function registerOmniAsset(propertyId: number, networkSymbol: string, name: string, scale: number): boolean {
   logger.info(`register Omni: propertyId=${propertyId}, networkSymbol=${networkSymbol}, name=${name}, scale=${scale}`);
   const platform = BlockchainPlatform.Bitcoin;
-  const symbol = [platform, propertyId].join('|');
+  const symbol = [TokenType.OMNI, propertyId].join('.');
   const currency: IOmniAsset = {
     symbol,
     networkSymbol,
@@ -64,8 +66,7 @@ export function registerOmniAsset(propertyId: number, networkSymbol: string, nam
 }
 
 export function findOmniAsset(propertyId: number): IOmniAsset {
-  const platform = BlockchainPlatform.Bitcoin;
-  const symbol = [platform, propertyId].join('|');
+  const symbol = [TokenType.OMNI, propertyId].join('.');
   return findOneCurrency(symbol) as IOmniAsset;
 }
 
@@ -83,7 +84,7 @@ export function registerErc20Token(
     `register erc20: contract=${contractAddress}, networkSymbol=${networkSymbol}, name=${name}, decimals=${decimals}`
   );
   const platform = BlockchainPlatform.Ethereum;
-  const symbol = [platform, contractAddress].join('|');
+  const symbol = [TokenType.ERC20, contractAddress].join('.');
   const currency: IErc20Token = {
     symbol,
     networkSymbol,
@@ -100,8 +101,7 @@ export function registerErc20Token(
 }
 
 export function findErc20Token(contractAddress: string): IErc20Token {
-  const platform = BlockchainPlatform.Ethereum;
-  const symbol = [platform, contractAddress].join('|');
+  const symbol = [TokenType.ERC20, contractAddress].join('.');
   return findOneCurrency(symbol) as IErc20Token;
 }
 
@@ -152,11 +152,13 @@ export function setCurrencyConfig(c: ICurrency, config: ICurrencyConfig) {
   // Keep configs that is already set on the environment
   if (allCurrencyConfigs.has(symbol)) {
     const oldConfig = allCurrencyConfigs.get(symbol);
-    finalConfig = Object.assign(finalConfig, oldConfig);
+    finalConfig = Object.assign({}, finalConfig, oldConfig);
   }
 
   // And merge it with desired config
-  finalConfig = Object.assign(finalConfig, config);
+  finalConfig = Object.assign({}, finalConfig, config);
+
+  logger.info(`setCurrencyConfig: symbol=${symbol}, config=${JSON.stringify(finalConfig)}`);
 
   // Put it to the environment again
   allCurrencyConfigs.set(symbol, finalConfig);

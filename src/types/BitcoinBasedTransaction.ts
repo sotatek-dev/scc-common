@@ -1,3 +1,3 @@
-import { UTXOBasedTransaction, BigNumber } from '../..';
+import { UTXOBasedTransaction } from './UTXOBasedTransaction';
 
 export class BitcoinBasedTransaction extends UTXOBasedTransaction {}

@@ -1,5 +1,9 @@
-import { Address, BlockHeader, Transaction, TransferEntry, ICurrency } from '../../';
 import BigNumber from 'bignumber.js';
+import { ICurrency } from '../interfaces';
+import { Address } from './Address';
+import { Transaction } from './Transaction';
+import { BlockHeader } from './BlockHeader';
+import { TransferEntry } from './TransferEntry';
 
 interface IAccountBasedTransactionProps {
   readonly txid: string;

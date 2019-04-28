@@ -133,7 +133,13 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   @implement
   public async getAddressBalance(address: string): Promise<BigNumber> {
     const apiEndpoint = this.getInsightAPIEndpoint();
-    const response = await Axios.get<IInsightAddressInfo>(`${apiEndpoint}/addr/${address}/?noTxList=1`);
+    let response;
+    try {
+      response = await Axios.get<IInsightAddressInfo>(`${apiEndpoint}/addr/${address}/?noTxList=1`);
+    } catch (e) {
+      logger.error(e);
+      throw new Error(`TODO: handle me please...`);
+    }
     const addressInfo = response.data;
     return new BigNumber(addressInfo.balanceSat);
   }
@@ -162,7 +168,13 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   @implement
   public async getOneAddressUtxos(address: string): Promise<IInsightUtxoInfo[]> {
     const apiEndpoint = this.getInsightAPIEndpoint();
-    const response = await Axios.get<IInsightUtxoInfo[]>(`${apiEndpoint}/addr/${address}/utxo`);
+    let response;
+    try {
+      response = await Axios.get<IInsightUtxoInfo[]>(`${apiEndpoint}/addr/${address}/utxo`);
+    } catch (e) {
+      logger.error(e);
+      throw new Error(`TODO: handle me please...`);
+    }
     const utxos: IInsightUtxoInfo[] = response.data;
     return utxos.sort((a, b) => b.confirmations - a.confirmations);
   }
@@ -186,13 +198,25 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     const endpoint = this.getInsightAPIEndpoint();
     const currency = this.getCurrency();
     const listTxs = new UTXOBasedTransactions();
-    const response = await Axios.get<IInsightTxsInfo>(`${endpoint}/txs?block=${blockNumber}`);
+    let response;
+    try {
+      response = await Axios.get<IInsightTxsInfo>(`${endpoint}/txs?block=${blockNumber}`);
+    } catch (e) {
+      logger.error(e);
+      throw new Error(`TODO: Handle me please...`);
+    }
     const pageTotal = response.data.pagesTotal;
 
     const pages = Array.from(new Array(pageTotal), (val, index) => index);
     await Utils.PromiseAll(
       pages.map(async page => {
-        const pageResponse = await Axios.get<IInsightTxsInfo>(`${endpoint}/txs?block=${blockNumber}&pageNum=${page}`);
+        let pageResponse;
+        try {
+          pageResponse = await Axios.get<IInsightTxsInfo>(`${endpoint}/txs?block=${blockNumber}&pageNum=${page}`);
+        } catch (e) {
+          logger.error(e);
+          throw new Error(`TODO: handle me please...`);
+        }
         const txs: IUtxoTxInfo[] = pageResponse.data.txs;
         txs.forEach(tx => {
           const utxoTx = new UTXOBasedTransaction(currency, tx, block);
@@ -204,7 +228,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   }
 
   public getInsightAPIEndpoint(): string {
-    return this.getCurrencyConfig().restConfig;
+    return this.getCurrencyConfig().restEndpoint;
   }
 
   /**
@@ -244,8 +268,9 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     try {
       response = await Axios.get<IUtxoTxInfo>(`${apiEndpoint}/tx/${txid}`);
     } catch (e) {
-      logger.error(e);
-      throw new Error(`TODO: Handle me please...`);
+      // logger.error(e);
+      throw e;
+      // throw new Error(`TODO: Handle me please...`);
     }
 
     const txInfo: IUtxoTxInfo = response.data;

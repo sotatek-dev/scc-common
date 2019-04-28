@@ -1,3 +1,4 @@
+import util from 'util';
 import BigNumber from 'bignumber.js';
 import { Address, BlockHeader, TransferEntry } from '../..';
 import { ICurrency } from '../interfaces';
