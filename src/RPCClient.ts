@@ -90,7 +90,7 @@ export class RPCClient {
         username: this._config.user,
         password: this._config.pass,
       },
-      timeout: 60 * 1000, // 60 sec
+      timeout: 15 * 1000, // 60 sec
     };
   }
 }
