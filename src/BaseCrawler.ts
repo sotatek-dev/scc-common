@@ -1,5 +1,10 @@
 import { v1 as uuid } from 'uuid';
-import { BaseGateway, BaseIntervalWorker, Block, Transactions, ICurrency, getLogger, implement, CCEnv } from '..';
+import BaseGateway from './BaseGateway';
+import BaseIntervalWorker from './BaseIntervalWorker';
+import CurrencyRegistry from './registries/CurrencyRegistry';
+import { Block, Transactions } from './types';
+import { ICurrency } from './interfaces';
+import { getLogger, implement } from '..';
 
 const logger = getLogger('BaseCrawler');
 
@@ -58,12 +63,12 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
 
   public getAverageBlockTime(): number {
     const currency = this.getPlatformGateway().getCurrency();
-    return CCEnv.getCurrencyConfig(currency).averageBlockTime;
+    return CurrencyRegistry.getCurrencyConfig(currency).averageBlockTime;
   }
 
   public getRequiredConfirmations(): number {
     const currency = this.getPlatformGateway().getCurrency();
-    return CCEnv.getCurrencyConfig(currency).requiredConfirmations;
+    return CurrencyRegistry.getCurrencyConfig(currency).requiredConfirmations;
   }
 
   public abstract getPlatformGateway(): BaseGateway;

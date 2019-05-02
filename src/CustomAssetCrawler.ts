@@ -1,4 +1,5 @@
-import { BaseGateway, NativeAssetCrawler, ICurrency, ICrawlerOptions, Utils, getLogger, CCEnv } from '..';
+import { BaseGateway, NativeAssetCrawler, ICurrency, ICrawlerOptions, Utils, getLogger } from '..';
+import { CurrencyRegistry } from './registries';
 
 const logger = getLogger('CustomAssetCrawler');
 /**
@@ -10,7 +11,7 @@ export abstract class CustomAssetCrawler extends NativeAssetCrawler {
   protected readonly _currencies: ICurrency[];
 
   constructor(currencies: ICurrency[], options: ICrawlerOptions) {
-    const nativeCurrency = CCEnv.getOneNativeCurrency(currencies[0].platform);
+    const nativeCurrency = CurrencyRegistry.getOneNativeCurrency(currencies[0].platform);
     super(nativeCurrency, options);
     this._currencies = currencies;
   }

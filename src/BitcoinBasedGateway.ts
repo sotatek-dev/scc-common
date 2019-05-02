@@ -9,7 +9,6 @@ import {
   UTXOBasedTransactions,
   UTXOBasedTransaction,
   BitcoinBasedTransaction,
-  CCEnv,
   getLogger,
   override,
   implement,
@@ -27,11 +26,24 @@ import {
   IInsightTxsInfo,
   IUtxoTxInfo,
   IUtxoBlockInfo,
+  IBoiledVOut,
+  IBitcoreUtxoInput,
 } from './interfaces';
+import { EnvConfigRegistry } from './registries';
 
 const logger = getLogger('BitcoinBasedGateway');
 
 export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
+  public static convertInsightUtxoToBitcoreUtxo(utxos: IInsightUtxoInfo[]): IBitcoreUtxoInput[] {
+    return utxos.map(utxo => ({
+      address: utxo.addresss,
+      txId: utxo.txid,
+      outputIndex: utxo.vout,
+      script: utxo.scriptPubKey,
+      satoshis: utxo.satoshis,
+    }));
+  }
+
   /**
    * Validate an address
    * @param address
@@ -39,7 +51,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   @override
   public async isValidAddressAsync(address: string): Promise<boolean> {
     const bitcore = this.getBitCoreLib();
-    const network = CCEnv.isMainnet() ? bitcore.Networks.mainnet : bitcore.Networks.testnet;
+    const network = EnvConfigRegistry.isMainnet() ? bitcore.Networks.mainnet : bitcore.Networks.testnet;
 
     try {
       return bitcore.Address.isValid(address, network);
@@ -53,7 +65,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   @implement
   public async createAccountAsync(): Promise<Account> {
     const bitcore = this.getBitCoreLib();
-    const network = CCEnv.isMainnet() ? bitcore.Networks.mainnet : bitcore.Networks.testnet;
+    const network = EnvConfigRegistry.isMainnet() ? bitcore.Networks.mainnet : bitcore.Networks.testnet;
     const privateKey = new bitcore.PrivateKey(null, network);
     const wif = privateKey.toWIF();
     const address = privateKey.toAddress();
@@ -70,9 +82,6 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
    * to one or multiple addresses
    * This method is async because we need to check state of sender address
    * Errors can be throw if the sender's balance is not sufficient
-   *
-   * @param {string} fromAddress
-   * @param {IVout[]} vouts
    *
    * @returns {IRawTransaction}
    */
@@ -184,6 +193,36 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     const result: IInsightUtxoInfo[] = [];
     for (const address of addresses) {
       result.push(...(await this.getOneAddressUtxos(address)));
+    }
+    return result;
+  }
+
+  public async getOneTxVouts(txid: string, address?: string): Promise<IBoiledVOut[]> {
+    const apiEndpoint = this.getInsightAPIEndpoint();
+    let response;
+    try {
+      response = await Axios.get<IUtxoTxInfo>(`${apiEndpoint}/tx/${txid}`);
+    } catch (e) {
+      logger.error(e);
+      throw new Error(`TODO: Handle me please...`);
+    }
+    return response.data.vout.filter(vout => {
+      if (!address) {
+        return true;
+      }
+
+      if (!vout.scriptPubKey || !vout.scriptPubKey.addresses || !vout.scriptPubKey.addresses.length) {
+        return false;
+      }
+
+      return vout.scriptPubKey.addresses.indexOf(address) > -1;
+    });
+  }
+
+  public async getMultiTxsVouts(txids: string[], address?: string): Promise<IBoiledVOut[]> {
+    const result: IBoiledVOut[] = [];
+    for (const txid of txids) {
+      result.push(...(await this.getOneTxVouts(txid, address)));
     }
     return result;
   }

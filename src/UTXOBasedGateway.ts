@@ -9,9 +9,6 @@ export abstract class UTXOBasedGateway extends BaseGateway {
    * This method is async because we need to check state of sender address
    * Errors can be throw if the sender's balance is not sufficient
    *
-   * @param {string} fromAddress
-   * @param {IVout[]} vouts
-   *
    * @returns {IRawTransaction}
    */
   public abstract async constructRawTransaction(vins: IRawVIn[], vouts: IRawVOut[]): Promise<IRawTransaction>;

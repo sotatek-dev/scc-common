@@ -1,9 +1,9 @@
 import { createClient } from 'redis';
-import { CCEnv } from '..';
+import { EnvConfigRegistry } from './registries';
 
 export function subForTokenChanged() {
   const sub = createClient();
-  const appId = CCEnv.getAppId();
+  const appId = EnvConfigRegistry.getAppId();
   sub.subscribe(`${appId}`);
 
   sub.on('message', (channel, message) => {

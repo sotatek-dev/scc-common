@@ -12,10 +12,10 @@ import {
   implement,
   Utils,
   BigNumber,
-  CCEnv,
   getLogger,
 } from '..';
 import { ICurrencyConfig } from './interfaces';
+import CurrencyRegistry from './registries/CurrencyRegistry';
 
 const logger = getLogger('BaseGateway');
 /**
@@ -42,7 +42,7 @@ export abstract class BaseGateway {
     this._cacheTxByHash = new LRU(this._getCacheOptions());
     this._currency = currency;
 
-    const rpcRawConfig = CCEnv.getCurrencyConfig(currency).rpcEndpoint;
+    const rpcRawConfig = CurrencyRegistry.getCurrencyConfig(currency).rpcEndpoint;
     if (rpcRawConfig) {
       try {
         const rpcConfig = JSON.parse(rpcRawConfig);
@@ -58,7 +58,7 @@ export abstract class BaseGateway {
   }
 
   public getCurrencyConfig(): ICurrencyConfig {
-    return CCEnv.getCurrencyConfig(this._currency);
+    return CurrencyRegistry.getCurrencyConfig(this._currency);
   }
 
   /**

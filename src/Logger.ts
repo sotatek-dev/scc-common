@@ -1,6 +1,6 @@
 import winston from 'winston';
 import util from 'util';
-import { CCEnv } from '..';
+import { EnvConfigRegistry } from './registries';
 const WinstonCloudWatch = require('winston-cloudwatch');
 const nodemailer = require('nodemailer');
 
@@ -87,9 +87,9 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
 }
 
 async function notifyErrors(message: string[]) {
-  const mailerAccount = CCEnv.getCustomEnvConfig('MAILER_ACCOUNT');
-  const mailerPassword = CCEnv.getCustomEnvConfig('MAILER_PASSWORD');
-  const mailerReceiver = CCEnv.getCustomEnvConfig('MAILER_RECEIVER');
+  const mailerAccount = EnvConfigRegistry.getCustomEnvConfig('MAILER_ACCOUNT');
+  const mailerPassword = EnvConfigRegistry.getCustomEnvConfig('MAILER_PASSWORD');
+  const mailerReceiver = EnvConfigRegistry.getCustomEnvConfig('MAILER_RECEIVER');
 
   if (!mailerAccount || !mailerPassword || !mailerReceiver) {
     return;

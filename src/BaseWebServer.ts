@@ -2,11 +2,11 @@ import express from 'express';
 import morgan from 'morgan';
 import util from 'util';
 import BaseGateway from './BaseGateway';
-import { CCEnv } from '..';
 import * as URL from 'url';
 import { getLogger } from './Logger';
 import { subForTokenChanged } from './RedisChannel';
 import { ICurrency } from './interfaces';
+import { CurrencyRegistry } from './registries';
 
 const logger = getLogger('BaseWebServer');
 
@@ -16,7 +16,7 @@ export abstract class BaseWebServer {
   protected app: express.Express = express();
 
   public constructor(currency: ICurrency) {
-    const config = CCEnv.getCurrencyConfig(currency);
+    const config = CurrencyRegistry.getCurrencyConfig(currency);
     if (!config) {
       throw new Error(`Cannot find configuration for ${currency.symbol} at config table`);
     }

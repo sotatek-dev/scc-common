@@ -41,6 +41,9 @@ export interface IBoiledVOut {
     readonly type: string;
     readonly addresses?: string[];
   };
+  readonly spentTxId?: string;
+  readonly spentIndex?: number;
+  readonly spentHeight?: number;
 }
 
 /**
@@ -63,6 +66,9 @@ export interface IUtxoTxInfo {
   readonly blocktime: number;
 }
 
+/**
+ * This is usually the response when calling JSON-RPC API `getblock`
+ */
 export interface IUtxoBlockInfo {
   readonly hash: string;
   readonly confirmations: number;
@@ -115,4 +121,13 @@ export interface IInsightUtxoInfo {
 export interface IInsightTxsInfo {
   pagesTotal: number;
   txs: IUtxoTxInfo[];
+}
+
+// Format of utxo that is used by bitcore-lib as inputs of transaction
+export interface IBitcoreUtxoInput {
+  readonly address: string;
+  readonly txId: string;
+  readonly outputIndex: number;
+  readonly script: string;
+  readonly satoshis: number;
 }

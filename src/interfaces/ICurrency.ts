@@ -7,6 +7,9 @@ export interface ICurrency {
   // Or a kind of utility token/asset on that platform
   readonly symbol: string;
 
+  // Symbol on its own network. This property maybe not unique
+  readonly networkSymbol: string;
+
   // Full name of the currency
   readonly name: string;
 
@@ -24,7 +27,6 @@ export interface ICurrency {
 export default ICurrency;
 
 interface IToken extends ICurrency {
-  readonly networkSymbol: string;
   readonly tokenType: TokenType;
 }
 
@@ -57,6 +59,7 @@ export interface IEosToken extends IToken {
 const nativeCurrencies: ICurrency[] = [
   {
     symbol: BlockchainPlatform.Bitcoin,
+    networkSymbol: BlockchainPlatform.Bitcoin,
     name: 'Bitcoin',
     platform: BlockchainPlatform.Bitcoin,
     isNative: true,
@@ -64,6 +67,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.Ethereum,
+    networkSymbol: BlockchainPlatform.Ethereum,
     name: 'Ethereum',
     platform: BlockchainPlatform.Ethereum,
     isNative: true,
@@ -71,6 +75,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.Cardano,
+    networkSymbol: BlockchainPlatform.Cardano,
     name: 'Cardano',
     platform: BlockchainPlatform.Cardano,
     isNative: true,
@@ -78,6 +83,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.BitcoinCash,
+    networkSymbol: BlockchainPlatform.BitcoinCash,
     name: 'BitcoinCash',
     platform: BlockchainPlatform.BitcoinCash,
     isNative: true,
@@ -85,6 +91,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.BitcoinSV,
+    networkSymbol: BlockchainPlatform.BitcoinSV,
     name: 'BitcoinSV',
     platform: BlockchainPlatform.BitcoinSV,
     isNative: true,
@@ -92,6 +99,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.EOS,
+    networkSymbol: BlockchainPlatform.EOS,
     name: 'EOS',
     platform: BlockchainPlatform.EOS,
     isNative: true,
@@ -99,6 +107,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.Litecoin,
+    networkSymbol: BlockchainPlatform.Litecoin,
     name: 'Litecoin',
     platform: BlockchainPlatform.Litecoin,
     isNative: true,
@@ -106,6 +115,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.Dash,
+    networkSymbol: BlockchainPlatform.Dash,
     name: 'Dash',
     platform: BlockchainPlatform.Dash,
     isNative: true,
@@ -113,6 +123,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.EthereumClassic,
+    networkSymbol: BlockchainPlatform.EthereumClassic,
     name: 'EthereumClassic',
     platform: BlockchainPlatform.EthereumClassic,
     isNative: true,
@@ -120,6 +131,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.NEO,
+    networkSymbol: BlockchainPlatform.NEO,
     name: 'NEO',
     platform: BlockchainPlatform.NEO,
     isNative: true,
@@ -127,6 +139,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: 'gas',
+    networkSymbol: 'gas',
     name: 'GAS',
     platform: BlockchainPlatform.NEO,
     isNative: true,
@@ -134,6 +147,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.Tomo,
+    networkSymbol: BlockchainPlatform.Tomo,
     name: 'Tomo',
     platform: BlockchainPlatform.Tomo,
     isNative: true,
@@ -141,6 +155,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.Ripple,
+    networkSymbol: BlockchainPlatform.Ripple,
     name: 'Ripple',
     platform: BlockchainPlatform.Ripple,
     isNative: true,
@@ -148,6 +163,7 @@ const nativeCurrencies: ICurrency[] = [
   },
   {
     symbol: BlockchainPlatform.Stellar,
+    networkSymbol: BlockchainPlatform.Stellar,
     name: 'Stellar',
     platform: BlockchainPlatform.Stellar,
     isNative: true,
