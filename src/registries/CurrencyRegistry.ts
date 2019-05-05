@@ -1,5 +1,5 @@
 import { getLogger } from '../Logger';
-import { ICurrency, nativeCurrencies } from '../interfaces/ICurrency';
+import { ICurrency } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType } from '../enums';
 
@@ -14,10 +14,173 @@ const allCurrencyConfigs = new Map<string, ICurrencyConfig>();
 const allErc20Tokens: IErc20Token[] = [];
 const allOmniAssets: IOmniAsset[] = [];
 
-// Add native currencies to the list first
-nativeCurrencies.forEach(c => CurrencyRegistry.registerCurrency(c));
+const onCurrencyRegisteredCallbacks: Array<(currency: ICurrency) => void> = [];
+const onERC20TokenRegisteredCallbacks: Array<(token: IErc20Token) => void> = [];
+const onOmniAssetRegisteredCallbacks: Array<(asset: IOmniAsset) => void> = [];
+const onCurrencyConfigSetCallbacks: Array<(currency: ICurrency, config: ICurrencyConfig) => void> = [];
+
+/**
+ * Built-in currencies
+ */
+const Bitcoin = {
+  symbol: BlockchainPlatform.Bitcoin,
+  networkSymbol: BlockchainPlatform.Bitcoin,
+  name: 'Bitcoin',
+  platform: BlockchainPlatform.Bitcoin,
+  isNative: true,
+  scale: 0,
+};
+
+const Ethereum = {
+  symbol: BlockchainPlatform.Ethereum,
+  networkSymbol: BlockchainPlatform.Ethereum,
+  name: 'Ethereum',
+  platform: BlockchainPlatform.Ethereum,
+  isNative: true,
+  scale: 0,
+};
+
+const Cardano = {
+  symbol: BlockchainPlatform.Cardano,
+  networkSymbol: BlockchainPlatform.Cardano,
+  name: 'Cardano',
+  platform: BlockchainPlatform.Cardano,
+  isNative: true,
+  scale: 0,
+};
+
+const BitcoinCash = {
+  symbol: BlockchainPlatform.BitcoinCash,
+  networkSymbol: BlockchainPlatform.BitcoinCash,
+  name: 'BitcoinCash',
+  platform: BlockchainPlatform.BitcoinCash,
+  isNative: true,
+  scale: 0,
+};
+
+const BitcoinSV = {
+  symbol: BlockchainPlatform.BitcoinSV,
+  networkSymbol: BlockchainPlatform.BitcoinSV,
+  name: 'BitcoinSV',
+  platform: BlockchainPlatform.BitcoinSV,
+  isNative: true,
+  scale: 0,
+};
+
+const EOS = {
+  symbol: BlockchainPlatform.EOS,
+  networkSymbol: BlockchainPlatform.EOS,
+  name: 'EOS',
+  platform: BlockchainPlatform.EOS,
+  isNative: true,
+  scale: 4,
+};
+
+const Litecoin = {
+  symbol: BlockchainPlatform.Litecoin,
+  networkSymbol: BlockchainPlatform.Litecoin,
+  name: 'Litecoin',
+  platform: BlockchainPlatform.Litecoin,
+  isNative: true,
+  scale: 0,
+};
+
+const Dash = {
+  symbol: BlockchainPlatform.Dash,
+  networkSymbol: BlockchainPlatform.Dash,
+  name: 'Dash',
+  platform: BlockchainPlatform.Dash,
+  isNative: true,
+  scale: 0,
+};
+
+const EthereumClasssic = {
+  symbol: BlockchainPlatform.EthereumClassic,
+  networkSymbol: BlockchainPlatform.EthereumClassic,
+  name: 'EthereumClassic',
+  platform: BlockchainPlatform.EthereumClassic,
+  isNative: true,
+  scale: 0,
+};
+
+const NEO = {
+  symbol: BlockchainPlatform.NEO,
+  networkSymbol: BlockchainPlatform.NEO,
+  name: 'NEO',
+  platform: BlockchainPlatform.NEO,
+  isNative: true,
+  scale: 0,
+};
+
+const NEOGAS = {
+  symbol: 'gas',
+  networkSymbol: 'gas',
+  name: 'GAS',
+  platform: BlockchainPlatform.NEO,
+  isNative: true,
+  scale: 0,
+};
+
+const Tomo = {
+  symbol: BlockchainPlatform.Tomo,
+  networkSymbol: BlockchainPlatform.Tomo,
+  name: 'Tomo',
+  platform: BlockchainPlatform.Tomo,
+  isNative: true,
+  scale: 0,
+};
+
+const Ripple = {
+  symbol: BlockchainPlatform.Ripple,
+  networkSymbol: BlockchainPlatform.Ripple,
+  name: 'Ripple',
+  platform: BlockchainPlatform.Ripple,
+  isNative: true,
+  scale: 6,
+};
+
+const Stellar = {
+  symbol: BlockchainPlatform.Stellar,
+  networkSymbol: BlockchainPlatform.Stellar,
+  name: 'Stellar',
+  platform: BlockchainPlatform.Stellar,
+  isNative: true,
+  scale: 6,
+};
+
+const nativeCurrencies: ICurrency[] = [
+  Bitcoin,
+  Ethereum,
+  Cardano,
+  BitcoinCash,
+  BitcoinSV,
+  EOS,
+  Litecoin,
+  Dash,
+  EthereumClasssic,
+  NEO,
+  NEOGAS,
+  Tomo,
+  Ripple,
+  Stellar,
+];
 
 export class CurrencyRegistry {
+  public static readonly Bitcoin: ICurrency = Bitcoin;
+  public static readonly Ethereum: ICurrency = Ethereum;
+  public static readonly Cardano: ICurrency = Cardano;
+  public static readonly BitcoinCash: ICurrency = BitcoinCash;
+  public static readonly BitcoinSV: ICurrency = BitcoinSV;
+  public static readonly EOS: ICurrency = EOS;
+  public static readonly Litecoin: ICurrency = Litecoin;
+  public static readonly Dash: ICurrency = Dash;
+  public static readonly EthereumClasssic: ICurrency = EthereumClasssic;
+  public static readonly NEO: ICurrency = NEO;
+  public static readonly NEOGAS: ICurrency = NEOGAS;
+  public static readonly Tomo: ICurrency = Tomo;
+  public static readonly Ripple: ICurrency = Ripple;
+  public static readonly Stellar: ICurrency = Stellar;
+
   /**
    * Register a currency on environment data
    * Native assets have been registered above
@@ -32,6 +195,7 @@ export class CurrencyRegistry {
     }
 
     allCurrencies.set(c.symbol, c);
+    onCurrencyRegisteredCallbacks.forEach(callback => callback(c));
     return true;
   }
 
@@ -51,6 +215,9 @@ export class CurrencyRegistry {
       propertyId,
       scale,
     };
+
+    allOmniAssets.push(currency);
+    onOmniAssetRegisteredCallbacks.forEach(callback => callback(currency));
 
     return CurrencyRegistry.registerCurrency(currency);
   }
@@ -77,6 +244,9 @@ export class CurrencyRegistry {
       decimals,
       scale: 0,
     };
+
+    allErc20Tokens.push(currency);
+    onERC20TokenRegisteredCallbacks.forEach(callback => callback(currency));
 
     return CurrencyRegistry.registerCurrency(currency);
   }
@@ -113,8 +283,7 @@ export class CurrencyRegistry {
    */
   public static getOneCurrency(symbol: string): ICurrency {
     if (!allCurrencies.has(symbol)) {
-      logger.error(`CCEnv::getOneCurrency cannot find currency has symbol: ${symbol}`);
-      return null;
+      throw new Error(`CCEnv::getOneCurrency cannot find currency has symbol: ${symbol}`);
     }
 
     return allCurrencies.get(symbol);
@@ -122,8 +291,7 @@ export class CurrencyRegistry {
 
   public static getOneNativeCurrency(symbol: BlockchainPlatform): ICurrency {
     if (!allCurrencies.has(symbol)) {
-      logger.error(`CCEnv::getOneNativeCurrency cannot find currency has symbol: ${symbol}`);
-      return null;
+      throw new Error(`CCEnv::getOneNativeCurrency cannot find currency has symbol: ${symbol}`);
     }
 
     return allCurrencies.get(symbol);
@@ -152,6 +320,7 @@ export class CurrencyRegistry {
 
     // Put it to the environment again
     allCurrencyConfigs.set(symbol, finalConfig);
+    onCurrencyConfigSetCallbacks.forEach(callback => callback(c, config));
   }
 
   /**
@@ -167,6 +336,25 @@ export class CurrencyRegistry {
 
     return allCurrencyConfigs.get(symbol);
   }
+
+  public static onCurrencyRegistered(callback: (currency: ICurrency) => void) {
+    onCurrencyRegisteredCallbacks.push(callback);
+  }
+
+  public static onERC20TokenRegistered(callback: (token: IErc20Token) => void) {
+    onERC20TokenRegisteredCallbacks.push(callback);
+  }
+
+  public static onOmniAssetRegistered(callback: (asset: IOmniAsset) => void) {
+    onOmniAssetRegisteredCallbacks.push(callback);
+  }
+
+  public static onCurrencyConfigSet(callback: (currency: ICurrency, config: ICurrencyConfig) => void) {
+    onCurrencyConfigSetCallbacks.push(callback);
+  }
 }
+
+// Add native currencies to the list first
+nativeCurrencies.forEach(c => CurrencyRegistry.registerCurrency(c));
 
 export default CurrencyRegistry;

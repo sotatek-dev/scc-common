@@ -8,6 +8,7 @@ let _appId: string = 'PP70ExC8Hr';
 let _globalEnvConfig: IGlobalEnvConfig = {
   network: NetworkType.TestNet,
 };
+const onNetworkChangedCallbacks: Array<(network: NetworkType) => void> = [];
 
 export class EnvConfigRegistry {
   public static getCustomEnvConfig(key: string): string {
@@ -21,7 +22,9 @@ export class EnvConfigRegistry {
         if (!(value in NetworkType)) {
           throw new Error(`Trying to set invalid value for network: ${value}`);
         }
+
         _globalEnvConfig = Object.assign(_globalEnvConfig, { network: value });
+        onNetworkChangedCallbacks.forEach(func => func(value as NetworkType));
         break;
 
       default:
@@ -60,6 +63,10 @@ export class EnvConfigRegistry {
   // Check whether the environment is private net
   public static isPrivnet(): boolean {
     return EnvConfigRegistry.getNetwork() === NetworkType.PrivateNet;
+  }
+
+  public static onNetworkChanged(func: (network: NetworkType) => void) {
+    onNetworkChangedCallbacks.push(func);
   }
 }
 

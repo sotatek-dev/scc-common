@@ -1,5 +1,10 @@
-import { BaseGateway, NativeAssetCrawler, ICurrency, ICrawlerOptions, Utils, getLogger } from '..';
-import { CurrencyRegistry } from './registries';
+import BaseGateway from './BaseGateway';
+import { ICurrency } from './interfaces';
+import { getLogger } from './Logger';
+import { NativeAssetCrawler } from './NativeAssetCrawler';
+import { ICrawlerOptions } from './BaseCrawler';
+import { Utils } from '..';
+import { BlockchainPlatform } from './enums';
 
 const logger = getLogger('CustomAssetCrawler');
 /**
@@ -10,9 +15,25 @@ const logger = getLogger('CustomAssetCrawler');
 export abstract class CustomAssetCrawler extends NativeAssetCrawler {
   protected readonly _currencies: ICurrency[];
 
-  constructor(currencies: ICurrency[], options: ICrawlerOptions) {
-    const nativeCurrency = CurrencyRegistry.getOneNativeCurrency(currencies[0].platform);
-    super(nativeCurrency, options);
+  constructor(options: ICrawlerOptions, currencies: ICurrency[]) {
+    if (!currencies.length) {
+      throw new Error(`Could not construct a crawler without currency`);
+    }
+
+    // The crawler can handle multiple currencies at the same time
+    // But they need to belong to the same platform
+    let platform: BlockchainPlatform = null;
+    for (const currency of currencies) {
+      if (!platform) {
+        platform = currency.platform;
+      }
+
+      if (platform !== currency.platform) {
+        throw new Error(`One crawler cannot handle multiple platforms.`);
+      }
+    }
+
+    super(platform, options);
     this._currencies = currencies;
   }
 

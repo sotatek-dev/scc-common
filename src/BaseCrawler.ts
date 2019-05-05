@@ -5,6 +5,7 @@ import CurrencyRegistry from './registries/CurrencyRegistry';
 import { Block, Transactions } from './types';
 import { ICurrency } from './interfaces';
 import { getLogger, implement } from '..';
+import { BlockchainPlatform } from './enums';
 
 const logger = getLogger('BaseCrawler');
 
@@ -25,11 +26,11 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
   protected readonly _options: ICrawlerOptions;
   protected readonly _nativeCurrency: ICurrency;
 
-  constructor(currency: ICurrency, options: ICrawlerOptions) {
+  constructor(platform: BlockchainPlatform, options: ICrawlerOptions) {
     super();
     this._id = uuid();
     this._options = options;
-    this._nativeCurrency = currency;
+    this._nativeCurrency = CurrencyRegistry.getOneNativeCurrency(platform);
   }
 
   public getInstanceId(): string {
