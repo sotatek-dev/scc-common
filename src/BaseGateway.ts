@@ -16,6 +16,12 @@ import {
 } from '..';
 import { ICurrencyConfig } from './interfaces';
 import CurrencyRegistry from './registries/CurrencyRegistry';
+import GatewayRegistry from './registries/GatewayRegistry';
+
+CurrencyRegistry.onCurrencyConfigSet((currency: ICurrency, config: ICurrencyConfig) => {
+  const gateway = GatewayRegistry.getGatewayInstance(currency);
+  gateway.loadCurrencyConfig();
+});
 
 const logger = getLogger('BaseGateway');
 /**
@@ -25,13 +31,9 @@ const logger = getLogger('BaseGateway');
  * They can be done via RPC calls, RESTful APIs, ...
  */
 export abstract class BaseGateway {
-  public static getInstance(): BaseGateway {
-    throw new Error(`Must be implemented in derived class.`);
-  }
-
   protected _cacheBlock: LRU<string | number, Block>;
   protected _cacheTxByHash: LRU<string, Transaction>;
-  protected readonly _rpcClient: RPCClient;
+  protected _rpcClient: RPCClient;
   protected readonly _currency: ICurrency;
 
   // Gateways are singletons
@@ -41,16 +43,6 @@ export abstract class BaseGateway {
     this._cacheBlock = new LRU(this._getCacheOptions());
     this._cacheTxByHash = new LRU(this._getCacheOptions());
     this._currency = currency;
-
-    const rpcRawConfig = CurrencyRegistry.getCurrencyConfig(currency).rpcEndpoint;
-    if (rpcRawConfig) {
-      try {
-        const rpcConfig = JSON.parse(rpcRawConfig);
-        this._rpcClient = new RPCClient(rpcConfig);
-      } catch (e) {
-        logger.error(`BaseGateway::constructor could not contruct RPC Client due to error: ${util.inspect(e)}`);
-      }
-    }
   }
 
   public getCurrency(): ICurrency {
@@ -59,6 +51,18 @@ export abstract class BaseGateway {
 
   public getCurrencyConfig(): ICurrencyConfig {
     return CurrencyRegistry.getCurrencyConfig(this._currency);
+  }
+
+  public loadCurrencyConfig() {
+    const rpcRawConfig = CurrencyRegistry.getCurrencyConfig(this._currency).rpcEndpoint;
+    if (rpcRawConfig) {
+      try {
+        const rpcConfig = JSON.parse(rpcRawConfig);
+        this._rpcClient = new RPCClient(rpcConfig);
+      } catch (e) {
+        logger.error(`BaseGateway::constructor could not contruct RPC Client due to error: ${util.inspect(e)}`);
+      }
+    }
   }
 
   /**

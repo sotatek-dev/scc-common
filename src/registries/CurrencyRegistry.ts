@@ -15,6 +15,7 @@ const allErc20Tokens: IErc20Token[] = [];
 const allOmniAssets: IOmniAsset[] = [];
 
 const onCurrencyRegisteredCallbacks: Array<(currency: ICurrency) => void> = [];
+const onSpecificCurrencyRegisteredCallbacks = new Map<string, Array<() => void>>();
 const onERC20TokenRegisteredCallbacks: Array<(token: IErc20Token) => void> = [];
 const onOmniAssetRegisteredCallbacks: Array<(asset: IOmniAsset) => void> = [];
 const onCurrencyConfigSetCallbacks: Array<(currency: ICurrency, config: ICurrencyConfig) => void> = [];
@@ -196,6 +197,11 @@ export class CurrencyRegistry {
 
     allCurrencies.set(c.symbol, c);
     onCurrencyRegisteredCallbacks.forEach(callback => callback(c));
+
+    if (onSpecificCurrencyRegisteredCallbacks.has(c.symbol)) {
+      onSpecificCurrencyRegisteredCallbacks.get(c.symbol).forEach(callback => callback());
+    }
+
     return true;
   }
 
@@ -337,18 +343,52 @@ export class CurrencyRegistry {
     return allCurrencyConfigs.get(symbol);
   }
 
+  /**
+   * Add listener that is triggerred when a new currency is registered
+   *
+   * @param callback
+   */
   public static onCurrencyRegistered(callback: (currency: ICurrency) => void) {
     onCurrencyRegisteredCallbacks.push(callback);
   }
 
+  /**
+   * Add listener that is triggerred when a new currency is registered
+   *
+   * @param callback
+   */
+  public static onSpecificCurrencyRegistered(currency: ICurrency, callback: () => void) {
+    const symbol = currency.symbol;
+    if (!onSpecificCurrencyRegisteredCallbacks.has(symbol)) {
+      onSpecificCurrencyRegisteredCallbacks.set(symbol, []);
+    }
+
+    onSpecificCurrencyRegisteredCallbacks.get(symbol).push(callback);
+  }
+
+  /**
+   * Add listener that is triggerred when an ERC20 token is registered
+   *
+   * @param callback
+   */
   public static onERC20TokenRegistered(callback: (token: IErc20Token) => void) {
     onERC20TokenRegisteredCallbacks.push(callback);
   }
 
+  /**
+   * Add listener that is triggerred when an Omni Asset is registered
+   *
+   * @param callback
+   */
   public static onOmniAssetRegistered(callback: (asset: IOmniAsset) => void) {
     onOmniAssetRegisteredCallbacks.push(callback);
   }
 
+  /**
+   * Add listener that is triggerred when a currency config is setup
+   *
+   * @param callback
+   */
   public static onCurrencyConfigSet(callback: (currency: ICurrency, config: ICurrencyConfig) => void) {
     onCurrencyConfigSetCallbacks.push(callback);
   }
