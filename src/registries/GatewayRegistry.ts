@@ -18,7 +18,7 @@ export class GatewayRegistry {
   public static getGatewayInstance(currency: ICurrency | string): BaseGateway {
     const symbol = typeof currency === 'string' ? currency : currency.symbol;
     if (!_registryData.has(symbol)) {
-      throw new Error(`Try to get unregisterred gateway: ${symbol}`);
+      return null;
     }
 
     return _registryData.get(symbol);

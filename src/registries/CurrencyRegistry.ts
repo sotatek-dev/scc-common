@@ -190,6 +190,7 @@ export class CurrencyRegistry {
    * @param c currency
    */
   public static registerCurrency(c: ICurrency): boolean {
+    logger.info(`CurrencyRegistry::registerCurrency symbol=${c.symbol}`);
     if (allCurrencies.has(c.symbol)) {
       logger.warn(`Currency register multiple times: ${c.symbol}`);
       return false;
@@ -359,6 +360,13 @@ export class CurrencyRegistry {
    */
   public static onSpecificCurrencyRegistered(currency: ICurrency, callback: () => void) {
     const symbol = currency.symbol;
+
+    // If currency has been registered before, just invoke the callback
+    if (allCurrencies.has(symbol)) {
+      callback();
+      return;
+    }
+
     if (!onSpecificCurrencyRegisteredCallbacks.has(symbol)) {
       onSpecificCurrencyRegisteredCallbacks.set(symbol, []);
     }
@@ -394,7 +402,9 @@ export class CurrencyRegistry {
   }
 }
 
-// Add native currencies to the list first
-nativeCurrencies.forEach(c => CurrencyRegistry.registerCurrency(c));
+process.nextTick(() => {
+  // Add native currencies to the list first
+  nativeCurrencies.forEach(c => CurrencyRegistry.registerCurrency(c));
+});
 
 export default CurrencyRegistry;

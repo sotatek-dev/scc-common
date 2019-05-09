@@ -20,7 +20,9 @@ import GatewayRegistry from './registries/GatewayRegistry';
 
 CurrencyRegistry.onCurrencyConfigSet((currency: ICurrency, config: ICurrencyConfig) => {
   const gateway = GatewayRegistry.getGatewayInstance(currency);
-  gateway.loadCurrencyConfig();
+  if (gateway) {
+    gateway.loadCurrencyConfig();
+  }
 });
 
 const logger = getLogger('BaseGateway');
