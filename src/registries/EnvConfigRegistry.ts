@@ -1,7 +1,5 @@
-import { getLogger } from '../Logger';
 import { NetworkType } from '../enums';
 import { IGlobalEnvConfig } from '../interfaces';
-const logger = getLogger('EnvConfigRegistry');
 
 const envConfig = new Map<string, string>();
 let _appId: string = 'PP70ExC8Hr';
@@ -16,7 +14,7 @@ export class EnvConfigRegistry {
   }
 
   public static setCustomEnvConfig(key: string, value: string) {
-    logger.info(`setCustomEnvConfig key=${key}, value=${value}`);
+    console.log(`setCustomEnvConfig key=${key}, value=${value}`);
     switch (key) {
       case 'NETWORK':
         if (!(value in NetworkType)) {
