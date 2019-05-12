@@ -149,6 +149,24 @@ const Stellar = {
   scale: 6,
 };
 
+const Nem = {
+  symbol: BlockchainPlatform.Nem,
+  networkSymbol: BlockchainPlatform.Nem,
+  name: 'XEM',
+  platform: BlockchainPlatform.Nem,
+  isNative: true,
+  scale: 6,
+};
+
+const Tron = {
+  symbol: BlockchainPlatform.Tron,
+  networkSymbol: BlockchainPlatform.Tron,
+  name: 'Tron',
+  platform: BlockchainPlatform.Tron,
+  isNative: true,
+  scale: 6,
+};
+
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
@@ -164,6 +182,8 @@ const nativeCurrencies: ICurrency[] = [
   Tomo,
   Ripple,
   Stellar,
+  Nem,
+  Tron,
 ];
 
 export class CurrencyRegistry {
@@ -181,6 +201,8 @@ export class CurrencyRegistry {
   public static readonly Tomo: ICurrency = Tomo;
   public static readonly Ripple: ICurrency = Ripple;
   public static readonly Stellar: ICurrency = Stellar;
+  public static readonly Nem: ICurrency = Nem;
+  public static readonly Tron: ICurrency = Tron;
 
   /**
    * Register a currency on environment data
@@ -323,7 +345,7 @@ export class CurrencyRegistry {
     // And merge it with desired config
     finalConfig = Object.assign({}, finalConfig, config);
 
-    logger.info(`setCurrencyConfig: symbol=${symbol}, config=${JSON.stringify(finalConfig)}`);
+    logger.info(`CurrencyRegistry::setCurrencyConfig: symbol=${symbol}, config=${JSON.stringify(finalConfig)}`);
 
     // Put it to the environment again
     allCurrencyConfigs.set(symbol, finalConfig);
@@ -380,6 +402,12 @@ export class CurrencyRegistry {
    * @param callback
    */
   public static onERC20TokenRegistered(callback: (token: IErc20Token) => void) {
+    if (allErc20Tokens.length > 0) {
+      allErc20Tokens.forEach(token => {
+        callback(token);
+      });
+    }
+
     onERC20TokenRegisteredCallbacks.push(callback);
   }
 

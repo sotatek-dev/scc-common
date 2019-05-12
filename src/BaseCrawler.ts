@@ -45,6 +45,11 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
     return this._nativeCurrency;
   }
 
+  // Crawler is made for detecting deposits by default
+  public getCrawlType(): string {
+    return 'deposit';
+  }
+
   /**
    * Decide number of blocks to get in one time based on
    * number of currency when crawling
