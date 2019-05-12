@@ -212,17 +212,18 @@ export class CurrencyRegistry {
    * @param c currency
    */
   public static registerCurrency(c: ICurrency): boolean {
-    logger.info(`CurrencyRegistry::registerCurrency symbol=${c.symbol}`);
-    if (allCurrencies.has(c.symbol)) {
-      logger.warn(`Currency register multiple times: ${c.symbol}`);
+    const symbol = c.symbol.toLowerCase();
+    logger.info(`CurrencyRegistry::registerCurrency symbol=${symbol}`);
+    if (allCurrencies.has(symbol)) {
+      logger.warn(`Currency register multiple times: ${symbol}`);
       return false;
     }
 
-    allCurrencies.set(c.symbol, c);
+    allCurrencies.set(symbol, c);
     onCurrencyRegisteredCallbacks.forEach(callback => callback(c));
 
-    if (onSpecificCurrencyRegisteredCallbacks.has(c.symbol)) {
-      onSpecificCurrencyRegisteredCallbacks.get(c.symbol).forEach(callback => callback());
+    if (onSpecificCurrencyRegisteredCallbacks.has(symbol)) {
+      onSpecificCurrencyRegisteredCallbacks.get(symbol).forEach(callback => callback());
     }
 
     return true;
@@ -311,16 +312,18 @@ export class CurrencyRegistry {
    * @param symbol
    */
   public static getOneCurrency(symbol: string): ICurrency {
+    symbol = symbol.toLowerCase();
     if (!allCurrencies.has(symbol)) {
-      throw new Error(`CCEnv::getOneCurrency cannot find currency has symbol: ${symbol}`);
+      throw new Error(`CurrencyRegistry::getOneCurrency cannot find currency has symbol: ${symbol}`);
     }
 
     return allCurrencies.get(symbol);
   }
 
-  public static getOneNativeCurrency(symbol: BlockchainPlatform): ICurrency {
+  public static getOneNativeCurrency(platform: BlockchainPlatform): ICurrency {
+    const symbol = (platform as string).toLowerCase();
     if (!allCurrencies.has(symbol)) {
-      throw new Error(`CCEnv::getOneNativeCurrency cannot find currency has symbol: ${symbol}`);
+      throw new Error(`CurrencyRegistry::getOneNativeCurrency cannot find currency has symbol: ${symbol}`);
     }
 
     return allCurrencies.get(symbol);
@@ -333,7 +336,7 @@ export class CurrencyRegistry {
    * @param config
    */
   public static setCurrencyConfig(c: ICurrency, config: ICurrencyConfig) {
-    const symbol = c.symbol;
+    const symbol = c.symbol.toLowerCase();
     let finalConfig: ICurrencyConfig;
 
     // Keep configs that is already set on the environment
@@ -357,9 +360,9 @@ export class CurrencyRegistry {
    * @param c
    */
   public static getCurrencyConfig(c: ICurrency): ICurrencyConfig {
-    const symbol = c.symbol;
+    const symbol = c.symbol.toLowerCase();
     if (!allCurrencies.has(symbol)) {
-      logger.error(`CCEnv::getOneCurrencyConfig cannot find currency has symbol: ${symbol}`);
+      logger.error(`CurrencyRegistry::getOneCurrencyConfig cannot find currency has symbol: ${symbol}`);
       return null;
     }
 
@@ -381,7 +384,7 @@ export class CurrencyRegistry {
    * @param callback
    */
   public static onSpecificCurrencyRegistered(currency: ICurrency, callback: () => void) {
-    const symbol = currency.symbol;
+    const symbol = currency.symbol.toLowerCase();
 
     // If currency has been registered before, just invoke the callback
     if (allCurrencies.has(symbol)) {
