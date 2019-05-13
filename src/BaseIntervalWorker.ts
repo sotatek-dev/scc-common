@@ -1,4 +1,5 @@
 import { getLogger } from './Logger';
+import { subForTokenChanged } from './RedisChannel';
 
 const logger = getLogger('BaseIntervalWorker');
 
@@ -24,6 +25,7 @@ export abstract class BaseIntervalWorker {
     }
 
     this._isStarted = true;
+    subForTokenChanged();
 
     this.prepare()
       .then(res => {
