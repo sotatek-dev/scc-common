@@ -218,6 +218,10 @@ export abstract class BaseGateway {
   @implement
   public async getBlockTransactions(blockNumber: string | number): Promise<Transactions> {
     const block = await this.getOneBlock(blockNumber);
+    if (!block) {
+      throw new Error(`Could not get information of block: ${blockNumber}`);
+    }
+
     const txs = await this.getTransactionsByIds(_.compact(block.txids));
     return txs;
   }
