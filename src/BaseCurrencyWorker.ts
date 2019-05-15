@@ -2,14 +2,14 @@ import BaseIntervalWorker2 from './BaseIntervalWorker2';
 import BaseMQConsumer from './BaseMQConsumer';
 import BaseMQProducer from './BaseMQProducer';
 import { Options } from 'amqplib';
-import { ICurrency, IIntervalWorkerOptions } from './interfaces';
+import { ICurrency, ICurrencyWorkerOptions } from './interfaces';
 
 const MixedClass = BaseMQConsumer(BaseMQProducer(BaseIntervalWorker2));
 
 export abstract class BaseCurrencyWorker extends MixedClass {
   protected _currency: ICurrency;
 
-  public constructor(currency: ICurrency, options: IIntervalWorkerOptions) {
+  public constructor(currency: ICurrency, options: ICurrencyWorkerOptions) {
     super();
     this._currency = currency;
     this._options = options;

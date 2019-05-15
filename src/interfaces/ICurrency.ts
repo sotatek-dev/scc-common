@@ -17,6 +17,9 @@ export interface ICurrency {
   // Maybe there're various currencies on a same platform
   readonly platform: BlockchainPlatform;
 
+  // Account-based or UTXO-based
+  readonly isUTXOBased: boolean;
+
   // Currency is native asset
   readonly isNative: boolean;
 

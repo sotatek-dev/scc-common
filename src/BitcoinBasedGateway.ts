@@ -93,7 +93,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
    * Sign a raw transaction with single private key
    * Most likely is used to sign transaction sent from normal hot wallet
    *
-   * @param {string} unsignedRaw is result of "createRawTransaction" method
+   * @param {string} unsignedRaw is result of "constructRawTransaction" method
    * @param {string} privateKey private key to sign, in string format
    *
    * @returns the signed transaction
@@ -113,7 +113,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   }
 
   /**
-   * Re-construct raw transaction from output of "createRawTransaction" method
+   * Re-construct raw transaction from output of "constructRawTransaction" method
    * @param rawTx
    */
   @implement

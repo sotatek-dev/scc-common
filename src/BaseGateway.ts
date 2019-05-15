@@ -14,9 +14,10 @@ import {
   BigNumber,
   getLogger,
 } from '..';
-import { ICurrencyConfig } from './interfaces';
+import { ICurrencyConfig, ISignedRawTransaction, ISubmittedTransaction } from './interfaces';
 import CurrencyRegistry from './registries/CurrencyRegistry';
 import GatewayRegistry from './registries/GatewayRegistry';
+import { PrivateKey } from './types';
 
 CurrencyRegistry.onCurrencyConfigSet((currency: ICurrency, config: ICurrencyConfig) => {
   const gateway = GatewayRegistry.getGatewayInstance(currency);
@@ -210,11 +211,6 @@ export abstract class BaseGateway {
    * @param {string|number} blockHash: header hash or height of the block
    * @returns {Transactions}: an array of transactions
    */
-
-  /**
-   * getBlockTransactions from network
-   * @param blockHash
-   */
   @implement
   public async getBlockTransactions(blockNumber: string | number): Promise<Transactions> {
     const block = await this.getOneBlock(blockNumber);
@@ -248,6 +244,25 @@ export abstract class BaseGateway {
    * @returns {string}: the tx status
    */
   public abstract async getTransactionStatus(txid: string): Promise<TransactionStatus>;
+
+  /**
+   * Sign a raw transaction with single private key
+   * Most likely is used to sign transaction sent from normal hot wallet
+   *
+   * @param {string} unsignedRaw is result of "constructRawTransaction" method
+   * @param {string} privateKey private key to sign, in string format
+   *
+   * @returns the signed transaction
+   */
+  public abstract async signRawTransaction(unsignedRaw: string, secret: string): Promise<ISignedRawTransaction>;
+
+  /**
+   * Validate a transaction and broadcast it to the blockchain network
+   *
+   * @param {String} signedRawTx: the hex-encoded transaction data
+   * @returns {String}: the transaction hash in hex
+   */
+  public abstract async sendRawTransaction(signedRawTx: string): Promise<ISubmittedTransaction>;
 
   /**
    * Get block detailstxidstxids: string[]*

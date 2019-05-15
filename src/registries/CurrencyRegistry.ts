@@ -29,6 +29,7 @@ const Bitcoin = {
   name: 'Bitcoin',
   platform: BlockchainPlatform.Bitcoin,
   isNative: true,
+  isUTXOBased: true,
   scale: 0,
 };
 
@@ -38,6 +39,7 @@ const Ethereum = {
   name: 'Ethereum',
   platform: BlockchainPlatform.Ethereum,
   isNative: true,
+  isUTXOBased: false,
   scale: 0,
 };
 
@@ -47,6 +49,7 @@ const Cardano = {
   name: 'Cardano',
   platform: BlockchainPlatform.Cardano,
   isNative: true,
+  isUTXOBased: true,
   scale: 0,
 };
 
@@ -56,6 +59,7 @@ const BitcoinCash = {
   name: 'BitcoinCash',
   platform: BlockchainPlatform.BitcoinCash,
   isNative: true,
+  isUTXOBased: true,
   scale: 0,
 };
 
@@ -65,6 +69,7 @@ const BitcoinSV = {
   name: 'BitcoinSV',
   platform: BlockchainPlatform.BitcoinSV,
   isNative: true,
+  isUTXOBased: true,
   scale: 0,
 };
 
@@ -74,6 +79,7 @@ const EOS = {
   name: 'EOS',
   platform: BlockchainPlatform.EOS,
   isNative: true,
+  isUTXOBased: false,
   scale: 4,
 };
 
@@ -83,6 +89,7 @@ const Litecoin = {
   name: 'Litecoin',
   platform: BlockchainPlatform.Litecoin,
   isNative: true,
+  isUTXOBased: true,
   scale: 0,
 };
 
@@ -92,6 +99,7 @@ const Dash = {
   name: 'Dash',
   platform: BlockchainPlatform.Dash,
   isNative: true,
+  isUTXOBased: true,
   scale: 0,
 };
 
@@ -101,6 +109,7 @@ const EthereumClasssic = {
   name: 'EthereumClassic',
   platform: BlockchainPlatform.EthereumClassic,
   isNative: true,
+  isUTXOBased: false,
   scale: 0,
 };
 
@@ -110,6 +119,7 @@ const NEO = {
   name: 'NEO',
   platform: BlockchainPlatform.NEO,
   isNative: true,
+  isUTXOBased: true,
   scale: 0,
 };
 
@@ -119,6 +129,7 @@ const NEOGAS = {
   name: 'GAS',
   platform: BlockchainPlatform.NEO,
   isNative: true,
+  isUTXOBased: true,
   scale: 0,
 };
 
@@ -128,6 +139,7 @@ const Tomo = {
   name: 'Tomo',
   platform: BlockchainPlatform.Tomo,
   isNative: true,
+  isUTXOBased: false,
   scale: 0,
 };
 
@@ -137,6 +149,7 @@ const Ripple = {
   name: 'Ripple',
   platform: BlockchainPlatform.Ripple,
   isNative: true,
+  isUTXOBased: false,
   scale: 6,
 };
 
@@ -146,6 +159,7 @@ const Stellar = {
   name: 'Stellar',
   platform: BlockchainPlatform.Stellar,
   isNative: true,
+  isUTXOBased: false,
   scale: 6,
 };
 
@@ -155,6 +169,7 @@ const Nem = {
   name: 'XEM',
   platform: BlockchainPlatform.Nem,
   isNative: true,
+  isUTXOBased: false,
   scale: 6,
 };
 
@@ -164,6 +179,7 @@ const Tron = {
   name: 'Tron',
   platform: BlockchainPlatform.Tron,
   isNative: true,
+  isUTXOBased: true,
   scale: 6,
 };
 
@@ -242,6 +258,7 @@ export class CurrencyRegistry {
       name,
       platform,
       isNative: false,
+      isUTXOBased: false,
       propertyId,
       scale,
     };
@@ -270,6 +287,7 @@ export class CurrencyRegistry {
       name,
       platform,
       isNative: false,
+      isUTXOBased: false,
       contractAddress,
       decimals,
       scale: 0,
@@ -327,6 +345,26 @@ export class CurrencyRegistry {
     }
 
     return allCurrencies.get(symbol);
+  }
+
+  public static getCurrenciesOfPlatform(platform: BlockchainPlatform): ICurrency[] {
+    const result: ICurrency[] = [];
+    switch (platform) {
+      case BlockchainPlatform.Bitcoin:
+        result.push(Bitcoin);
+        result.push(...CurrencyRegistry.getAllOmniAssets());
+        break;
+
+      case BlockchainPlatform.Ethereum:
+        result.push(Ethereum);
+        result.push(...CurrencyRegistry.getAllErc20Tokens());
+        break;
+
+      default:
+        throw new Error(`CurrencyRegistry::getCurrenciesOfPlatform hasn't been implemented for ${platform} yet.`);
+    }
+
+    return result;
   }
 
   /**
