@@ -1,10 +1,10 @@
-import BaseGateway from './BaseGateway';
 import { ICurrency } from './interfaces';
 import { getLogger } from './Logger';
 import { NativeAssetCrawler } from './NativeAssetCrawler';
 import { ICrawlerOptions } from './BaseCrawler';
 import { Utils } from '..';
 import { BlockchainPlatform } from './enums';
+import { GatewayRegistry } from './registries';
 
 const logger = getLogger('CustomAssetCrawler');
 /**
@@ -37,8 +37,6 @@ export abstract class CustomAssetCrawler extends NativeAssetCrawler {
     this._currencies = currencies;
   }
 
-  public abstract getGateway(currency: ICurrency): BaseGateway;
-
   /**
    * Process several blocks in one go. Just use single database transaction
    * @param {number} fromBlockNumber - begin of crawling blocks range
@@ -55,7 +53,7 @@ export abstract class CustomAssetCrawler extends NativeAssetCrawler {
     await Utils.PromiseAll(
       this._currencies.map(async c => {
         logger.info(`${c.symbol}::processBlocks BEGIN: ${fromBlockNumber}→${toBlockNumber} / ${latestNetworkBlock}`);
-        const gateway = this.getGateway(c);
+        const gateway = GatewayRegistry.getGatewayInstance(c);
 
         // Get all transactions in the block
         const allTxs = await gateway.getMultiBlocksTransactions(fromBlockNumber, toBlockNumber);
@@ -63,7 +61,7 @@ export abstract class CustomAssetCrawler extends NativeAssetCrawler {
         // Use callback to process all crawled transactions
         await this._options.onCrawlingTxs(this, allTxs);
 
-        logger.info(`${c.symbol}::_processBlocks FINISH: ${fromBlockNumber}→${toBlockNumber}, txs=${allTxs.length}`);
+        logger.info(`${c.symbol}::processBlocks FINISH: ${fromBlockNumber}→${toBlockNumber}, txs=${allTxs.length}`);
       })
     );
   }

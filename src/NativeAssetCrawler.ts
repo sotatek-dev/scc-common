@@ -30,6 +30,6 @@ export abstract class NativeAssetCrawler extends BaseCrawler {
     // Use callback to process all crawled transactions
     await this._options.onCrawlingTxs(this, allTxs);
 
-    logger.info(`${c.symbol}::_processBlocks FINISH: ${fromBlockNumber}→${toBlockNumber}, txs=${allTxs.length}`);
+    logger.info(`${c.symbol}::processBlocks FINISH: ${fromBlockNumber}→${toBlockNumber}, txs=${allTxs.length}`);
   }
 }

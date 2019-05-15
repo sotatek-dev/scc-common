@@ -6,6 +6,7 @@ import { Block, Transactions } from './types';
 import { ICurrency } from './interfaces';
 import { getLogger, implement } from '..';
 import { BlockchainPlatform } from './enums';
+import { GatewayRegistry } from './registries';
 
 const logger = getLogger('BaseCrawler');
 
@@ -15,7 +16,6 @@ const LATEST_PROCESSED_BLOCK = new Map<string, number>();
 // Crawler options, usually are funtions to handle project-related logic
 // Something like getting and updating data to database, ...
 export interface ICrawlerOptions {
-  readonly crawlingCurrenciesName: () => string;
   readonly getLatestCrawledBlockNumber: (crawler: BaseCrawler) => Promise<number>;
   readonly onBlockCrawled: (crawler: BaseCrawler, block: Block) => Promise<void>;
   readonly onCrawlingTxs: (crawler: BaseCrawler, txs: Transactions) => Promise<void>;
@@ -59,25 +59,17 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
     return this.getRequiredConfirmations() + 1;
   }
 
-  public getTxNumInOneGo(): number {
-    return 10;
-  }
-
-  public async getLatestBlockOnNetwork(): Promise<number> {
-    return this.getPlatformGateway().getBlockCount();
-  }
-
   public getAverageBlockTime(): number {
-    const currency = this.getPlatformGateway().getCurrency();
-    return CurrencyRegistry.getCurrencyConfig(currency).averageBlockTime;
+    return CurrencyRegistry.getCurrencyConfig(this._nativeCurrency).averageBlockTime;
   }
 
   public getRequiredConfirmations(): number {
-    const currency = this.getPlatformGateway().getCurrency();
-    return CurrencyRegistry.getCurrencyConfig(currency).requiredConfirmations;
+    return CurrencyRegistry.getCurrencyConfig(this._nativeCurrency).requiredConfirmations;
   }
 
-  public abstract getPlatformGateway(): BaseGateway;
+  public getPlatformGateway(): BaseGateway {
+    return GatewayRegistry.getGatewayInstance(this._nativeCurrency);
+  }
 
   @implement
   protected async prepare(): Promise<void> {
@@ -87,7 +79,7 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
   @implement
   protected async doProcess(): Promise<void> {
     // Firstly try to get latest block number from network
-    const latestNetworkBlock = await this.getLatestBlockOnNetwork();
+    const latestNetworkBlock = await this.getPlatformGateway().getBlockCount();
 
     // And looking for the latest processed block in local
     let latestProcessedBlock = LATEST_PROCESSED_BLOCK.get(this._id);
@@ -168,11 +160,7 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
     return;
   }
 
-  protected abstract async processBlocks(
-    fromBlockNumber: number,
-    toBlockNumber: number,
-    latestNetworkBlock: number
-  ): Promise<void>;
+  protected abstract async processBlocks(fromBlock: number, toBlock: number, latestBlock: number): Promise<void>;
 }
 
 export default BaseCrawler;
