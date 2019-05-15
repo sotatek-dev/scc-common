@@ -6,7 +6,7 @@ import { ICurrency, ICurrencyWorkerOptions } from './interfaces';
 
 const MixedClass = BaseMQConsumer(BaseMQProducer(BaseIntervalWorker2));
 
-export abstract class BaseCurrencyWorker extends MixedClass {
+export class BaseCurrencyWorker extends MixedClass {
   protected _currency: ICurrency;
 
   public constructor(currency: ICurrency, options: ICurrencyWorkerOptions) {

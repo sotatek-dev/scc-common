@@ -23,6 +23,7 @@ export * from './src/Logger';
 export * from './src/BaseIntervalWorker';
 export * from './src/BaseIntervalWorker2';
 export * from './src/BaseCurrencyWorker';
+export * from './src/BasePlatformWorker';
 export * from './src/BaseCrawler';
 export * from './src/NativeAssetCrawler';
 export * from './src/CustomAssetCrawler';
