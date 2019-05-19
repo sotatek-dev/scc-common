@@ -28,6 +28,7 @@ import {
   IUtxoBlockInfo,
   IBoiledVOut,
   IBitcoreUtxoInput,
+  IBoiledVIn,
 } from './interfaces';
 import { EnvConfigRegistry } from './registries';
 
@@ -91,6 +92,10 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     }
 
     throw new Error(`TODO: Revive me`);
+  }
+
+  public async constructRawConsolidateTransaction(vins: IBoiledVIn[], toAddress: string): Promise<IRawTransaction> {
+    throw new Error(`TODO: Implement me please...`);
   }
 
   /**
