@@ -85,7 +85,11 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
    *
    * @returns {IRawTransaction}
    */
-  public async constructRawTransaction(vins: IRawVIn[], vouts: IRawVOut[]): Promise<IRawTransaction> {
+  public async constructRawTransaction(fromAddresses: string | string[], vouts: IRawVOut[]): Promise<IRawTransaction> {
+    if (typeof fromAddresses === 'string') {
+      fromAddresses = [fromAddresses];
+    }
+
     throw new Error(`TODO: Revive me`);
   }
 
@@ -206,6 +210,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       logger.error(e);
       throw new Error(`TODO: Handle me please...`);
     }
+
     return response.data.vout.filter(vout => {
       if (!address) {
         return true;

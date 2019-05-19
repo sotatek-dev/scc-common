@@ -1,5 +1,5 @@
 import { BaseGateway } from '..';
-import { IRawVIn, IRawVOut, IRawTransaction } from './interfaces';
+import { IRawVIn, IRawVOut, IRawTransaction, IBoiledVIn } from './interfaces';
 
 export abstract class UTXOBasedGateway extends BaseGateway {
   /**
@@ -11,11 +11,30 @@ export abstract class UTXOBasedGateway extends BaseGateway {
    *
    * @returns {IRawTransaction}
    */
-  public abstract async constructRawTransaction(vins: IRawVIn[], vouts: IRawVOut[]): Promise<IRawTransaction>;
+  public abstract async constructRawTransaction(
+    fromAddresses: string | string[],
+    vouts: IRawVOut[]
+  ): Promise<IRawTransaction>;
+
+  public abstract async constructRawConsolidateTransaction(
+    vins: IBoiledVIn[],
+    toAddress: string
+  ): Promise<IRawTransaction>;
 
   /**
    * Re-construct raw transaction from output of "constructRawTransaction" method
    * @param rawTx
    */
   public abstract reconstructRawTx(rawTx: string): IRawTransaction;
+
+  /**
+   * Usually use to make sure the raw transaction has been constructed correctly
+   * The hex data from original construction and re-construction should be exactly same
+   *
+   * @param rawTx
+   */
+  protected validateRawTx(rawTx: IRawTransaction): boolean {
+    const tx = this.reconstructRawTx(rawTx.unsignedRaw);
+    return tx.txid === rawTx.txid && tx.unsignedRaw === rawTx.unsignedRaw;
+  }
 }

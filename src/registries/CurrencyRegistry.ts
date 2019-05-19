@@ -30,7 +30,8 @@ const Bitcoin = {
   platform: BlockchainPlatform.Bitcoin,
   isNative: true,
   isUTXOBased: true,
-  scale: 0,
+  humanReadableScale: 8,
+  nativeScale: 0,
 };
 
 const Ethereum = {
@@ -40,7 +41,8 @@ const Ethereum = {
   platform: BlockchainPlatform.Ethereum,
   isNative: true,
   isUTXOBased: false,
-  scale: 0,
+  humanReadableScale: 18,
+  nativeScale: 0,
 };
 
 const Cardano = {
@@ -50,7 +52,8 @@ const Cardano = {
   platform: BlockchainPlatform.Cardano,
   isNative: true,
   isUTXOBased: true,
-  scale: 0,
+  humanReadableScale: 6,
+  nativeScale: 0,
 };
 
 const BitcoinCash = {
@@ -60,7 +63,8 @@ const BitcoinCash = {
   platform: BlockchainPlatform.BitcoinCash,
   isNative: true,
   isUTXOBased: true,
-  scale: 0,
+  humanReadableScale: 8,
+  nativeScale: 0,
 };
 
 const BitcoinSV = {
@@ -70,7 +74,8 @@ const BitcoinSV = {
   platform: BlockchainPlatform.BitcoinSV,
   isNative: true,
   isUTXOBased: true,
-  scale: 0,
+  humanReadableScale: 8,
+  nativeScale: 0,
 };
 
 const EOS = {
@@ -80,7 +85,8 @@ const EOS = {
   platform: BlockchainPlatform.EOS,
   isNative: true,
   isUTXOBased: false,
-  scale: 4,
+  humanReadableScale: 0,
+  nativeScale: 4,
 };
 
 const Litecoin = {
@@ -90,7 +96,8 @@ const Litecoin = {
   platform: BlockchainPlatform.Litecoin,
   isNative: true,
   isUTXOBased: true,
-  scale: 0,
+  humanReadableScale: 8,
+  nativeScale: 0,
 };
 
 const Dash = {
@@ -100,7 +107,8 @@ const Dash = {
   platform: BlockchainPlatform.Dash,
   isNative: true,
   isUTXOBased: true,
-  scale: 0,
+  humanReadableScale: 8,
+  nativeScale: 0,
 };
 
 const EthereumClasssic = {
@@ -110,7 +118,8 @@ const EthereumClasssic = {
   platform: BlockchainPlatform.EthereumClassic,
   isNative: true,
   isUTXOBased: false,
-  scale: 0,
+  humanReadableScale: 18,
+  nativeScale: 0,
 };
 
 const NEO = {
@@ -120,7 +129,8 @@ const NEO = {
   platform: BlockchainPlatform.NEO,
   isNative: true,
   isUTXOBased: true,
-  scale: 0,
+  humanReadableScale: 0,
+  nativeScale: 0,
 };
 
 const NEOGAS = {
@@ -130,7 +140,8 @@ const NEOGAS = {
   platform: BlockchainPlatform.NEO,
   isNative: true,
   isUTXOBased: true,
-  scale: 0,
+  humanReadableScale: 0,
+  nativeScale: 8,
 };
 
 const Tomo = {
@@ -140,7 +151,8 @@ const Tomo = {
   platform: BlockchainPlatform.Tomo,
   isNative: true,
   isUTXOBased: false,
-  scale: 0,
+  humanReadableScale: 18,
+  nativeScale: 0,
 };
 
 const Ripple = {
@@ -150,7 +162,8 @@ const Ripple = {
   platform: BlockchainPlatform.Ripple,
   isNative: true,
   isUTXOBased: false,
-  scale: 6,
+  humanReadableScale: 0,
+  nativeScale: 6,
 };
 
 const Stellar = {
@@ -160,7 +173,8 @@ const Stellar = {
   platform: BlockchainPlatform.Stellar,
   isNative: true,
   isUTXOBased: false,
-  scale: 6,
+  humanReadableScale: 0,
+  nativeScale: 6,
 };
 
 const Nem = {
@@ -170,7 +184,8 @@ const Nem = {
   platform: BlockchainPlatform.Nem,
   isNative: true,
   isUTXOBased: false,
-  scale: 6,
+  humanReadableScale: 0,
+  nativeScale: 6,
 };
 
 const Tron = {
@@ -180,7 +195,8 @@ const Tron = {
   platform: BlockchainPlatform.Tron,
   isNative: true,
   isUTXOBased: true,
-  scale: 6,
+  humanReadableScale: 8,
+  nativeScale: 6,
 };
 
 const nativeCurrencies: ICurrency[] = [
@@ -260,7 +276,8 @@ export class CurrencyRegistry {
       isNative: false,
       isUTXOBased: false,
       propertyId,
-      scale,
+      humanReadableScale: 0,
+      nativeScale: scale,
     };
 
     allOmniAssets.push(currency);
@@ -290,7 +307,8 @@ export class CurrencyRegistry {
       isUTXOBased: false,
       contractAddress,
       decimals,
-      scale: 0,
+      humanReadableScale: decimals,
+      nativeScale: 0,
     };
 
     allErc20Tokens.push(currency);

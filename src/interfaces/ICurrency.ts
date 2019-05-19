@@ -23,8 +23,19 @@ export interface ICurrency {
   // Currency is native asset
   readonly isNative: boolean;
 
+  // The factor between ordinary unit that humans are usually working with
+  // and the smallest unit that is handle in core platform and APIs
+  // For example:
+  // - In Bitcoin it's 8: 1 bitcoin = 10^8 satoshi
+  // - In Ethereum it's 18: 1 ether = 10^18 wei
+  // - In Ripple it's 0: xrp is just used by both humans and APIs
+  readonly humanReadableScale: number;
+
   // Maxium number of digit that is handle natively
-  readonly scale: number;
+  // Notice it's different from humanReadableScale:
+  // - In Bitcoion it's 0: native runtime consume satoshi, and satoshi is indivisible
+  // - In Ripple it's 6: native runtime consume xrp, and xrp can be divided to 0.000001 (10^-6)
+  readonly nativeScale: number;
 }
 
 export default ICurrency;
