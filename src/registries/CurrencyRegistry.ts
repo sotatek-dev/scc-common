@@ -342,6 +342,10 @@ export class CurrencyRegistry {
     return Array.from(allCurrencies.values());
   }
 
+  public static hasOneCurrency(symbol: string): boolean {
+    return allCurrencies.has(symbol);
+  }
+
   /**
    * Get information of one currency by its symbol
    *
