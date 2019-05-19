@@ -1,4 +1,4 @@
-import util from 'util';
+import { inspect } from 'util';
 import Axios from 'axios';
 import {
   Account,
@@ -18,7 +18,6 @@ import {
 import {
   ISignedRawTransaction,
   ISubmittedTransaction,
-  IRawVIn,
   IRawVOut,
   IRawTransaction,
   IInsightAddressInfo,
@@ -31,6 +30,8 @@ import {
   IBoiledVIn,
 } from './interfaces';
 import { EnvConfigRegistry } from './registries';
+import pLimit from 'p-limit';
+const limit = pLimit(2);
 
 const logger = getLogger('BitcoinBasedGateway');
 
@@ -57,7 +58,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     try {
       return bitcore.Address.isValid(address, network);
     } catch (e) {
-      logger.error(`Could not validate address ${address} due to error: ${util.inspect(e)}`);
+      logger.error(`Could not validate address ${address} due to error: ${inspect(e)}`);
     }
 
     return false;
@@ -259,17 +260,20 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     const pages = Array.from(new Array(pageTotal), (val, index) => index);
     await Utils.PromiseAll(
       pages.map(async page => {
-        let pageResponse;
-        try {
-          pageResponse = await Axios.get<IInsightTxsInfo>(`${endpoint}/txs?block=${blockNumber}&pageNum=${page}`);
-        } catch (e) {
-          logger.error(e);
-          throw new Error(`TODO: handle me please...`);
-        }
-        const txs: IUtxoTxInfo[] = pageResponse.data.txs;
-        txs.forEach(tx => {
-          const utxoTx = new UTXOBasedTransaction(currency, tx, block);
-          listTxs.push(utxoTx);
+        return limit(async () => {
+          let pageResponse;
+          try {
+            logger.debug(`${this.constructor.name}::getBlockTransactions block=${blockNumber} pageNum=${page}`);
+            pageResponse = await Axios.get<IInsightTxsInfo>(`${endpoint}/txs?block=${blockNumber}&pageNum=${page}`);
+          } catch (e) {
+            logger.error(e);
+            throw new Error(`TODO: handle me please...`);
+          }
+          const txs: IUtxoTxInfo[] = pageResponse.data.txs;
+          txs.forEach(tx => {
+            const utxoTx = new UTXOBasedTransaction(currency, tx, block);
+            listTxs.push(utxoTx);
+          });
         });
       })
     );
