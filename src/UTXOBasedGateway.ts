@@ -1,5 +1,5 @@
 import { BaseGateway } from '..';
-import { IRawVIn, IRawVOut, IRawTransaction, IBoiledVIn } from './interfaces';
+import { IRawVOut, IRawTransaction, IInsightUtxoInfo } from './interfaces';
 
 export abstract class UTXOBasedGateway extends BaseGateway {
   /**
@@ -17,7 +17,7 @@ export abstract class UTXOBasedGateway extends BaseGateway {
   ): Promise<IRawTransaction>;
 
   public abstract async constructRawConsolidateTransaction(
-    vins: IBoiledVIn[],
+    utxos: IInsightUtxoInfo[],
     toAddress: string
   ): Promise<IRawTransaction>;
 
