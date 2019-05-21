@@ -346,6 +346,10 @@ export class CurrencyRegistry {
     return allCurrencies.has(symbol);
   }
 
+  public static hasOneNativeCurrency(symbol: string): boolean {
+    return nativeCurrencies.map(c => c.symbol).indexOf(symbol) > -1;
+  }
+
   /**
    * Get information of one currency by its symbol
    *
