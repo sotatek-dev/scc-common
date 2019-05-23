@@ -30,7 +30,7 @@ import {
 } from './interfaces';
 import { EnvConfigRegistry } from './registries';
 import pLimit from 'p-limit';
-const limit = pLimit(2);
+const limit = pLimit(1);
 
 const logger = getLogger('BitcoinBasedGateway');
 
@@ -260,12 +260,14 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     const pageTotal = response.data.pagesTotal;
 
     const pages = Array.from(new Array(pageTotal), (val, index) => index);
-    await Utils.PromiseAll(
+    await Promise.all(
       pages.map(async page => {
         return limit(async () => {
           let pageResponse;
           try {
-            logger.debug(`${this.constructor.name}::getBlockTransactions block=${blockNumber} pageNum=${page}`);
+            logger.debug(
+              `${this.constructor.name}::getBlockTransactions block=${blockNumber} pageNum=${page}/${pageTotal}`
+            );
             pageResponse = await Axios.get<IInsightTxsInfo>(`${endpoint}/txs?block=${blockNumber}&pageNum=${page}`);
           } catch (e) {
             logger.error(e);
