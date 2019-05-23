@@ -5,7 +5,10 @@ import { getLogger } from './Logger';
 const logger = getLogger('RedisChannel');
 
 export function subForTokenChanged() {
-  const sub = createClient();
+  const sub = createClient({
+    host: process.env.REDIS_HOST || 'localhost',
+    port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
+  });
   const appId = EnvConfigRegistry.getAppId();
   sub.subscribe(`${appId}`);
 
