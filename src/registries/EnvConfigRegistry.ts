@@ -17,7 +17,7 @@ export class EnvConfigRegistry {
     console.log(`setCustomEnvConfig key=${key}, value=${value}`);
     switch (key) {
       case 'NETWORK':
-        if (!(value in NetworkType)) {
+        if (value !== NetworkType.MainNet && value !== NetworkType.TestNet && value !== NetworkType.PrivateNet) {
           throw new Error(`Trying to set invalid value for network: ${value}`);
         }
 
