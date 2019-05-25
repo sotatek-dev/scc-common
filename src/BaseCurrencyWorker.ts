@@ -4,9 +4,9 @@ import BaseMQProducer from './BaseMQProducer';
 import { Options } from 'amqplib';
 import { ICurrency, ICurrencyWorkerOptions } from './interfaces';
 
-const MixedClass = BaseMQConsumer(BaseMQProducer(BaseIntervalWorker2));
+// const MixedClass = BaseMQConsumer(BaseMQProducer(BaseIntervalWorker2));
 
-export class BaseCurrencyWorker extends MixedClass {
+export class BaseCurrencyWorker extends BaseIntervalWorker2 {
   protected _currency: ICurrency;
 
   public constructor(currency: ICurrency, options: ICurrencyWorkerOptions) {
@@ -19,7 +19,7 @@ export class BaseCurrencyWorker extends MixedClass {
     return this._currency;
   }
 
-  protected async _connect(options: Options.Connect): Promise<void> {
-    await Promise.all([this.setupConsumer(options), this.setupProducer(options)]);
-  }
+  // protected async _connect(options: Options.Connect): Promise<void> {
+  //   await Promise.all([this.setupConsumer(options), this.setupProducer(options)]);
+  // }
 }
