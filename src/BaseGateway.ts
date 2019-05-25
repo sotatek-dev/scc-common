@@ -17,7 +17,8 @@ import {
 import { ICurrencyConfig, ISignedRawTransaction, ISubmittedTransaction } from './interfaces';
 import CurrencyRegistry from './registries/CurrencyRegistry';
 import GatewayRegistry from './registries/GatewayRegistry';
-import { PrivateKey } from './types';
+import pLimit from 'p-limit';
+const limit = pLimit(5);
 
 CurrencyRegistry.onCurrencyConfigSet((currency: ICurrency, config: ICurrencyConfig) => {
   const gateway = GatewayRegistry.getGatewayInstance(currency);
@@ -120,11 +121,6 @@ export abstract class BaseGateway {
     return tx;
   }
 
-  public getLimitRun(): any {
-    // TODO: FIXME
-    return null;
-  }
-
   /**
    * Returns transactions with given txids
    *
@@ -145,17 +141,12 @@ export abstract class BaseGateway {
       }
     };
 
-    const tasks = txids.map(async txid => {
-      if (this.getLimitRun()) {
-        return this.getLimitRun()(async () => {
-          return await getOneTx(txid);
-        });
-      } else {
-        return await getOneTx(txid);
-      }
-    });
+    await Utils.PromiseAll(
+      txids.map(async txid => {
+        return limit(() => getOneTx(txid));
+      })
+    );
 
-    await Utils.PromiseAll(tasks);
     return result;
   }
 
