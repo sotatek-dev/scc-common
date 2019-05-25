@@ -189,8 +189,36 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
    *
    * @returns the signed transaction
    */
-  public signRawTransaction(unsignedRaw: string, privateKey: PrivateKey): Promise<ISignedRawTransaction> {
-    throw new Error(`TODO: Revive me`);
+  public async signRawTransaction(unsignedRaw: string, privateKeys: string | string[]): Promise<ISignedRawTransaction> {
+    let tx: any;
+    if (typeof privateKeys === 'string') {
+      privateKeys = [privateKeys];
+    }
+
+    try {
+      tx = new (this.getBitCoreLib()).Transaction(JSON.parse(unsignedRaw));
+    } catch (e) {
+      throw new Error(`Couldn't sign raw tx because of wrong unsignedRaw`);
+    }
+
+    try {
+      privateKeys.forEach(privateKey => {
+        tx.sign(privateKey);
+      });
+    } catch (e) {
+      throw new Error(`Couldn't sign raw tx because of wrong privateKey`);
+    }
+
+    const txid: string = tx.hash as string;
+    const signedRaw: string = tx.serialize({
+      disableDustOutputs: true,
+    });
+
+    return {
+      txid,
+      signedRaw,
+      unsignedRaw,
+    };
   }
 
   /**
@@ -200,7 +228,8 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
    * @returns {String}: the transaction hash in hex
    */
   public async sendRawTransaction(signedRawTx: string): Promise<ISubmittedTransaction> {
-    throw new Error(`TODO: Revive me`);
+    const txid = await this._rpcClient.call<string>('sendrawtransaction', [signedRawTx, false]);
+    return { txid };
   }
 
   /**
