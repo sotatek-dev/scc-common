@@ -37,7 +37,7 @@ const logger = getLogger('BitcoinBasedGateway');
 export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   public static convertInsightUtxoToBitcoreUtxo(utxos: IInsightUtxoInfo[]): IBitcoreUtxoInput[] {
     return utxos.map(utxo => ({
-      address: utxo.addresss,
+      address: utxo.address,
       txId: utxo.txid,
       outputIndex: utxo.vout,
       script: utxo.scriptPubKey,
@@ -91,7 +91,86 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       fromAddresses = [fromAddresses];
     }
 
-    throw new Error(`TODO: Revive me`);
+    const pickedUtxos: IInsightUtxoInfo[] = [];
+    const allUtxos: IInsightUtxoInfo[] = await this.getMultiAddressesUtxos(fromAddresses);
+    const totalOutputAmount: BigNumber = vouts.reduce((memo, vout) => {
+      return memo.plus(vout.amount);
+    }, new BigNumber(0));
+
+    // Estimate fee to choose transaction inputs
+    let totalInputAmount: BigNumber = new BigNumber(0);
+    let esitmatedFee: BigNumber = new BigNumber(0);
+    let estimatedTxSize = 181 + 10; // one vin plus 10
+    let isSufficientBalance = false;
+    for (const utxo of allUtxos) {
+      pickedUtxos.push(utxo);
+      totalInputAmount = totalInputAmount.plus(utxo.satoshis);
+      estimatedTxSize += 34; // additional vout
+      esitmatedFee = new BigNumber(estimatedTxSize * 15); // satoshis per byte. TODO: remove this hard-code
+      if (totalInputAmount.gt(new BigNumber(totalOutputAmount.plus(esitmatedFee)))) {
+        isSufficientBalance = true;
+        break;
+      }
+    }
+
+    if (!isSufficientBalance) {
+      const errMsg =
+        'Could not construct tx because of in sufficient balance:' +
+        ` addresses=[${fromAddresses}]` +
+        ` total balance=${totalInputAmount.toFixed()}` +
+        ` total output=${totalOutputAmount.toFixed()}` +
+        ` estimatedFee=${esitmatedFee.toFixed()}`;
+      throw new Error(errMsg);
+    }
+
+    // Since @types/bitcore-lib definition is not up-to-date with original bitcore-lib
+    // We need to cast Transaction into `any` type
+    // Will remove type casting when @types/bitcore-lib is completed
+    let tx: any;
+    try {
+      tx = new (this.getBitCoreLib()).Transaction().from(pickedUtxos) as any;
+      for (const vout of vouts) {
+        tx.to(vout.toAddress, vout.amount.toNumber());
+      }
+      tx.fee(esitmatedFee);
+      if (totalInputAmount.gt(totalOutputAmount.plus(esitmatedFee))) {
+        tx.change(fromAddresses[0]); // left money for address or first from address
+      }
+    } catch (e) {
+      logger.error(`BitcoinBasedGateway::constructRawTransaction failed due to error:`);
+      logger.error(e);
+      throw new Error(`TODO: Handle me please...`);
+    }
+
+    let txid: string;
+    let unsignedRaw: string;
+    try {
+      txid = tx.hash;
+      unsignedRaw = JSON.stringify(tx.toObject());
+    } catch (err) {
+      logger.error(`Could not serialize tx due to error: ${err}`);
+      return null;
+    }
+
+    // Make sure we can re-construct tx from the raw data
+    try {
+      const revivedTx = this.reconstructRawTx(unsignedRaw);
+      if (txid !== revivedTx.txid) {
+        throw new Error(`Revived transaction has different txid`);
+      }
+
+      if (unsignedRaw !== revivedTx.unsignedRaw) {
+        throw new Error(`Revived transaction has different raw data`);
+      }
+    } catch (err) {
+      logger.error(`Could not construct tx due to error: ${err}`);
+      return null;
+    }
+
+    return {
+      txid: tx.hash,
+      unsignedRaw,
+    };
   }
 
   public async constructRawConsolidateTransaction(

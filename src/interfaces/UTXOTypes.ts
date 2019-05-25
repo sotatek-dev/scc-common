@@ -107,7 +107,7 @@ export interface IInsightAddressInfo {
 
 // Response format that is return from API `/addr/:addr/utxo`
 export interface IInsightUtxoInfo {
-  readonly addresss: string;
+  readonly address: string;
   readonly txid: string;
   readonly vout: number;
   readonly scriptPubKey: string;
