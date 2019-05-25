@@ -3,7 +3,6 @@ import Axios from 'axios';
 import {
   Account,
   Block,
-  PrivateKey,
   UTXOBasedGateway,
   TransactionStatus,
   UTXOBasedTransactions,
@@ -13,7 +12,6 @@ import {
   override,
   implement,
   BigNumber,
-  Utils,
 } from '..';
 import {
   ISignedRawTransaction,
@@ -33,6 +31,9 @@ import pLimit from 'p-limit';
 const limit = pLimit(1);
 
 const logger = getLogger('BitcoinBasedGateway');
+
+// TODO: Remove this hardcode, make it configurable
+const SATOSHI_PER_BYTE = 15;
 
 export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   public static convertInsightUtxoToBitcoreUtxo(utxos: IInsightUtxoInfo[]): IBitcoreUtxoInput[] {
@@ -100,13 +101,13 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     // Estimate fee to choose transaction inputs
     let totalInputAmount: BigNumber = new BigNumber(0);
     let esitmatedFee: BigNumber = new BigNumber(0);
-    let estimatedTxSize = 181 + 10; // one vin plus 10
+    let estimatedTxSize = vouts.length * 34 + 10; // vouts plus 10
     let isSufficientBalance = false;
     for (const utxo of allUtxos) {
       pickedUtxos.push(utxo);
       totalInputAmount = totalInputAmount.plus(utxo.satoshis);
-      estimatedTxSize += 34; // additional vout
-      esitmatedFee = new BigNumber(estimatedTxSize * 15); // satoshis per byte. TODO: remove this hard-code
+      estimatedTxSize += 181; // additional vin
+      esitmatedFee = new BigNumber(estimatedTxSize * SATOSHI_PER_BYTE);
       if (totalInputAmount.gt(new BigNumber(totalOutputAmount.plus(esitmatedFee)))) {
         isSufficientBalance = true;
         break;
@@ -123,61 +124,25 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       throw new Error(errMsg);
     }
 
-    // Since @types/bitcore-lib definition is not up-to-date with original bitcore-lib
-    // We need to cast Transaction into `any` type
-    // Will remove type casting when @types/bitcore-lib is completed
-    let tx: any;
-    try {
-      tx = new (this.getBitCoreLib()).Transaction().from(pickedUtxos) as any;
-      for (const vout of vouts) {
-        tx.to(vout.toAddress, vout.amount.toNumber());
-      }
-      tx.fee(esitmatedFee);
-      if (totalInputAmount.gt(totalOutputAmount.plus(esitmatedFee))) {
-        tx.change(fromAddresses[0]); // left money for address or first from address
-      }
-    } catch (e) {
-      logger.error(`BitcoinBasedGateway::constructRawTransaction failed due to error:`);
-      logger.error(e);
-      throw new Error(`TODO: Handle me please...`);
-    }
-
-    let txid: string;
-    let unsignedRaw: string;
-    try {
-      txid = tx.hash;
-      unsignedRaw = JSON.stringify(tx.toObject());
-    } catch (err) {
-      logger.error(`Could not serialize tx due to error: ${err}`);
-      return null;
-    }
-
-    // Make sure we can re-construct tx from the raw data
-    try {
-      const revivedTx = this.reconstructRawTx(unsignedRaw);
-      if (txid !== revivedTx.txid) {
-        throw new Error(`Revived transaction has different txid`);
-      }
-
-      if (unsignedRaw !== revivedTx.unsignedRaw) {
-        throw new Error(`Revived transaction has different raw data`);
-      }
-    } catch (err) {
-      logger.error(`Could not construct tx due to error: ${err}`);
-      return null;
-    }
-
-    return {
-      txid: tx.hash,
-      unsignedRaw,
-    };
+    return this._constructRawTransaction(pickedUtxos, vouts, esitmatedFee);
   }
 
   public async constructRawConsolidateTransaction(
-    utxos: IInsightUtxoInfo[],
+    pickedUtxos: IInsightUtxoInfo[],
     toAddress: string
   ): Promise<IRawTransaction> {
-    throw new Error(`TODO: Implement me please...`);
+    const totalInputAmount: BigNumber = pickedUtxos.reduce((memo, utxo) => {
+      return memo.plus(new BigNumber(utxo.satoshis));
+    }, new BigNumber(0));
+
+    const estimatedTxSize = pickedUtxos.length * 181 + 34 + 10;
+    const estimatedFee: BigNumber = new BigNumber(estimatedTxSize * SATOSHI_PER_BYTE);
+    const vout = {
+      toAddress,
+      amount: totalInputAmount.minus(estimatedFee),
+    };
+
+    return this._constructRawTransaction(pickedUtxos, [vout], estimatedFee);
   }
 
   /**
@@ -394,6 +359,70 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
 
   public getInsightAPIEndpoint(): string {
     return this.getCurrencyConfig().restEndpoint;
+  }
+
+  protected _constructRawTransaction(
+    pickedUtxos: IInsightUtxoInfo[],
+    vouts: IRawVOut[],
+    esitmatedFee: BigNumber
+  ): IRawTransaction {
+    // Since @types/bitcore-lib definition is not up-to-date with original bitcore-lib
+    // We need to cast Transaction into `any` type
+    // Will remove type casting when @types/bitcore-lib is completed
+    let tx: any;
+    const totalInput: BigNumber = pickedUtxos.reduce((memo, utxo) => {
+      return memo.plus(new BigNumber(utxo.satoshis));
+    }, new BigNumber(0));
+
+    const totalOutput: BigNumber = vouts.reduce((memo, vout) => {
+      return memo.plus(vout.amount);
+    }, new BigNumber(0));
+
+    if (totalInput.lt(totalOutput.plus(esitmatedFee))) {
+      throw new Error(`Could not construct tx: input=${totalInput}, output=${totalOutput}, fee=${esitmatedFee}`);
+    }
+
+    try {
+      tx = new (this.getBitCoreLib()).Transaction().from(pickedUtxos) as any;
+      for (const vout of vouts) {
+        tx.to(vout.toAddress, vout.amount.toNumber());
+      }
+      tx.fee(esitmatedFee);
+      if (totalInput.gt(totalOutput.plus(esitmatedFee))) {
+        tx.change(pickedUtxos[0].address); // left money for address or first from address
+      }
+    } catch (e) {
+      logger.error(`BitcoinBasedGateway::constructRawTransaction failed due to error:`);
+      logger.error(e);
+      throw new Error(`TODO: Handle me please...`);
+    }
+
+    let txid: string;
+    let unsignedRaw: string;
+    try {
+      txid = tx.hash;
+      unsignedRaw = JSON.stringify(tx.toObject());
+    } catch (err) {
+      logger.error(`Could not serialize tx due to error: ${err}`);
+      return null;
+    }
+
+    // Make sure we can re-construct tx from the raw data
+    try {
+      const revivedTx = this.reconstructRawTx(unsignedRaw);
+      if (txid !== revivedTx.txid) {
+        throw new Error(`Revived transaction has different txid`);
+      }
+
+      if (unsignedRaw !== revivedTx.unsignedRaw) {
+        throw new Error(`Revived transaction has different raw data`);
+      }
+    } catch (err) {
+      logger.error(`Could not construct tx due to error: ${err}`);
+      return null;
+    }
+
+    return { txid, unsignedRaw };
   }
 
   /**
