@@ -269,8 +269,15 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       logger.error(e);
       throw new Error(`TODO: handle me please...`);
     }
+
     const utxos: IInsightUtxoInfo[] = response.data;
-    return utxos.sort((a, b) => b.confirmations - a.confirmations);
+    return utxos
+      .sort((a, b) => b.confirmations - a.confirmations)
+      .map(utxo => {
+        // Omni protocol requires `value` field instead of amount and satoshis...
+        utxo.value = utxo.amount;
+        return utxo;
+      });
   }
 
   @implement

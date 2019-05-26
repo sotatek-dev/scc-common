@@ -115,6 +115,8 @@ export interface IInsightUtxoInfo {
   readonly satoshis: number;
   readonly height: number;
   readonly confirmations: number;
+  // For Omni protocol
+  value?: number;
 }
 
 // Response format that is return from API `/txs?block={blockNumber}&pageNum={pageNumber}`
