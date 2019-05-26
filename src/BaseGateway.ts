@@ -54,7 +54,13 @@ export abstract class BaseGateway {
   }
 
   public getCurrencyConfig(): ICurrencyConfig {
-    return CurrencyRegistry.getCurrencyConfig(this._currency);
+    let config = CurrencyRegistry.getCurrencyConfig(this._currency);
+    if (!config) {
+      const platformCurrency = CurrencyRegistry.getOneCurrency(this._currency.platform);
+      config = CurrencyRegistry.getCurrencyConfig(platformCurrency);
+    }
+
+    return config;
   }
 
   public loadCurrencyConfig() {

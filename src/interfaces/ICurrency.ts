@@ -64,5 +64,6 @@ export interface IOmniAsset extends IToken {
 }
 
 export interface IEosToken extends IToken {
+  readonly code: string;
   readonly networkSymbol: string;
 }
