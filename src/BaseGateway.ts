@@ -23,7 +23,9 @@ const limit = pLimit(5);
 CurrencyRegistry.onCurrencyConfigSet((currency: ICurrency, config: ICurrencyConfig) => {
   const gateway = GatewayRegistry.getGatewayInstance(currency);
   if (gateway) {
-    gateway.loadCurrencyConfig();
+    process.nextTick(() => {
+      gateway.loadCurrencyConfig();
+    });
   }
 });
 

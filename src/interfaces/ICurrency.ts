@@ -40,7 +40,7 @@ export interface ICurrency {
 
 export default ICurrency;
 
-interface IToken extends ICurrency {
+export interface IToken extends ICurrency {
   readonly tokenType: TokenType;
 }
 
