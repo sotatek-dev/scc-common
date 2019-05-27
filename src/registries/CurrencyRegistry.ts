@@ -521,6 +521,12 @@ export class CurrencyRegistry {
    * @param callback
    */
   public static onOmniAssetRegistered(callback: (asset: IOmniAsset) => void) {
+    if (allOmniAssets.length > 0) {
+      allOmniAssets.forEach(token => {
+        callback(token);
+      });
+    }
+
     onOmniAssetRegisteredCallbacks.push(callback);
   }
 
