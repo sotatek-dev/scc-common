@@ -85,6 +85,8 @@ export abstract class BaseGateway {
    */
   public abstract async createAccountAsync(): Promise<Account>;
 
+  public abstract async getAccountFromPrivateKey(privateKey: string): Promise<Account>;
+
   /**
    * Check a given address is valid
    * Default just accept all value, need to be implemented on all derived classes

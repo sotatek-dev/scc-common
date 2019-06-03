@@ -78,6 +78,11 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     };
   }
 
+  public async getAccountFromPrivateKey(privateKey: string): Promise<Account> {
+    const address = new (this.getBitCoreLib().PrivateKey(privateKey))().toAddress().toString();
+    return { address, privateKey };
+  }
+
   /**
    * Create a raw transaction that tranfers currencies
    * from an address (in most cast it's a hot wallet address)
