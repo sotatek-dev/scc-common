@@ -78,11 +78,12 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     };
   }
 
-  public async getAccountFromPrivateKey(privateKey: string): Promise<Account> {
+  public async getAccountFromPrivateKey(rawPrivateKey: string): Promise<Account> {
     const bitcore = this.getBitCoreLib();
     const network = EnvConfigRegistry.isMainnet() ? bitcore.Networks.mainnet : bitcore.Networks.testnet;
-    const address = new (bitcore.PrivateKey(privateKey, network))().toAddress().toString();
-    return { address, privateKey };
+    const privateKey = new bitcore.PrivateKey(rawPrivateKey, network);
+    const address = privateKey.toAddress().toString();
+    return { address, privateKey: privateKey.toWIF() };
   }
 
   /**
