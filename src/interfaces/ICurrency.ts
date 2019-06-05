@@ -40,7 +40,7 @@ export interface ICurrency {
 
 export default ICurrency;
 
-interface IToken extends ICurrency {
+export interface IToken extends ICurrency {
   readonly tokenType: TokenType;
 }
 
@@ -64,5 +64,6 @@ export interface IOmniAsset extends IToken {
 }
 
 export interface IEosToken extends IToken {
+  readonly code: string;
   readonly networkSymbol: string;
 }

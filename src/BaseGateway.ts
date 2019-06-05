@@ -23,7 +23,9 @@ const limit = pLimit(5);
 CurrencyRegistry.onCurrencyConfigSet((currency: ICurrency, config: ICurrencyConfig) => {
   const gateway = GatewayRegistry.getGatewayInstance(currency);
   if (gateway) {
-    gateway.loadCurrencyConfig();
+    process.nextTick(() => {
+      gateway.loadCurrencyConfig();
+    });
   }
 });
 
@@ -54,7 +56,13 @@ export abstract class BaseGateway {
   }
 
   public getCurrencyConfig(): ICurrencyConfig {
-    return CurrencyRegistry.getCurrencyConfig(this._currency);
+    let config = CurrencyRegistry.getCurrencyConfig(this._currency);
+    if (!config) {
+      const platformCurrency = CurrencyRegistry.getOneCurrency(this._currency.platform);
+      config = CurrencyRegistry.getCurrencyConfig(platformCurrency);
+    }
+
+    return config;
   }
 
   public loadCurrencyConfig() {
@@ -76,6 +84,8 @@ export abstract class BaseGateway {
    * @returns {Account} the account object
    */
   public abstract async createAccountAsync(): Promise<Account>;
+
+  public abstract async getAccountFromPrivateKey(privateKey: string): Promise<Account>;
 
   /**
    * Check a given address is valid

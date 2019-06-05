@@ -7,17 +7,6 @@ const _factory = new Map<string, () => BaseGateway>();
 const _registryData = new Map<string, BaseGateway>();
 
 export class GatewayRegistry {
-  public static registerGateway(currency: ICurrency | string, gatewayInstance: BaseGateway) {
-    const symbol = typeof currency === 'string' ? currency : currency.symbol;
-    if (_registryData.has(symbol)) {
-      logger.warn(`GatewayRegistry::registerGateway trying to register gateway multiple times: ${symbol}`);
-    } else {
-      logger.info(`GatewayRegistry::registerGateway currency=${symbol}`);
-    }
-
-    _registryData.set(symbol, gatewayInstance);
-  }
-
   public static getGatewayInstance(currency: ICurrency | string): BaseGateway {
     const symbol = typeof currency === 'string' ? currency : currency.symbol;
     if (_registryData.has(symbol)) {
@@ -38,6 +27,17 @@ export class GatewayRegistry {
     const symbol = typeof currency === 'string' ? currency : currency.symbol;
     logger.info(`GatewayRegistry::registerLazyCreateMethod currency=${symbol}`);
     _factory.set(symbol, func);
+  }
+
+  protected static registerGateway(currency: ICurrency | string, gatewayInstance: BaseGateway) {
+    const symbol = typeof currency === 'string' ? currency : currency.symbol;
+    if (_registryData.has(symbol)) {
+      logger.warn(`GatewayRegistry::registerGateway trying to register gateway multiple times: ${symbol}`);
+    } else {
+      logger.info(`GatewayRegistry::registerGateway currency=${symbol}`);
+    }
+
+    _registryData.set(symbol, gatewayInstance);
   }
 }
 

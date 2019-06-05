@@ -1,5 +1,5 @@
 import { getLogger } from '../Logger';
-import { ICurrency } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType } from '../enums';
 
@@ -13,12 +13,17 @@ const allCurrencies = new Map<string, ICurrency>();
 const allCurrencyConfigs = new Map<string, ICurrencyConfig>();
 const allErc20Tokens: IErc20Token[] = [];
 const allOmniAssets: IOmniAsset[] = [];
+const allEosTokens: IEosToken[] = [];
 
 const onCurrencyRegisteredCallbacks: Array<(currency: ICurrency) => void> = [];
 const onSpecificCurrencyRegisteredCallbacks = new Map<string, Array<() => void>>();
-const onERC20TokenRegisteredCallbacks: Array<(token: IErc20Token) => void> = [];
-const onOmniAssetRegisteredCallbacks: Array<(asset: IOmniAsset) => void> = [];
 const onCurrencyConfigSetCallbacks: Array<(currency: ICurrency, config: ICurrencyConfig) => void> = [];
+
+const eventCallbacks = {
+  'erc20-registered': Array<(token: IErc20Token) => void>(),
+  'omni-registered': Array<(asset: IOmniAsset) => void>(),
+  'eos-token-registered': Array<(asset: IEosToken) => void>(),
+};
 
 /**
  * Built-in currencies
@@ -281,7 +286,7 @@ export class CurrencyRegistry {
     };
 
     allOmniAssets.push(currency);
-    onOmniAssetRegisteredCallbacks.forEach(callback => callback(currency));
+    eventCallbacks['omni-registered'].forEach(callback => callback(currency));
 
     return CurrencyRegistry.registerCurrency(currency);
   }
@@ -312,7 +317,29 @@ export class CurrencyRegistry {
     };
 
     allErc20Tokens.push(currency);
-    onERC20TokenRegisteredCallbacks.forEach(callback => callback(currency));
+    eventCallbacks['erc20-registered'].forEach(callback => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
+  public static registerEosToken(code: string, networkSymbol: string, scale: number): boolean {
+    const platform = BlockchainPlatform.EOS;
+    const symbol = [TokenType.EOS, networkSymbol].join('.');
+    const currency: IEosToken = {
+      symbol,
+      networkSymbol,
+      tokenType: TokenType.EOS,
+      name: networkSymbol,
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      code,
+      humanReadableScale: scale,
+      nativeScale: 0,
+    };
+
+    allEosTokens.push(currency);
+    eventCallbacks['eos-token-registered'].forEach(callback => callback(currency));
 
     return CurrencyRegistry.registerCurrency(currency);
   }
@@ -333,6 +360,15 @@ export class CurrencyRegistry {
 
   public static getAllErc20Tokens(): IErc20Token[] {
     return allErc20Tokens;
+  }
+
+  public static getOneEosToken(contractAddress: string): IEosToken {
+    const symbol = [TokenType.EOS, contractAddress].join('.');
+    return CurrencyRegistry.getOneCurrency(symbol) as IEosToken;
+  }
+
+  public static getAllEosTokens(): IEosToken[] {
+    return allEosTokens;
   }
 
   /**
@@ -386,6 +422,10 @@ export class CurrencyRegistry {
         result.push(...CurrencyRegistry.getAllErc20Tokens());
         break;
 
+      case BlockchainPlatform.EOS:
+        result.push(...CurrencyRegistry.getAllEosTokens());
+        break;
+
       default:
         throw new Error(`CurrencyRegistry::getCurrenciesOfPlatform hasn't been implemented for ${platform} yet.`);
     }
@@ -412,7 +452,7 @@ export class CurrencyRegistry {
     // And merge it with desired config
     finalConfig = Object.assign({}, finalConfig, config);
 
-    logger.info(`CurrencyRegistry::setCurrencyConfig: symbol=${symbol}, config=${JSON.stringify(finalConfig)}`);
+    logger.info(`CurrencyRegistry::setCurrencyConfig: symbol=${symbol} endpoint=${finalConfig.internalEndpoint}`);
 
     // Put it to the environment again
     allCurrencyConfigs.set(symbol, finalConfig);
@@ -425,12 +465,19 @@ export class CurrencyRegistry {
    */
   public static getCurrencyConfig(c: ICurrency): ICurrencyConfig {
     const symbol = c.symbol.toLowerCase();
-    if (!allCurrencies.has(symbol)) {
-      logger.error(`CurrencyRegistry::getOneCurrencyConfig cannot find currency has symbol: ${symbol}`);
-      return null;
+    let config = allCurrencyConfigs.get(symbol);
+
+    // If config for particular currency is not available, try the platform's one
+    if (!config) {
+      config = allCurrencyConfigs.get(c.platform);
     }
 
-    return allCurrencyConfigs.get(symbol);
+    // Something went wrong if the config still could not be found
+    if (!config) {
+      throw new Error(`CurrencyRegistry::getCurrencyConfig cannot find currency has symbol: ${symbol}`);
+    }
+
+    return config;
   }
 
   /**
@@ -475,7 +522,7 @@ export class CurrencyRegistry {
       });
     }
 
-    onERC20TokenRegisteredCallbacks.push(callback);
+    eventCallbacks['erc20-registered'].push(callback);
   }
 
   /**
@@ -484,7 +531,28 @@ export class CurrencyRegistry {
    * @param callback
    */
   public static onOmniAssetRegistered(callback: (asset: IOmniAsset) => void) {
-    onOmniAssetRegisteredCallbacks.push(callback);
+    if (allOmniAssets.length > 0) {
+      allOmniAssets.forEach(token => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['omni-registered'].push(callback);
+  }
+
+  /**
+   * Add listener that is triggerred when an EOS token is registered
+   *
+   * @param callback
+   */
+  public static onEOSTokenRegistered(callback: (token: IEosToken) => void) {
+    if (allEosTokens.length > 0) {
+      allEosTokens.forEach(token => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['eos-token-registered'].push(callback);
   }
 
   /**
