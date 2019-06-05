@@ -245,7 +245,10 @@ export abstract class BaseGateway {
    *
    * @returns the signed transaction
    */
-  public abstract async signRawTransaction(unsignedRaw: string, secret: string): Promise<ISignedRawTransaction>;
+  public abstract async signRawTransaction(
+    unsignedRaw: string,
+    secret: string | string[]
+  ): Promise<ISignedRawTransaction>;
 
   /**
    * Validate a transaction and broadcast it to the blockchain network
@@ -254,6 +257,11 @@ export abstract class BaseGateway {
    * @returns {String}: the transaction hash in hex
    */
   public abstract async sendRawTransaction(signedRawTx: string): Promise<ISubmittedTransaction>;
+
+  /**
+   * minimum fee for seeding in almost case
+   */
+  public abstract async getAverageSeedingFee(): Promise<BigNumber>;
 
   /**
    * Get block detailstxidstxids: string[]*
