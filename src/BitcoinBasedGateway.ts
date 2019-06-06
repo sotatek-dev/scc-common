@@ -402,7 +402,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       for (const vout of vouts) {
         tx.to(vout.toAddress, vout.amount.toNumber());
       }
-      tx.fee(esitmatedFee);
+      tx.fee(esitmatedFee.toNumber());
       if (totalInput.gt(totalOutput.plus(esitmatedFee))) {
         tx.change(pickedUtxos[0].address); // left money for address or first from address
       }
