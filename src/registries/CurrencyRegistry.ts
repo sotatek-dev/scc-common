@@ -426,6 +426,26 @@ export class CurrencyRegistry {
         result.push(...CurrencyRegistry.getAllEosTokens());
         break;
 
+      case BlockchainPlatform.BitcoinCash:
+        result.push(CurrencyRegistry.BitcoinCash);
+        break;
+
+      case BlockchainPlatform.Litecoin:
+        result.push(CurrencyRegistry.Litecoin);
+        break;
+
+      case BlockchainPlatform.Cardano:
+        result.push(CurrencyRegistry.Cardano);
+        break;
+
+      case BlockchainPlatform.Ripple:
+        result.push(CurrencyRegistry.Ripple);
+        break;
+
+      case BlockchainPlatform.Stellar:
+        result.push(CurrencyRegistry.Stellar);
+        break;
+
       default:
         throw new Error(`CurrencyRegistry::getCurrenciesOfPlatform hasn't been implemented for ${platform} yet.`);
     }
