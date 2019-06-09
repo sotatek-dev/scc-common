@@ -434,6 +434,18 @@ export class CurrencyRegistry {
         result.push(CurrencyRegistry.Litecoin);
         break;
 
+      case BlockchainPlatform.Dash:
+        result.push(CurrencyRegistry.Dash);
+        break;
+
+      case BlockchainPlatform.EthereumClassic:
+        result.push(CurrencyRegistry.EthereumClasssic);
+        break;
+
+      case BlockchainPlatform.Tomo:
+        result.push(CurrencyRegistry.Tomo);
+        break;
+
       case BlockchainPlatform.Cardano:
         result.push(CurrencyRegistry.Cardano);
         break;

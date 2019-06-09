@@ -5,8 +5,7 @@ import {
   Block,
   UTXOBasedGateway,
   TransactionStatus,
-  UTXOBasedTransactions,
-  UTXOBasedTransaction,
+  BitcoinBasedTransactions,
   BitcoinBasedTransaction,
   getLogger,
   override,
@@ -330,11 +329,11 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
    * @param blockHash
    */
   @override
-  public async getBlockTransactions(blockNumber: string | number): Promise<UTXOBasedTransactions> {
+  public async getBlockTransactions(blockNumber: string | number): Promise<BitcoinBasedTransactions> {
     const block = await this.getOneBlock(blockNumber);
     const endpoint = this.getInsightAPIEndpoint();
     const currency = this.getCurrency();
-    const listTxs = new UTXOBasedTransactions();
+    const listTxs = new BitcoinBasedTransactions();
     let response;
     try {
       response = await Axios.get<IInsightTxsInfo>(`${endpoint}/txs?block=${blockNumber}`);
@@ -360,7 +359,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
           }
           const txs: IUtxoTxInfo[] = pageResponse.data.txs;
           txs.forEach(tx => {
-            const utxoTx = new UTXOBasedTransaction(currency, tx, block);
+            const utxoTx = new BitcoinBasedTransaction(currency, tx, block);
             listTxs.push(utxoTx);
           });
         });

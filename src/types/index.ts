@@ -12,3 +12,4 @@ export * from './AccountBasedTransaction';
 export * from './UTXOBasedTransaction';
 export * from './UTXOBasedTransactions';
 export * from './BitcoinBasedTransaction';
+export * from './BitcoinBasedTransactions';
