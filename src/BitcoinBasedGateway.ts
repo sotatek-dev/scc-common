@@ -32,9 +32,6 @@ const limit = pLimit(1);
 
 const logger = getLogger('BitcoinBasedGateway');
 
-// TODO: Remove this hardcode, make it configurable
-const SATOSHI_PER_BYTE = 15;
-
 export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   public static convertInsightUtxoToBitcoreUtxo(utxos: IInsightUtxoInfo[]): IBitcoreUtxoInput[] {
     return utxos.map(utxo => ({
@@ -115,7 +112,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       pickedUtxos.push(utxo);
       totalInputAmount = totalInputAmount.plus(utxo.satoshis);
       estimatedTxSize += 181; // additional vin
-      esitmatedFee = new BigNumber(estimatedTxSize * SATOSHI_PER_BYTE);
+      esitmatedFee = new BigNumber(estimatedTxSize * this.getFeeInSatoshisPerByte());
       if (totalInputAmount.gt(new BigNumber(totalOutputAmount.plus(esitmatedFee)))) {
         isSufficientBalance = true;
         break;
@@ -144,7 +141,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     }, new BigNumber(0));
 
     const estimatedTxSize = pickedUtxos.length * 181 + 34 + 10;
-    const estimatedFee: BigNumber = new BigNumber(estimatedTxSize * SATOSHI_PER_BYTE);
+    const estimatedFee: BigNumber = new BigNumber(estimatedTxSize * this.getFeeInSatoshisPerByte());
     const vout = {
       toAddress,
       amount: totalInputAmount.minus(estimatedFee),
@@ -374,6 +371,10 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
 
   public getInsightAPIEndpoint(): string {
     return this.getCurrencyConfig().restEndpoint;
+  }
+
+  public getFeeInSatoshisPerByte(): number {
+    return 15;
   }
 
   protected _constructRawTransaction(
