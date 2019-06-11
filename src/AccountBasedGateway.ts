@@ -16,6 +16,7 @@ export abstract class AccountBasedGateway extends BaseGateway {
   public abstract async constructRawTransaction(
     fromAddress: Address,
     toAddress: Address,
-    amount: BigNumber
+    amount: BigNumber,
+    isConsolidate?: boolean
   ): Promise<IRawTransaction>;
 }
