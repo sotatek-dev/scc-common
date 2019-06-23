@@ -334,8 +334,8 @@ export class CurrencyRegistry {
       isNative: false,
       isUTXOBased: false,
       code,
-      humanReadableScale: scale,
-      nativeScale: 0,
+      humanReadableScale: 0,
+      nativeScale: scale,
     };
 
     allEosTokens.push(currency);
