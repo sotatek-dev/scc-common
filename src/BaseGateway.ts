@@ -130,7 +130,7 @@ export abstract class BaseGateway {
     return tx;
   }
 
-  public getLimitNumber() {
+  public getParallelNetworkRequestLimit() {
     return 5;
   }
   
@@ -153,7 +153,7 @@ export abstract class BaseGateway {
         result.push(tx);
       }
     };
-    const limit = pLimit(this.getLimitNumber());
+    const limit = pLimit(this.getParallelNetworkRequestLimit());
     await Utils.PromiseAll(
       txids.map(async txid => {
         return limit(() => getOneTx(txid));
