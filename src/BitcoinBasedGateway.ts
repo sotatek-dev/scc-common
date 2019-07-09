@@ -336,7 +336,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     const currency = this.getCurrency();
     const listTxs = new BitcoinBasedTransactions();
     let response;
-    let count = 1;
+    let count = 0;
     const maxTries = 5;
     while(true) {
         try {
