@@ -1,5 +1,5 @@
 import { getLogger } from '../Logger';
-import { ICurrency, IEosToken, IToken } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IToken, IErc20TokenTomo } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType } from '../enums';
 
@@ -12,6 +12,7 @@ const logger = getLogger('CurrencyRegistry');
 const allCurrencies = new Map<string, ICurrency>();
 const allCurrencyConfigs = new Map<string, ICurrencyConfig>();
 const allErc20Tokens: IErc20Token[] = [];
+const allTrc20Tokens: IErc20TokenTomo[] = [];
 const allOmniAssets: IOmniAsset[] = [];
 const allEosTokens: IEosToken[] = [];
 
@@ -21,6 +22,7 @@ const onCurrencyConfigSetCallbacks: Array<(currency: ICurrency, config: ICurrenc
 
 const eventCallbacks = {
   'erc20-registered': Array<(token: IErc20Token) => void>(),
+  'trc20-registered': Array<(token: IErc20TokenTomo) => void>(),
   'omni-registered': Array<(asset: IOmniAsset) => void>(),
   'eos-token-registered': Array<(asset: IEosToken) => void>(),
 };
@@ -322,6 +324,37 @@ export class CurrencyRegistry {
     return CurrencyRegistry.registerCurrency(currency);
   }
 
+  public static registerTrc20Token(
+    contractAddress: string,
+    networkSymbol: string,
+    name: string,
+    decimals: number
+  ): boolean {
+    logger.info(
+      `register trc20: contract=${contractAddress}, networkSymbol=${networkSymbol}, name=${name}, decimals=${decimals}`
+    );
+    const platform = BlockchainPlatform.Tomo;
+    const symbol = [TokenType.ERC20Tomo, contractAddress].join('.');
+    const currency: IErc20TokenTomo = {
+      symbol,
+      networkSymbol,
+      tokenType: TokenType.ERC20Tomo,
+      name,
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      contractAddress,
+      decimals,
+      humanReadableScale: decimals,
+      nativeScale: 0,
+    };
+
+    allTrc20Tokens.push(currency);
+    eventCallbacks['trc20-registered'].forEach(callback => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
   public static registerEosToken(code: string, networkSymbol: string, scale: number): boolean {
     const platform = BlockchainPlatform.EOS;
     const symbol = [TokenType.EOS, networkSymbol].join('.');
@@ -360,6 +393,10 @@ export class CurrencyRegistry {
 
   public static getAllErc20Tokens(): IErc20Token[] {
     return allErc20Tokens;
+  }
+
+  public static getAllTrc20Tokens(): IErc20Token[] {
+    return allTrc20Tokens;
   }
 
   public static getOneEosToken(contractAddress: string): IEosToken {
@@ -420,6 +457,11 @@ export class CurrencyRegistry {
       case BlockchainPlatform.Ethereum:
         result.push(Ethereum);
         result.push(...CurrencyRegistry.getAllErc20Tokens());
+        break;
+
+      case BlockchainPlatform.Tomo:
+        result.push(Tomo);
+        result.push(...CurrencyRegistry.getAllTrc20Tokens());
         break;
 
       case BlockchainPlatform.EOS:
@@ -543,6 +585,21 @@ export class CurrencyRegistry {
     }
 
     eventCallbacks['erc20-registered'].push(callback);
+  }
+
+  /**
+   * Add listener that is triggerred when an TRC20 token is registered
+   *
+   * @param callback
+   */
+  public static onTRC20TokenRegistered(callback: (token: IErc20TokenTomo) => void) {
+    if (allTrc20Tokens.length > 0) {
+      allTrc20Tokens.forEach(token => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['trc20-registered'].push(callback);
   }
 
   /**
