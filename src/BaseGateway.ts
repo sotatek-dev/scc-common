@@ -133,7 +133,7 @@ export abstract class BaseGateway {
   public getParallelNetworkRequestLimit() {
     return 5;
   }
-  
+
   /**
    * Returns transactions with given txids
    *

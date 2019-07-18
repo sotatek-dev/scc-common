@@ -24,9 +24,9 @@ export function subForTokenChanged() {
 }
 
 interface RedisPromiseClient {
-  setex(key: string, seconds: number, value: string) : Promise<string>;
-  set(key: string, value: string) : Promise<string>;
-  get(key: string) : Promise<string>;
+  setex(key: string, seconds: number, value: string): Promise<string>;
+  set(key: string, value: string): Promise<string>;
+  get(key: string): Promise<string>;
 }
 
 let client: RedisClient;
@@ -41,7 +41,7 @@ export function getClient() {
       setex: util.promisify(client.setex).bind(client),
       set: util.promisify(client.set).bind(client),
       get: util.promisify(client.get).bind(client),
-    }
+    };
   }
   return promiseClient;
 }

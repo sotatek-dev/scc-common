@@ -338,16 +338,16 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     let response;
     let count = 0;
     const maxTries = 5;
-    while(true) {
-        try {
-            response = await Axios.get<IInsightTxsInfo>(`${endpoint}/txs?block=${blockNumber}`);
-            break;
-        } catch (e) {
-            if (++count == maxTries) {
-              logger.error(e);
-              throw new Error(`TODO: Handle me please...`);              
-            }
+    while (true) {
+      try {
+        response = await Axios.get<IInsightTxsInfo>(`${endpoint}/txs?block=${blockNumber}`);
+        break;
+      } catch (e) {
+        if (++count == maxTries) {
+          logger.error(e);
+          throw new Error(`TODO: Handle me please...`);
         }
+      }
     }
     const pageTotal = response.data.pagesTotal;
 
@@ -358,7 +358,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
           let pageResponse;
           let secondCount = 0;
           let data;
-          while(true) {
+          while (true) {
             try {
               logger.debug(
                 `${this.constructor.name}::getBlockTransactions block=${blockNumber} pageNum=${page}/${pageTotal}`
@@ -375,13 +375,13 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
               redisClient.setex(key, 7200000, JSON.stringify(pageResponse.data));
               break;
             } catch (e) {
-                if (++secondCount == maxTries) {
-                  logger.error(e);
-                  // throw new Error(`TODO: handle me please...`);     
-                  process.exit(1);    
-                }
+              if (++secondCount == maxTries) {
+                logger.error(e);
+                // throw new Error(`TODO: handle me please...`);
+                process.exit(1);
+              }
             }
-        }  
+          }
           const txs: IUtxoTxInfo[] = data.txs;
           txs.forEach(tx => {
             const utxoTx = new BitcoinBasedTransaction(currency, tx, block);
@@ -399,6 +399,10 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
 
   public getFeeInSatoshisPerByte(): number {
     return 15;
+  }
+
+  public getParallelNetworkRequestLimit() {
+    return 5;
   }
 
   protected _constructRawTransaction(
@@ -520,10 +524,4 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   }
 
   protected abstract getBitCoreLib(): any;
-
-
-
-  public getParallelNetworkRequestLimit() {
-    return 5;
-  }
 }
