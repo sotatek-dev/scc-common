@@ -23,14 +23,14 @@ export function subForTokenChanged() {
   });
 }
 
-interface RedisPromiseClient {
+interface IRedisPromiseClient {
   setex(key: string, seconds: number, value: string): Promise<string>;
   set(key: string, value: string): Promise<string>;
   get(key: string): Promise<string>;
 }
 
 let client: RedisClient;
-let promiseClient: RedisPromiseClient;
+let promiseClient: IRedisPromiseClient;
 export function getClient() {
   if (!client) {
     client = createClient({

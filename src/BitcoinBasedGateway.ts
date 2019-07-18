@@ -343,7 +343,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         response = await Axios.get<IInsightTxsInfo>(`${endpoint}/txs?block=${blockNumber}`);
         break;
       } catch (e) {
-        if (++count == maxTries) {
+        if (++count === maxTries) {
           logger.error(e);
           throw new Error(`TODO: Handle me please...`);
         }
@@ -375,7 +375,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
               redisClient.setex(key, 7200000, JSON.stringify(pageResponse.data));
               break;
             } catch (e) {
-              if (++secondCount == maxTries) {
+              if (++secondCount === maxTries) {
                 logger.error(e);
                 // throw new Error(`TODO: handle me please...`);
                 process.exit(1);
