@@ -1,17 +1,26 @@
 import winston from 'winston';
-import util from 'util';
+import util, { isNumber } from 'util';
 import EnvConfigRegistry from './registries/EnvConfigRegistry';
 const WinstonCloudWatch = require('winston-cloudwatch');
 const nodemailer = require('nodemailer');
 
 let ERROR_STASHES: string[] = [];
+let ERROR_SENDING_INTERVAL: number;
+if (process.env.ERROR_SENDING_INTERVAL) {
+  ERROR_SENDING_INTERVAL = parseInt(process.env.ERROR_SENDING_INTERVAL, 10);
+}
+
+// Default interval is 15 minutes
+if (!ERROR_SENDING_INTERVAL || isNaN(ERROR_SENDING_INTERVAL)) {
+  ERROR_SENDING_INTERVAL = 900000;
+}
 
 setInterval(() => {
   if (ERROR_STASHES.length > 0) {
     notifyErrors(ERROR_STASHES);
     ERROR_STASHES = [];
   }
-}, 60000);
+}, ERROR_SENDING_INTERVAL);
 
 const enumerateErrorFormat = winston.format(info => {
   if (info instanceof Error) {
@@ -103,10 +112,13 @@ async function notifyErrors(message: string[]) {
     },
   });
 
+  const appName: string = process.env.APP_NAME || 'Exchange Wallet';
+  const env: string = process.env.NODE_ENV || 'development';
+
   const mailOptions = {
     from: mailerAccount,
     to: mailerReceiver,
-    subject: 'Exchange wallet: Error Notifier',
+    subject: `[${appName}][${env}] Error Notifier`,
     html: `${message}`,
   };
 
