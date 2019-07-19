@@ -237,7 +237,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       response = await Axios.get<IInsightAddressInfo>(`${apiEndpoint}/addr/${address}/?noTxList=1`);
     } catch (e) {
       logger.error(e);
-      throw new Error(`TODO: handle me please...`);
+      throw new Error(`Could not get balance of address=${address}`);
     }
     const addressInfo = response.data;
     return new BigNumber(addressInfo.balanceSat);
@@ -272,7 +272,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       response = await Axios.get<IInsightUtxoInfo[]>(`${apiEndpoint}/addr/${address}/utxo`);
     } catch (e) {
       logger.error(e);
-      throw new Error(`TODO: handle me please...`);
+      throw new Error(`Could got get utxos of address=${address}...`);
     }
 
     const utxos: IInsightUtxoInfo[] = response.data;
@@ -300,8 +300,9 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     try {
       response = await Axios.get<IUtxoTxInfo>(`${apiEndpoint}/tx/${txid}`);
     } catch (e) {
-      logger.error(e);
-      throw new Error(`TODO: Handle me please...`);
+      // logger.error(e);
+      // throw new Error(`TODO: Handle me please...`);
+      throw e;
     }
 
     return response.data.vout.filter(vout => {
@@ -345,7 +346,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       } catch (e) {
         if (++count === maxTries) {
           logger.error(e);
-          throw new Error(`TODO: Handle me please...`);
+          throw new Error(`Could not get txs of block=${blockNumber} endpoint=${endpoint}`);
         }
       }
     }
@@ -438,7 +439,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     } catch (e) {
       logger.error(`BitcoinBasedGateway::constructRawTransaction failed due to error:`);
       logger.error(e);
-      throw new Error(`TODO: Handle me please...`);
+      throw new Error(`Could not construct raw tx error=${e.toString()}`);
     }
 
     let txid: string;
