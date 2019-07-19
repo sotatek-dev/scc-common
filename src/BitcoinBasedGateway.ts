@@ -236,8 +236,14 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     try {
       response = await Axios.get<IInsightAddressInfo>(`${apiEndpoint}/addr/${address}/?noTxList=1`);
     } catch (e) {
-      logger.error(e);
-      throw new Error(`Could not get balance of address=${address}`);
+      let errMsg = '';
+      if (e.response) {
+        errMsg += ` status=${e.response.status} response=${JSON.stringify(e.response.data)}`;
+      } else if (e.request) {
+        errMsg += ` no response was received`;
+      }
+
+      throw new Error(`Could not get balance of address=${address} error=${e.toString()} info=${errMsg}`);
     }
     const addressInfo = response.data;
     return new BigNumber(addressInfo.balanceSat);
