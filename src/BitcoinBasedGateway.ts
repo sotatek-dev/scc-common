@@ -391,6 +391,17 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
           }
           const txs: IUtxoTxInfo[] = data.txs;
           txs.forEach(tx => {
+            // Check whether a transaction is Omni
+            const isOmniTx: boolean = tx.vout.some(vout => {
+              // Any vout has Omni OP_RETURN?
+              return vout.scriptPubKey.asm.startsWith('OP_RETURN 6f6d6e69');
+            });
+
+            // If the transaction is Omni, we don't count it as an ordinary bitcoin tx anymore
+            if (isOmniTx) {
+              return;
+            }
+
             const utxoTx = new BitcoinBasedTransaction(currency, tx, block);
             listTxs.push(utxoTx);
           });
