@@ -363,11 +363,12 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     }
 
     const pageTotal = response.data.pagesTotal;
+    const networkBlockCount = await this.getBlockCount();
     const pages = Array.from(new Array(pageTotal), (val, index) => index);
     await Promise.all(
       pages.map(async page => {
         return limit(async () => {
-          const txs = await this._fetchOneBlockTxsInsightPage(block, page, pageTotal);
+          const txs = await this._fetchOneBlockTxsInsightPage(block, page, pageTotal, networkBlockCount);
           listTxs.mutableConcat(txs);
         });
       })
@@ -393,7 +394,8 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   protected async _fetchOneBlockTxsInsightPage(
     block: Block,
     page: number,
-    pageTotal: number
+    pageTotal: number,
+    networkBlockCount: number
   ): Promise<BitcoinBasedTransaction[]> {
     const endpoint = this.getInsightAPIEndpoint();
     const currency = this.getCurrency();
@@ -412,7 +414,6 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         const cachedData = await redisClient.get(key);
         if (!!cachedData) {
           data = JSON.parse(cachedData);
-          const networkBlockCount = await this.getBlockCount();
           confirmations = networkBlockCount - blockNumber + 1;
           break;
         }
