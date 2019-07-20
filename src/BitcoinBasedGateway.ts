@@ -427,12 +427,12 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         if (e.response) {
           errMsg += ` response=${JSON.stringify(e.response.data)} status=${e.response.status} retryCount=${retryCount}`;
         }
-        logger.error(errMsg);
 
         if (++retryCount === INSIGHT_REQUEST_MAX_RETRIES) {
-          logger.error(`Too many failed when fetching url=${url}. Program will be exited an restarted shortly...`);
-          // TBD: should we just throw error or force to exit process?
-          process.exit(1);
+          logger.fatal(`Too many fails: ${errMsg}`);
+          throw new Error(errMsg);
+        } else {
+          logger.error(errMsg);
         }
       }
     }

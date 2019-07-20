@@ -15,12 +15,7 @@ if (!ERROR_SENDING_INTERVAL || isNaN(ERROR_SENDING_INTERVAL)) {
   ERROR_SENDING_INTERVAL = 900000;
 }
 
-setInterval(() => {
-  if (ERROR_STASHES.length > 0) {
-    notifyErrors(ERROR_STASHES);
-    ERROR_STASHES = [];
-  }
-}, ERROR_SENDING_INTERVAL);
+setInterval(notifyErrors, ERROR_SENDING_INTERVAL);
 
 const enumerateErrorFormat = winston.format(info => {
   if (info instanceof Error) {
@@ -92,10 +87,26 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
       }
       return winston.loggers.get(name).error(msg);
     },
+    async notifyErrorsImmediately() {
+      try {
+        await notifyErrors();
+      } catch (err) {
+        console.error(`======= UNCAUGHT ERROR NOTIFYING BEGIN =======`);
+        console.error(err);
+        console.error(`======= UNCAUGHT ERROR NOTIFYING END =======`);
+      }
+    },
   };
 }
 
-async function notifyErrors(messages: string[]) {
+async function notifyErrors() {
+  if (!ERROR_STASHES.length) {
+    return;
+  }
+
+  const messages = ERROR_STASHES;
+  ERROR_STASHES = [];
+
   const mailerAccount = EnvConfigRegistry.getCustomEnvConfig('MAILER_ACCOUNT');
   const mailerPassword = EnvConfigRegistry.getCustomEnvConfig('MAILER_PASSWORD');
   const mailerReceiver = EnvConfigRegistry.getCustomEnvConfig('MAILER_RECEIVER');
