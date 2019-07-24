@@ -55,7 +55,7 @@ export interface IBoiledVOut {
  */
 export interface IUtxoTxInfo {
   readonly txid: string;
-  readonly confirmations: number;
+  confirmations: number;
   readonly vin: IBoiledVIn[];
   readonly vout: IBoiledVOut[];
   readonly size: number;

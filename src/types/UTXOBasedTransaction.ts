@@ -1,4 +1,4 @@
-import { Block } from './Block';
+import { BlockHeader } from './BlockHeader';
 import { Transaction } from './Transaction';
 import { TransferEntry } from './TransferEntry';
 import { implement } from '../Utils';
@@ -9,7 +9,7 @@ export class UTXOBasedTransaction extends Transaction {
   public readonly vIns: IBoiledVIn[];
   public readonly vOuts: IBoiledVOut[];
 
-  constructor(currency: ICurrency, tx: IUtxoTxInfo, block: Block) {
+  constructor(currency: ICurrency, tx: IUtxoTxInfo, block: BlockHeader) {
     // Construct tx props
     const txProps = {
       confirmations: tx.confirmations,

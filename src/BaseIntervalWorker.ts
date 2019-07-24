@@ -56,8 +56,9 @@ export abstract class BaseIntervalWorker {
   protected onTick(): void {
     const duration = this.getProcessingTimeout();
     const classname = this.constructor.name;
-    const timer = setTimeout(() => {
-      logger.error(`${classname}::onTick timeout (${duration} ms) is exceeded. Worker will be restarted shortly...`);
+    const timer = setTimeout(async () => {
+      logger.fatal(`${classname}::onTick timeout (${duration} ms) is exceeded. Worker will be restarted shortly...`);
+      await logger.notifyErrorsImmediately();
       process.exit(1);
     }, duration);
 
@@ -78,6 +79,10 @@ export abstract class BaseIntervalWorker {
           this.onTick();
         }, this.getNextTickTimer());
       });
+  }
+
+  protected getWorkerInfo(): string {
+    return this.constructor.name;
   }
 
   // Should be overrided in derived classes
