@@ -61,7 +61,7 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
       return winston.loggers.get(name).debug(msg);
     },
     info(msg: any) {
-      return winston.loggers.get(name).debug(msg);
+      return winston.loggers.get(name).info(msg);
     },
     warn(msg: any) {
       return winston.loggers.get(name).warn(msg);
