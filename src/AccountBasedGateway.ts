@@ -17,6 +17,7 @@ export abstract class AccountBasedGateway extends BaseGateway {
     fromAddress: Address,
     toAddress: Address,
     amount: BigNumber,
+    tag?: string,
     isConsolidate?: boolean
   ): Promise<IRawTransaction>;
 }

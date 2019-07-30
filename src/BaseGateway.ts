@@ -97,6 +97,16 @@ export abstract class BaseGateway {
   }
 
   /**
+   * Check a given address is need tag
+   * Default just accept all value, need to be implemented on all derived classes
+   *
+   * @param address
+   */
+  public async isNeedTagAsync(address: string): Promise<boolean> {
+    return false;
+  }
+
+  /**
    * Handle more at extended classes
    * @param address
    */
