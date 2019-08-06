@@ -45,6 +45,7 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
             return `${timestamp} [${level}]: ${message} ${Object.keys(extra).length ? util.inspect(extra) : ''}`;
           })
         ),
+        stderrLevels: ['error'],
       })
     );
 
