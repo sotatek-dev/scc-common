@@ -299,8 +299,8 @@ export abstract class BaseGateway {
   @implement
   protected _getCacheOptions() {
     return {
-      max: 1024 * 1024,
-      maxAge: 1000 * 60 * 60, // 1 hour
+      max: 1024,
+      maxAge: 1000 * 60 * 5, // 5 minutes
     };
   }
 }
