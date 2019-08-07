@@ -5,7 +5,6 @@ import BaseGateway from './BaseGateway';
 import * as URL from 'url';
 import { BlockchainPlatform } from './enums';
 import { getLogger } from './Logger';
-import { subForTokenChanged } from './RedisChannel';
 import { ICurrency } from './interfaces';
 import { CurrencyRegistry, GatewayRegistry } from './registries';
 
@@ -35,9 +34,6 @@ export abstract class BaseWebServer {
     this.host = internalEndpoint.hostname;
     this.port = parseInt(internalEndpoint.port, 10);
     this.setup();
-
-    // redis
-    subForTokenChanged();
   }
 
   public start() {

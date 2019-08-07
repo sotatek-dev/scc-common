@@ -4,23 +4,21 @@ import { EnvConfigRegistry } from './registries';
 import { getLogger } from './Logger';
 
 const logger = getLogger('RedisChannel');
+let sub: RedisClient = null;
 
-export function subForTokenChanged() {
-  const sub = createClient({
+export function getRedisSubscriber(): RedisClient {
+  if (sub) {
+    return sub;
+  }
+
+  sub = createClient({
     host: process.env.REDIS_HOST || 'localhost',
     port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
   });
   const appId = EnvConfigRegistry.getAppId();
   sub.subscribe(`${appId}`);
 
-  // TODO: Make this more generic
-  sub.on('message', (channel, message) => {
-    // To reload data, just exit and let supervisor starts process again
-    if (message === 'EVENT_NEW_ERC20_TOKEN_ADDED' || message === 'EVENT_NEW_ERC20_TOKEN_REMOVED') {
-      logger.warn(`RedisChannel::subForTokenChanged on message=${message}. Will exit to respawn...`);
-      process.exit(0);
-    }
-  });
+  return sub;
 }
 
 interface IRedisPromiseClient {
