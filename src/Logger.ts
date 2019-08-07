@@ -45,6 +45,7 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
             return `${timestamp} [${level}]: ${message} ${Object.keys(extra).length ? util.inspect(extra) : ''}`;
           })
         ),
+        stderrLevels: ['error'],
       })
     );
 
@@ -61,7 +62,7 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
       return winston.loggers.get(name).debug(msg);
     },
     info(msg: any) {
-      return winston.loggers.get(name).debug(msg);
+      return winston.loggers.get(name).info(msg);
     },
     warn(msg: any) {
       return winston.loggers.get(name).warn(msg);
