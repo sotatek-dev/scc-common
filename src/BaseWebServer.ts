@@ -64,6 +64,12 @@ export abstract class BaseWebServer {
     res.json({ isValid });
   }
 
+  protected async isNeedTag(req: any, res: any) {
+    const { address } = req.params;
+    const isNeed = await this.getGateway(this._currency.symbol).isNeedTagAsync(address);
+    res.json({ isNeed });
+  }
+
   protected async getTransactionDetails(req: any, res: any) {
     const { currency, txid } = req.params;
     // TODO: Update check txid
@@ -127,6 +133,15 @@ export abstract class BaseWebServer {
     this.app.get('/api/:currency/address/:address/validate', async (req, res) => {
       try {
         await this.validateAddress(req, res);
+      } catch (e) {
+        logger.error(`validateAddress err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.message || e.toString() });
+      }
+    });
+
+    this.app.get('/api/:currency/address/:address/tag', async (req, res) => {
+      try {
+        await this.isNeedTag(req, res);
       } catch (e) {
         logger.error(`validateAddress err=${util.inspect(e)}`);
         res.status(500).json({ error: e.message || e.toString() });
