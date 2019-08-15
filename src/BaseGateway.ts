@@ -97,6 +97,16 @@ export abstract class BaseGateway {
   }
 
   /**
+   * Check a given address is need tag
+   * Default just accept all value, need to be implemented on all derived classes
+   *
+   * @param address
+   */
+  public async isNeedTagAsync(address: string): Promise<boolean> {
+    return false;
+  }
+
+  /**
    * Handle more at extended classes
    * @param address
    */
@@ -299,8 +309,8 @@ export abstract class BaseGateway {
   @implement
   protected _getCacheOptions() {
     return {
-      max: 1024 * 1024,
-      maxAge: 1000 * 60 * 60, // 1 hour
+      max: 1024,
+      maxAge: 1000 * 60 * 5, // 5 minutes
     };
   }
 }

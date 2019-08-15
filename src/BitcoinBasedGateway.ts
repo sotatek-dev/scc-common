@@ -177,6 +177,8 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         tx.sign(privateKey);
       });
     } catch (e) {
+      logger.error(`Something went wrong while signing btc-based tx`);
+      logger.error(e);
       throw new Error(`Couldn't sign raw tx because of wrong privateKey`);
     }
 
