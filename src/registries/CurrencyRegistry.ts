@@ -322,6 +322,20 @@ export class CurrencyRegistry {
     return CurrencyRegistry.registerCurrency(currency);
   }
 
+  public static unregisterErc20Token(contractAddress: string) {
+    logger.info(`unregister erc20: contract=${contractAddress}`);
+    const symbol = [TokenType.ERC20, contractAddress].join('.');
+    for (let i = 0; i < allErc20Tokens.length; i++) {
+      const token = allErc20Tokens[i];
+      if (token.contractAddress.toLowerCase() === contractAddress.toLowerCase()) {
+        allErc20Tokens.splice(i, 1);
+        break;
+      }
+    }
+
+    CurrencyRegistry.unregisterCurrency(symbol);
+  }
+
   public static registerEosToken(code: string, networkSymbol: string, scale: number): boolean {
     const platform = BlockchainPlatform.EOS;
     const symbol = [TokenType.EOS, networkSymbol].join('.');
@@ -594,6 +608,15 @@ export class CurrencyRegistry {
    */
   public static onCurrencyConfigSet(callback: (currency: ICurrency, config: ICurrencyConfig) => void) {
     onCurrencyConfigSetCallbacks.push(callback);
+  }
+
+  protected static unregisterCurrency(symbol: string): boolean {
+    if (!allCurrencies.has(symbol)) {
+      logger.error(`Try to unregister an invalid currency symbol=${symbol}`);
+      return false;
+    }
+
+    return allCurrencies.delete(symbol);
   }
 }
 
