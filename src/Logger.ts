@@ -1,17 +1,21 @@
 import winston from 'winston';
-import util from 'util';
+import util, { isNumber } from 'util';
 import EnvConfigRegistry from './registries/EnvConfigRegistry';
 const WinstonCloudWatch = require('winston-cloudwatch');
 const nodemailer = require('nodemailer');
 
 let ERROR_STASHES: string[] = [];
+let ERROR_SENDING_INTERVAL: number;
+if (process.env.ERROR_SENDING_INTERVAL) {
+  ERROR_SENDING_INTERVAL = parseInt(process.env.ERROR_SENDING_INTERVAL, 10);
+}
 
-setInterval(() => {
-  if (ERROR_STASHES.length > 0) {
-    notifyErrors(ERROR_STASHES);
-    ERROR_STASHES = [];
-  }
-}, 60000);
+// Default interval is 15 minutes
+if (!ERROR_SENDING_INTERVAL || isNaN(ERROR_SENDING_INTERVAL)) {
+  ERROR_SENDING_INTERVAL = 900000;
+}
+
+setInterval(notifyErrors, ERROR_SENDING_INTERVAL);
 
 const enumerateErrorFormat = winston.format(info => {
   if (info instanceof Error) {
@@ -41,6 +45,7 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
             return `${timestamp} [${level}]: ${message} ${Object.keys(extra).length ? util.inspect(extra) : ''}`;
           })
         ),
+        stderrLevels: ['error'],
       })
     );
 
@@ -57,19 +62,19 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
       return winston.loggers.get(name).debug(msg);
     },
     info(msg: any) {
-      return winston.loggers.get(name).debug(msg);
+      return winston.loggers.get(name).info(msg);
     },
     warn(msg: any) {
-      ERROR_STASHES.push(`[WARN] ${msg}<br><br>`);
       return winston.loggers.get(name).warn(msg);
     },
     error(msg: any) {
+      return winston.loggers.get(name).error(msg);
+    },
+    fatal(msg: any) {
       // Setup error
-      ERROR_STASHES.push(`[ERROR] ${msg}<br><br>`);
+      ERROR_STASHES.push(`[ERROR] ${msg}`);
 
-      // const credentials = s3.config.credentials;
       const env = process.env.NODE_ENV || 'development';
-
       if (env === 'production' || isCloudWatch) {
         const logger = winston.loggers.get(name);
         logger.transports.push(
@@ -83,10 +88,26 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
       }
       return winston.loggers.get(name).error(msg);
     },
+    async notifyErrorsImmediately() {
+      try {
+        await notifyErrors();
+      } catch (err) {
+        console.error(`======= UNCAUGHT ERROR NOTIFYING BEGIN =======`);
+        console.error(err);
+        console.error(`======= UNCAUGHT ERROR NOTIFYING END =======`);
+      }
+    },
   };
 }
 
-async function notifyErrors(message: string[]) {
+async function notifyErrors() {
+  if (!ERROR_STASHES.length) {
+    return;
+  }
+
+  const messages = ERROR_STASHES;
+  ERROR_STASHES = [];
+
   const mailerAccount = EnvConfigRegistry.getCustomEnvConfig('MAILER_ACCOUNT');
   const mailerPassword = EnvConfigRegistry.getCustomEnvConfig('MAILER_PASSWORD');
   const mailerReceiver = EnvConfigRegistry.getCustomEnvConfig('MAILER_RECEIVER');
@@ -103,14 +124,23 @@ async function notifyErrors(message: string[]) {
     },
   });
 
+  const appName: string = process.env.APP_NAME || 'Exchange Wallet';
+  const env: string = process.env.NODE_ENV || 'development';
+
   const mailOptions = {
     from: mailerAccount,
     to: mailerReceiver,
-    subject: 'Exchange wallet: Error Notifier',
-    html: `${message}`,
+    subject: `[${appName}][${env}] Error Notifier`,
+    html: `${messages.join('<br />')}`,
   };
 
-  const info = await transporter.sendMail(mailOptions);
-  console.log('Message sent: %s', info.messageId);
-  console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Message sent: %s', info.messageId);
+    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+  } catch (err) {
+    console.error(`======= SENDING EMAIL ERROR BEGIN =======`);
+    console.error(err);
+    console.error(`======= SENDING EMAIL ERROR END =======`);
+  }
 }

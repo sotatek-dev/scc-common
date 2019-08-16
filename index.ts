@@ -37,7 +37,7 @@ export * from './src/BaseMQProducer';
 export * from './src/BaseWebServer';
 export * from './src/RPCClient';
 export * from './src/Logger';
-
+export * from './src/RedisChannel';
 export * from './src/registries';
 
 // External dependencies
