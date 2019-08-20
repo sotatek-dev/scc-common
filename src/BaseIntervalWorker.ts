@@ -12,7 +12,7 @@ export abstract class BaseIntervalWorker {
   // Maximum running time for one processing
   // If `doProcess` takes longer than this value (in millis),
   // It means something went wrong and the worker will be exited/restarted
-  protected _processingTimeout: number = 30000;
+  protected _processingTimeout: number = 300000;
 
   /**
    * The worker begins
