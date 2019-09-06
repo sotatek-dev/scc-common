@@ -104,6 +104,12 @@ export async function sendMail(mailerReceiver: string, subject: string, text: st
   const mailerFromName = EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_NAME');
   const mailerFromAddress = EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_ADDRESS');
   const mailerDrive = EnvConfigRegistry.getCustomEnvConfig('MAIL_DRIVER');
+  if (!mailerUserName || !mailerPassword || !mailerReceiver) {
+    logger.error(
+      `Revise this: MAIL_USERNAME=${mailerUserName}, MAIL_PASSWORD=${mailerPassword}, MAIL_HOLDER_COLD_WALLET=${mailerReceiver}`
+    );
+    return;
+  }
   const transporter = nodemailer.createTransport({
     host: mailerHost,
     service: mailerDrive,

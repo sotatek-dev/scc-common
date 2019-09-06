@@ -107,14 +107,7 @@ async function notifyErrors() {
 
   const messages = ERROR_STASHES;
   ERROR_STASHES = [];
-
-  const mailerAccount = EnvConfigRegistry.getCustomEnvConfig('MAIL_USERNAME');
-  const mailerPassword = EnvConfigRegistry.getCustomEnvConfig('MAIL_PASSWORD');
   const mailerReceiver = EnvConfigRegistry.getCustomEnvConfig('MAIL_RECEIVER');
-
-  if (!mailerAccount || !mailerPassword || !mailerReceiver) {
-    return;
-  }
   const appName: string = process.env.APP_NAME || 'Exchange Wallet';
   const env: string = process.env.NODE_ENV || 'development';
   const subject = `[${appName}][${env}] Error Notifier`;
