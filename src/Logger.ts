@@ -1,8 +1,8 @@
 import winston from 'winston';
 import util, { isNumber } from 'util';
 import EnvConfigRegistry from './registries/EnvConfigRegistry';
+import { Utils } from '..';
 const WinstonCloudWatch = require('winston-cloudwatch');
-const nodemailer = require('nodemailer');
 
 let ERROR_STASHES: string[] = [];
 let ERROR_SENDING_INTERVAL: number;
@@ -108,39 +108,15 @@ async function notifyErrors() {
   const messages = ERROR_STASHES;
   ERROR_STASHES = [];
 
-  const mailerAccount = EnvConfigRegistry.getCustomEnvConfig('MAILER_ACCOUNT');
-  const mailerPassword = EnvConfigRegistry.getCustomEnvConfig('MAILER_PASSWORD');
-  const mailerReceiver = EnvConfigRegistry.getCustomEnvConfig('MAILER_RECEIVER');
+  const mailerAccount = EnvConfigRegistry.getCustomEnvConfig('MAIL_USERNAME');
+  const mailerPassword = EnvConfigRegistry.getCustomEnvConfig('MAIL_PASSWORD');
+  const mailerReceiver = EnvConfigRegistry.getCustomEnvConfig('MAIL_RECEIVER');
 
   if (!mailerAccount || !mailerPassword || !mailerReceiver) {
     return;
   }
-
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: mailerAccount,
-      pass: mailerPassword,
-    },
-  });
-
   const appName: string = process.env.APP_NAME || 'Exchange Wallet';
   const env: string = process.env.NODE_ENV || 'development';
-
-  const mailOptions = {
-    from: mailerAccount,
-    to: mailerReceiver,
-    subject: `[${appName}][${env}] Error Notifier`,
-    html: `${messages.join('<br />')}`,
-  };
-
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Message sent: %s', info.messageId);
-    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-  } catch (err) {
-    console.error(`======= SENDING EMAIL ERROR BEGIN =======`);
-    console.error(err);
-    console.error(`======= SENDING EMAIL ERROR END =======`);
-  }
+  const subject = `[${appName}][${env}] Error Notifier`;
+  Utils.sendMail(mailerReceiver, subject, `${messages.join('<br />')}`);
 }
