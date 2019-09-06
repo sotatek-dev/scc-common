@@ -95,45 +95,100 @@ export function implement(container: any, key: any) {
   }
 }
 
-export async function sendMail(mailerReceiver: string, subject: string, text: string) {
-  const mailerUserName = EnvConfigRegistry.getCustomEnvConfig('MAIL_USERNAME');
-  const mailerHost = EnvConfigRegistry.getCustomEnvConfig('MAIL_HOST');
-  const mailerPort = EnvConfigRegistry.getCustomEnvConfig('MAIL_PORT');
-  const mailerEncryption = EnvConfigRegistry.getCustomEnvConfig('MAIL_ENCRYPTION');
-  const mailerPassword = EnvConfigRegistry.getCustomEnvConfig('MAIL_PASSWORD');
-  const mailerFromName = EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_NAME');
-  const mailerFromAddress = EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_ADDRESS');
-  const mailerDrive = EnvConfigRegistry.getCustomEnvConfig('MAIL_DRIVER');
-  if (!mailerUserName || !mailerPassword || !mailerReceiver) {
-    logger.error(
-      `Revise this: MAIL_USERNAME=${mailerUserName}, MAIL_PASSWORD=${mailerPassword}, MAIL_HOLDER_COLD_WALLET=${mailerReceiver}`
-    );
+export async function sendMail(mailReceiver: string, subject: string, text: string) {
+  let mailUserName = EnvConfigRegistry.getCustomEnvConfig('MAIL_USERNAME')
+    ? EnvConfigRegistry.getCustomEnvConfig('MAIL_USERNAME')
+    : EnvConfigRegistry.getCustomEnvConfig('MAILER_ACCOUNT');
+  let mailPassword = EnvConfigRegistry.getCustomEnvConfig('MAIL_PASSWORD')
+    ? EnvConfigRegistry.getCustomEnvConfig('MAIL_PASSWORD')
+    : EnvConfigRegistry.getCustomEnvConfig('MAILER_PASSWORD');
+  const mailHost = EnvConfigRegistry.getCustomEnvConfig('MAIL_HOST');
+  const mailPort = EnvConfigRegistry.getCustomEnvConfig('MAIL_PORT');
+  const mailEncryption = EnvConfigRegistry.getCustomEnvConfig('MAIL_ENCRYPTION');
+  const mailFromName = EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_NAME');
+  const mailFromAddress = EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_ADDRESS');
+  const mailDrive = EnvConfigRegistry.getCustomEnvConfig('MAIL_DRIVER');
+
+  if (!mailReceiver) {
+    logger.info(`Revise this: MAIL_RECEIVER=${mailReceiver}`);
     return;
   }
+
+  if (!mailHost || !mailPort || !mailFromAddress) {
+    mailUserName = EnvConfigRegistry.getCustomEnvConfig('MAILER_ACCOUNT')
+      ? EnvConfigRegistry.getCustomEnvConfig('MAILER_ACCOUNT')
+      : mailUserName;
+    mailPassword = EnvConfigRegistry.getCustomEnvConfig('MAILER_PASSWORD')
+      ? EnvConfigRegistry.getCustomEnvConfig('MAILER_PASSWORD')
+      : mailPassword;
+    if (!mailUserName || !mailPassword) {
+      logger.error(`Revise this: MAILER_ACCOUNT=${mailUserName}, MAILER_PASSWORD=${mailPassword}}`);
+      return;
+    }
+    await sendNormalMail(mailUserName, mailPassword, mailReceiver, subject, text, mailDrive);
+    return;
+  }
+
+  if (!mailUserName || !mailPassword) {
+    logger.error(`Revise this: MAILER_ACCOUNT=${mailUserName}, MAILER_PASSWORD=${mailPassword}}`);
+    return;
+  }
+
   const transporter = nodemailer.createTransport({
-    host: mailerHost,
-    service: mailerDrive,
-    port: mailerPort,
-    secure: mailerPort === '465' ? true : false,
+    host: mailHost,
+    service: mailDrive || 'smtp',
+    port: mailPort,
+    secure: mailPort === '465' ? true : false,
     auth: {
-      user: mailerUserName,
-      pass: mailerPassword,
+      user: mailUserName,
+      pass: mailPassword,
     },
     tls: {
       rejectUnauthorized: false,
     },
   });
+
   const mailOptions = {
-    from: mailerUserName,
-    to: mailerReceiver,
+    from: mailUserName,
+    to: mailReceiver,
     subject,
     envelope: {
-      from: `${mailerFromName} <${mailerFromAddress}>`,
-      to: mailerReceiver,
+      from: `${mailFromName} <${mailFromAddress}>`,
+      to: mailReceiver,
     },
     html: text,
   };
 
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    logger.info(`Message sent: ${info.messageId}`);
+    logger.info(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+  } catch (e) {
+    logger.error(e);
+  }
+}
+
+export async function sendNormalMail(
+  mailerAccount: string,
+  mailerPassword: string,
+  mailerReceiver: string,
+  subject: string,
+  text: string,
+  service: string
+) {
+  const transporter = nodemailer.createTransport({
+    service: service || 'gmail',
+    auth: {
+      user: mailerAccount,
+      pass: mailerPassword,
+    },
+  });
+  const mailOptions = {
+    from: mailerAccount,
+    to: mailerReceiver,
+    subject,
+    text,
+  };
   try {
     const info = await transporter.sendMail(mailOptions);
     logger.info(`Message sent: ${info.messageId}`);
