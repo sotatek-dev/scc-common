@@ -1,5 +1,9 @@
 // Get current timestamp in millisecond
 import URL from 'url';
+import { EnvConfigRegistry } from '..';
+import { getLogger } from './Logger';
+const logger = getLogger('Utils_Common');
+const nodemailer = require('nodemailer');
 
 export function nowInMillis(): number {
   return Date.now();
@@ -89,4 +93,105 @@ export function implement(container: any, key: any) {
     const overrideError: string = 'Method ' + key + ' of ' + container.constructor.name + ' implemented on base class';
     throw new Error(overrideError);
   }
+}
+
+export async function sendMail(mailReceiver: string, subject: string, text: string) {
+  if (!mailReceiver || !isValidEmail(mailReceiver)) {
+    logger.warn(`Invalid mail receiver: ${mailReceiver}`);
+    return;
+  }
+
+  // Old simple style - sending email by gmail, use these configs:
+  // + MAILER_ACCOUNT
+  // + MAILER_PASSWORD
+  let mailUserName = EnvConfigRegistry.getCustomEnvConfig('MAILER_ACCOUNT');
+  let mailPassword = EnvConfigRegistry.getCustomEnvConfig('MAILER_PASSWORD');
+  if (mailUserName && mailPassword) {
+    await sendNormalMail(mailUserName, mailPassword, mailReceiver, subject, text);
+    return;
+  }
+
+  // New style config with more options
+  mailUserName = EnvConfigRegistry.getCustomEnvConfig('MAIL_USERNAME');
+  mailPassword = EnvConfigRegistry.getCustomEnvConfig('MAIL_PASSWORD');
+  const mailHost = EnvConfigRegistry.getCustomEnvConfig('MAIL_HOST');
+  const mailPort = EnvConfigRegistry.getCustomEnvConfig('MAIL_PORT');
+  const mailFromName = EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_NAME');
+  const mailFromAddress = EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_ADDRESS');
+  const mailDrive = EnvConfigRegistry.getCustomEnvConfig('MAIL_DRIVER');
+  const mailEncryption = EnvConfigRegistry.getCustomEnvConfig('MAIL_ENCRYPTION');
+
+  if (!mailUserName || !mailPassword) {
+    logger.error(`Revise this: MAILER_ACCOUNT=${mailUserName}, MAILER_PASSWORD=${mailPassword}}`);
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: mailHost,
+    port: mailPort,
+    secure: mailPort === '465' ? true : false,
+    auth: {
+      user: mailUserName,
+      pass: mailPassword,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+
+  const mailOptions = {
+    from: mailUserName,
+    to: mailReceiver,
+    subject,
+    envelope: {
+      from: `${mailFromName} <${mailFromAddress}>`,
+      to: mailReceiver,
+    },
+    html: text,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    logger.info(`Message sent: ${info.messageId}`);
+    logger.info(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+  } catch (e) {
+    logger.error(e);
+  }
+}
+
+export async function sendNormalMail(
+  mailerAccount: string,
+  mailerPassword: string,
+  mailerReceiver: string,
+  subject: string,
+  text: string,
+  service?: string
+) {
+  const transporter = nodemailer.createTransport({
+    service: service || 'gmail',
+    auth: {
+      user: mailerAccount,
+      pass: mailerPassword,
+    },
+  });
+
+  const mailOptions = {
+    from: mailerAccount,
+    to: mailerReceiver,
+    subject,
+    html: text,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    logger.info(`Message sent: ${info.messageId}`);
+    logger.info(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+  } catch (e) {
+    logger.error(e);
+  }
+}
+
+export function isValidEmail(email: string) {
+  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(String(email).toLowerCase());
 }
