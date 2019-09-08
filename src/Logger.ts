@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import winston from 'winston';
 import util from 'util';
 import EnvConfigRegistry from './registries/EnvConfigRegistry';
@@ -11,7 +12,7 @@ if (process.env.ERROR_SENDING_INTERVAL) {
 
 // Default interval is 15 minutes
 if (!ERROR_SENDING_INTERVAL || isNaN(ERROR_SENDING_INTERVAL)) {
-  ERROR_SENDING_INTERVAL = 900000;
+  ERROR_SENDING_INTERVAL = 15 * 60 * 1000;
 }
 
 setInterval(notifyErrors, ERROR_SENDING_INTERVAL);
@@ -29,7 +30,7 @@ const enumerateErrorFormat = winston.format(info => {
   return info;
 });
 
-export function getLogger(name: string, isCloudWatch: boolean = false) {
+export function getLogger(name: string) {
   const has = winston.loggers.has(name);
   if (!has) {
     const transports: any[] = [];
@@ -67,6 +68,7 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
       return winston.loggers.get(name).warn(msg);
     },
     error(msg: any) {
+      ERROR_STASHES.push(`[ERROR] ${msg}`);
       return winston.loggers.get(name).error(msg);
     },
     fatal(msg: any) {
@@ -91,11 +93,16 @@ async function notifyErrors() {
     return;
   }
 
-  const messages = ERROR_STASHES;
+  const messages = _.uniq(ERROR_STASHES);
   ERROR_STASHES = [];
-  const mailerReceiver = EnvConfigRegistry.getCustomEnvConfig('MAIL_RECEIVER');
+  let mailReceiver = EnvConfigRegistry.getCustomEnvConfig('MAIL_RECEIVER');
+  // Fallback to old env config
+  if (!mailReceiver) {
+    mailReceiver = EnvConfigRegistry.getCustomEnvConfig('MAILER_RECEIVER');
+  }
+
   const appName: string = process.env.APP_NAME || 'Exchange Wallet';
   const env: string = process.env.NODE_ENV || 'development';
   const subject = `[${appName}][${env}] Error Notifier`;
-  Utils.sendMail(mailerReceiver, subject, `${messages.join('<br />')}`);
+  Utils.sendMail(mailReceiver, subject, `${messages.join('<br />')}`);
 }
