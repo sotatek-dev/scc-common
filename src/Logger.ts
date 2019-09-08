@@ -1,8 +1,7 @@
 import winston from 'winston';
-import util, { isNumber } from 'util';
+import util from 'util';
 import EnvConfigRegistry from './registries/EnvConfigRegistry';
 import { Utils } from '..';
-const WinstonCloudWatch = require('winston-cloudwatch');
 
 let ERROR_STASHES: string[] = [];
 let ERROR_SENDING_INTERVAL: number;
@@ -73,19 +72,6 @@ export function getLogger(name: string, isCloudWatch: boolean = false) {
     fatal(msg: any) {
       // Setup error
       ERROR_STASHES.push(`[ERROR] ${msg}`);
-
-      const env = process.env.NODE_ENV || 'development';
-      if (env === 'production' || isCloudWatch) {
-        const logger = winston.loggers.get(name);
-        logger.transports.push(
-          new WinstonCloudWatch({
-            logGroupName: 'exchange-wallet',
-            logStreamName: name,
-            awsRegion: 'ap-southeast-1',
-            jsonMessage: true,
-          })
-        );
-      }
       return winston.loggers.get(name).error(msg);
     },
     async notifyErrorsImmediately() {
