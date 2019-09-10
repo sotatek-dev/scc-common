@@ -5,7 +5,6 @@ import BaseGateway from './BaseGateway';
 import * as URL from 'url';
 import { BlockchainPlatform } from './enums';
 import { getLogger } from './Logger';
-import { subForTokenChanged } from './RedisChannel';
 import { ICurrency } from './interfaces';
 import { CurrencyRegistry, GatewayRegistry } from './registries';
 
@@ -35,9 +34,6 @@ export abstract class BaseWebServer {
     this.host = internalEndpoint.hostname;
     this.port = parseInt(internalEndpoint.port, 10);
     this.setup();
-
-    // redis
-    subForTokenChanged();
   }
 
   public start() {
@@ -66,6 +62,12 @@ export abstract class BaseWebServer {
     const { address } = req.params;
     const isValid = await this.getGateway(this._currency.symbol).isValidAddressAsync(address);
     res.json({ isValid });
+  }
+
+  protected async isNeedTag(req: any, res: any) {
+    const { address } = req.params;
+    const isNeed = await this.getGateway(this._currency.symbol).isNeedTagAsync(address);
+    res.json({ isNeed });
   }
 
   protected async getTransactionDetails(req: any, res: any) {
@@ -131,6 +133,15 @@ export abstract class BaseWebServer {
     this.app.get('/api/:currency/address/:address/validate', async (req, res) => {
       try {
         await this.validateAddress(req, res);
+      } catch (e) {
+        logger.error(`validateAddress err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.message || e.toString() });
+      }
+    });
+
+    this.app.get('/api/:currency/address/:address/tag', async (req, res) => {
+      try {
+        await this.isNeedTag(req, res);
       } catch (e) {
         logger.error(`validateAddress err=${util.inspect(e)}`);
         res.status(500).json({ error: e.message || e.toString() });
