@@ -113,7 +113,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       pickedUtxos.push(utxo);
       totalInputAmount = totalInputAmount.plus(utxo.satoshis);
       estimatedTxSize += 181; // additional vin
-      esitmatedFee = new BigNumber(estimatedTxSize * this.getFeeInSatoshisPerByte());
+      esitmatedFee = new BigNumber(estimatedTxSize * (await this.getFeeInSatoshisPerByte()));
       if (totalInputAmount.gt(new BigNumber(totalOutputAmount.plus(esitmatedFee)))) {
         isSufficientBalance = true;
         break;
@@ -142,7 +142,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     }, new BigNumber(0));
 
     const estimatedTxSize = pickedUtxos.length * 181 + 34 + 10;
-    const estimatedFee: BigNumber = new BigNumber(estimatedTxSize * this.getFeeInSatoshisPerByte());
+    const estimatedFee: BigNumber = new BigNumber(estimatedTxSize * (await this.getFeeInSatoshisPerByte()));
     const vout = {
       toAddress,
       amount: totalInputAmount.minus(estimatedFee),
@@ -382,7 +382,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     return this.getCurrencyConfig().restEndpoint;
   }
 
-  public getFeeInSatoshisPerByte(): number {
+  public async getFeeInSatoshisPerByte(): Promise<number> {
     return 15;
   }
 
