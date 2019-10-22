@@ -553,7 +553,7 @@ export class CurrencyRegistry {
       case BlockchainPlatform.Stellar:
         result.push(CurrencyRegistry.Stellar);
         break;
-      
+
       case BlockchainPlatform.Binance:
         result.push(...CurrencyRegistry.getAllBepTokens());
         break;
