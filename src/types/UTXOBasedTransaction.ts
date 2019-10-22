@@ -8,7 +8,7 @@ import BigNumber from 'bignumber.js';
 export class UTXOBasedTransaction extends Transaction {
   public readonly vIns: IBoiledVIn[];
   public readonly vOuts: IBoiledVOut[];
-
+  public readonly currency: ICurrency;
   constructor(currency: ICurrency, tx: IUtxoTxInfo, block: BlockHeader) {
     // Construct tx props
     const txProps = {
@@ -19,8 +19,9 @@ export class UTXOBasedTransaction extends Transaction {
     };
 
     // Construct base transaction
-    super(currency, txProps, block);
-
+    super(txProps, block);
+    // Add currency
+    this.currency = currency;
     // And vin/vout for utxo-based
     this.vIns = tx.vin;
     this.vOuts = tx.vout;

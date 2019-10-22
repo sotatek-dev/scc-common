@@ -16,7 +16,6 @@ interface ITransactionProps {
  * We'll not use this class for constructing new transactions
  */
 export abstract class Transaction implements ITransactionProps {
-  public readonly currency: ICurrency;
   public readonly txid: string;
   public readonly height: number;
   public readonly timestamp: number;
@@ -26,9 +25,8 @@ export abstract class Transaction implements ITransactionProps {
 
   protected _allEntries: TransferEntry[];
 
-  constructor(currency: ICurrency, props: ITransactionProps, block: BlockHeader) {
+  constructor(props: ITransactionProps, block: BlockHeader) {
     Object.assign(this, props);
-    this.currency = currency;
     this.block = block;
     this.isFailed = false;
     this._allEntries = [];

@@ -1,5 +1,5 @@
 import { getLogger } from '../Logger';
-import { ICurrency, IEosToken, IToken, IErc20TokenTomo } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IToken, IErc20TokenTomo, IBepToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType } from '../enums';
 
@@ -15,6 +15,7 @@ const allErc20Tokens: IErc20Token[] = [];
 const allTrc20Tokens: IErc20TokenTomo[] = [];
 const allOmniAssets: IOmniAsset[] = [];
 const allEosTokens: IEosToken[] = [];
+const allBepTokens: IBepToken[] = [];
 
 const onCurrencyRegisteredCallbacks: Array<(currency: ICurrency) => void> = [];
 const onSpecificCurrencyRegisteredCallbacks = new Map<string, Array<() => void>>();
@@ -25,6 +26,7 @@ const eventCallbacks = {
   'trc20-registered': Array<(token: IErc20TokenTomo) => void>(),
   'omni-registered': Array<(asset: IOmniAsset) => void>(),
   'eos-token-registered': Array<(asset: IEosToken) => void>(),
+  'bep-token-registered': Array<(asset: IBepToken) => void>(),
 };
 
 /**
@@ -206,6 +208,17 @@ const Tron = {
   nativeScale: 6,
 };
 
+const Binance = {
+  symbol: BlockchainPlatform.Binance,
+  networkSymbol: BlockchainPlatform.Binance,
+  name: 'Binance',
+  platform: BlockchainPlatform.Binance,
+  isNative: true,
+  isUTXOBased: true,
+  humanReadableScale: 0,
+  nativeScale: 8,
+};
+
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
@@ -223,6 +236,7 @@ const nativeCurrencies: ICurrency[] = [
   Stellar,
   Nem,
   Tron,
+  Binance,
 ];
 
 export class CurrencyRegistry {
@@ -242,6 +256,7 @@ export class CurrencyRegistry {
   public static readonly Stellar: ICurrency = Stellar;
   public static readonly Nem: ICurrency = Nem;
   public static readonly Tron: ICurrency = Tron;
+  public static readonly Binance: ICurrency = Binance;
 
   /**
    * Register a currency on environment data
@@ -391,6 +406,27 @@ export class CurrencyRegistry {
     return CurrencyRegistry.registerCurrency(currency);
   }
 
+  public static registerBepToken(originSymbol: string, networkSymbol: string, scale: number): boolean {
+    const platform = BlockchainPlatform.Binance;
+    const currency: IBepToken = {
+      symbol: networkSymbol,
+      networkSymbol,
+      tokenType: TokenType.EOS,
+      name: networkSymbol,
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      humanReadableScale: 0,
+      nativeScale: scale,
+      originSymbol,
+    };
+
+    allBepTokens.push(currency);
+    eventCallbacks['bep-token-registered'].forEach(callback => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
   public static getOneOmniAsset(propertyId: number): IOmniAsset {
     const symbol = [TokenType.OMNI, propertyId].join('.');
     return CurrencyRegistry.getOneCurrency(symbol) as IOmniAsset;
@@ -403,6 +439,10 @@ export class CurrencyRegistry {
   public static getOneErc20Token(contractAddress: string): IErc20Token {
     const symbol = [TokenType.ERC20, contractAddress].join('.');
     return CurrencyRegistry.getOneCurrency(symbol) as IErc20Token;
+  }
+
+  public static getAllBepTokens(): IBepToken[] {
+    return allBepTokens;
   }
 
   public static getAllErc20Tokens(): IErc20Token[] {
@@ -512,6 +552,10 @@ export class CurrencyRegistry {
 
       case BlockchainPlatform.Stellar:
         result.push(CurrencyRegistry.Stellar);
+        break;
+      
+      case BlockchainPlatform.Binance:
+        result.push(...CurrencyRegistry.getAllBepTokens());
         break;
 
       default:
@@ -656,6 +700,16 @@ export class CurrencyRegistry {
     }
 
     eventCallbacks['eos-token-registered'].push(callback);
+  }
+
+  public static onBepTokenRegistered(callback: (token: IBepToken) => void) {
+    if (allBepTokens.length) {
+      allBepTokens.forEach(token => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['bep-token-registered'].push(callback);
   }
 
   /**

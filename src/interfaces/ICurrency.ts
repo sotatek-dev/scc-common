@@ -67,3 +67,7 @@ export interface IEosToken extends IToken {
   readonly code: string;
   readonly networkSymbol: string;
 }
+
+export interface IBepToken extends IToken {
+  readonly originSymbol: string;
+}
