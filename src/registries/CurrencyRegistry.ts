@@ -215,8 +215,8 @@ const Binance = {
   platform: BlockchainPlatform.Binance,
   isNative: true,
   isUTXOBased: true,
-  humanReadableScale: 0,
-  nativeScale: 8,
+  humanReadableScale: 8,
+  nativeScale: 0,
 };
 
 const nativeCurrencies: ICurrency[] = [
