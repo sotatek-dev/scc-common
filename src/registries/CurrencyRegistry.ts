@@ -193,8 +193,8 @@ const Nem = {
   platform: BlockchainPlatform.Nem,
   isNative: true,
   isUTXOBased: false,
-  humanReadableScale: 0,
-  nativeScale: 6,
+  humanReadableScale: 6,
+  nativeScale: 0,
 };
 
 const Tron = {
@@ -552,6 +552,10 @@ export class CurrencyRegistry {
 
       case BlockchainPlatform.Stellar:
         result.push(CurrencyRegistry.Stellar);
+        break;
+
+      case BlockchainPlatform.Nem:
+        result.push(CurrencyRegistry.Nem);
         break;
 
       case BlockchainPlatform.Binance:
