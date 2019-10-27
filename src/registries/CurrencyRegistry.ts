@@ -411,8 +411,8 @@ export class CurrencyRegistry {
     const currency: IBepToken = {
       symbol: networkSymbol,
       networkSymbol,
-      tokenType: TokenType.EOS,
-      name: networkSymbol,
+      tokenType: TokenType.BEP,
+      name: originSymbol,
       platform,
       isNative: false,
       isUTXOBased: false,
