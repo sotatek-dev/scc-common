@@ -214,7 +214,7 @@ const Binance = {
   name: 'Binance',
   platform: BlockchainPlatform.Binance,
   isNative: true,
-  isUTXOBased: true,
+  isUTXOBased: false,
   humanReadableScale: 8,
   nativeScale: 0,
 };
@@ -416,8 +416,8 @@ export class CurrencyRegistry {
       platform,
       isNative: false,
       isUTXOBased: false,
-      humanReadableScale: 0,
-      nativeScale: scale,
+      humanReadableScale: scale,
+      nativeScale: 0,
       originSymbol,
     };
 
