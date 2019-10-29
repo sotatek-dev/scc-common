@@ -20,6 +20,7 @@ export abstract class AccountBasedGateway extends BaseGateway {
     options: {
       isConsolidate?: boolean;
       destinationTag?: string;
+      useLowerNetworkFee?: boolean;
     }
   ): Promise<IRawTransaction>;
 }
