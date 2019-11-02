@@ -11,6 +11,9 @@ if (process.env.isEnvSet_KnV5Ha0UlAAEME69I6KA === '1') {
 }
 process.env.isEnvSet_KnV5Ha0UlAAEME69I6KA = '1';
 
+// Try to decrypt env variables if they're encrypted
+import './EnvDecrypt';
+
 import * as Utils from './src/Utils';
 export { Utils };
 
