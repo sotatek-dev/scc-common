@@ -408,8 +408,9 @@ export class CurrencyRegistry {
 
   public static registerBepToken(originSymbol: string, networkSymbol: string, scale: number): boolean {
     const platform = BlockchainPlatform.Binance;
+    const symbol = [TokenType.BEP, networkSymbol].join('.');
     const currency: IBepToken = {
-      symbol: networkSymbol,
+      symbol,
       networkSymbol,
       tokenType: TokenType.BEP,
       name: originSymbol,
