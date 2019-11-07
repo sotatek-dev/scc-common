@@ -95,7 +95,7 @@ async function notifyErrors() {
 
   const messages = _.uniq(ERROR_STASHES);
   ERROR_STASHES = [];
-  let mailReceiver = EnvConfigRegistry.getCustomEnvConfig('MAIL_RECEIVER');
+  let mailReceiver = EnvConfigRegistry.getCustomEnvConfig('MAIL_RECIPIENT_ERROR_ALERT');
   // Fallback to old env config
   if (!mailReceiver) {
     mailReceiver = EnvConfigRegistry.getCustomEnvConfig('MAILER_RECEIVER');
