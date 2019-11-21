@@ -59,7 +59,6 @@ export class Mailer {
       subject: options.subject,
       html: options.content,
     };
-    console.log(`mail options`, mailOptions);
     if (!this.transporter) {
       throw new Error(`Mailer transpoter was not set, transporter=${this.transporter}. Please check your configure.`);
     }
