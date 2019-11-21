@@ -111,7 +111,7 @@ async function notifyErrors() {
   const appName: string = process.env.APP_NAME || 'Exchange Wallet';
   const env: string = process.env.NODE_ENV || 'development';
   const sender = EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_ADDRESS');
-  const senderName = `${EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_NAME')} <${sender}>`;
+  const senderName = EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_NAME');
   const subject = `[${appName}][${env}] Error Notifier`;
   if (_mailCallback) {
     await _mailCallback({
