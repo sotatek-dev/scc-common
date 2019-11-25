@@ -165,5 +165,9 @@ export abstract class BaseWebServer {
         res.status(500).json({ error: e.toString() });
       }
     });
+
+    this.app.get('/api/health', async (req, res) => {
+      res.status(200).json({ isOK: true });
+    });
   }
 }
