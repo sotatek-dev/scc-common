@@ -3,6 +3,8 @@ import morgan from 'morgan';
 import util from 'util';
 import BaseGateway from './BaseGateway';
 import * as URL from 'url';
+import { Transaction } from './types';
+import BigNumber from 'bignumber.js';
 import { BlockchainPlatform } from './enums';
 import { getLogger } from './Logger';
 import { ICurrency } from './interfaces';
@@ -73,7 +75,13 @@ export abstract class BaseWebServer {
   protected async getTransactionDetails(req: any, res: any) {
     const { currency, txid } = req.params;
     // TODO: Update check txid
+    // TODO: currently hard code for workaround. Fix me later...
+    if (currency.startsWith('erc20.')) {
+      return this._getErc20TransactionDetails(req, res);
+    }
+
     const tx = await this.getGateway(currency).getOneTransaction(txid);
+
     if (!tx) {
       return res.status(404).json({ error: `Transaction not found: ${txid}` });
     }
@@ -99,6 +107,51 @@ export abstract class BaseWebServer {
     };
 
     resObj = { ...resObj, ...tx.extractAdditionalField() };
+    return res.json(resObj);
+  }
+
+  // TODO: FIXME
+  // This workaround is pretty ugly, need fix
+  protected async _getErc20TransactionDetails(req: any, res: any) {
+    const { currency, txid } = req.params;
+    const gw = this.getGateway(currency) as any;
+    const txs = await gw.getTransactionsByTxid(txid);
+
+    if (!txs || !txs.length) {
+      return res.status(404).json({ error: `Transaction not found: ${txid}` });
+    }
+
+    const entries: any[] = [];
+    txs.forEach(tx => {
+      const extractedEntries = tx.extractEntries();
+      extractedEntries.forEach(e => {
+        const entry = entries.find(_e => _e.address === e.address);
+        if (entry) {
+          const value = new BigNumber(entry.value).plus(e.amount);
+          entry.value = value.toFixed();
+          entry.valueString = value.toFixed();
+          return;
+        }
+
+        entries.push({
+          address: e.address,
+          value: e.amount.toFixed(),
+          valueString: e.amount.toFixed(),
+        });
+      });
+    });
+
+    let resObj = {
+      id: txid,
+      date: '',
+      timestamp: txs[0].block.timestamp,
+      blockHash: txs[0].block.hash,
+      blockHeight: txs[0].block.number,
+      confirmations: txs[0].confirmations,
+      entries,
+    };
+
+    resObj = { ...resObj, ...txs[0].extractAdditionalField() };
     return res.json(resObj);
   }
 
