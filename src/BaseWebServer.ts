@@ -109,6 +109,10 @@ export abstract class BaseWebServer {
     return res.json(normalizedAddr);
   }
 
+  protected async _healthChecker() {
+    return { webService: { isOK: true } };
+  }
+
   protected setup() {
     this.app.use(morgan('dev'));
 
@@ -167,7 +171,7 @@ export abstract class BaseWebServer {
     });
 
     this.app.get('/api/health', async (req, res) => {
-      res.status(200).json({ isOK: true });
+      res.status(200).json(await this._healthChecker());
     });
   }
 }
