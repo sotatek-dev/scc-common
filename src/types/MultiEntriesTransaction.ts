@@ -19,8 +19,8 @@ export interface IMultiEntriesTxProps {
 }
 
 export abstract class MultiEntriesTransaction extends Transaction {
-  protected readonly outputs: IMultiEntriesTxEntry[];
-  protected readonly inputs: IMultiEntriesTxEntry[];
+  public readonly outputs: IMultiEntriesTxEntry[];
+  public readonly inputs: IMultiEntriesTxEntry[];
 
   constructor(props: IMultiEntriesTxProps) {
     super(
