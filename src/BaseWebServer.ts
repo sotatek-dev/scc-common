@@ -162,6 +162,10 @@ export abstract class BaseWebServer {
     return res.json(normalizedAddr);
   }
 
+  protected async _healthChecker() {
+    return { webService: { isOK: true } };
+  }
+
   protected setup() {
     this.app.use(morgan('dev'));
 
@@ -217,6 +221,10 @@ export abstract class BaseWebServer {
         logger.error(`convertChecksumAddress err=${util.inspect(e)}`);
         res.status(500).json({ error: e.toString() });
       }
+    });
+
+    this.app.get('/api/health', async (req, res) => {
+      res.status(200).json(await this._healthChecker());
     });
   }
 }
