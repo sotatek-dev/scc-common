@@ -122,9 +122,9 @@ export abstract class BaseWebServer {
     }
 
     const entries: any[] = [];
-    txs.forEach(tx => {
+    txs.forEach((tx: any) => {
       const extractedEntries = tx.extractEntries();
-      extractedEntries.forEach(e => {
+      extractedEntries.forEach((e: any) => {
         const entry = entries.find(_e => _e.address === e.address);
         if (entry) {
           const value = new BigNumber(entry.value).plus(e.amount);
