@@ -29,6 +29,7 @@ export * from './src/BaseCurrencyWorker';
 export * from './src/BasePlatformWorker';
 export * from './src/BaseCrawler';
 export * from './src/BasePlatformCrawler';
+export * from './src/BitcoinBasedCrawler';
 export * from './src/NativeAssetCrawler';
 export * from './src/CustomAssetCrawler';
 export * from './src/BaseGateway';

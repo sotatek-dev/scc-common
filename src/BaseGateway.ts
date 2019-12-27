@@ -13,6 +13,7 @@ import {
   Utils,
   BigNumber,
   getLogger,
+  IEndpointsStatus,
 } from '..';
 import { ICurrencyConfig, ISignedRawTransaction, ISubmittedTransaction } from './interfaces';
 import CurrencyRegistry from './registries/CurrencyRegistry';
@@ -104,6 +105,13 @@ export abstract class BaseGateway {
    */
   public async isNeedTagAsync(address: string): Promise<boolean> {
     return false;
+  }
+
+  /**
+   * Get network status
+   */
+  public async getNetworkStatus(): Promise<IEndpointsStatus> {
+    return [{ isOK: true }];
   }
 
   /**
