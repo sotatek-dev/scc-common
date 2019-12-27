@@ -25,10 +25,10 @@ const _cacheBlockNumber = {
 };
 
 const UrlRestApi = {
-  getBlockCount: `/block/latest`,
-  getBlockNumber: `/block`,
+  getBlockCount: `/blocks/latest`,
+  getBlockNumber: `/blocks`,
   getOneTransaction: '/txs',
-  getAllBlockTransactions: '/txs?limit=1000&height=',
+  getAllBlockTransactions: '/txs?limit=1000&tx.height=',
   postOneTransaction: '/txs',
   getFeeAndGas: '/txs/estimate_fee',
   getBalance: '/bank/balances',
@@ -122,37 +122,11 @@ export abstract class CosmosBasedGateway extends BaseGateway {
       });
 
       _.map(txs, tx => {
-        const _transaction = this._convertRawToCosmosTransactions(tx, blockHeader, latestBlock);
+        const rawTx: ICosmosRawTransaction = this.getCosmosRawTx(tx);
+        const _transaction = this._convertRawToCosmosTransactions(rawTx, blockHeader, latestBlock);
         transactions.push(_transaction);
       });
       return transactions;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  /**
-   * Return all transactions that matched with search condition
-   *
-   * @param {number} fromBlockNumber: number of begin block in search range
-   * @param {number} toBlockNumber: number of end block in search range
-   * @return {Transactions}: an array of transactions
-   */
-  public async getMultiBlocksTransactions(fromBlockNumber?: number, toBlockNumber?: number): Promise<Transactions> {
-    if (fromBlockNumber > toBlockNumber) {
-      throw new Error('Block start less than block end');
-    }
-
-    const range = (start: number, end: number) => Array.from({ length: end - start }, (v, k) => k + start);
-    const txs = new Transactions();
-
-    try {
-      const tasks = _.map(range(fromBlockNumber, toBlockNumber + 1), async (blockNum: number) => {
-        const blockTxs = await this.getBlockTransactions(blockNum);
-        txs.mutableConcat(blockTxs);
-      });
-      await Promise.all(tasks);
-      return txs;
     } catch (err) {
       throw err;
     }
@@ -168,16 +142,18 @@ export abstract class CosmosBasedGateway extends BaseGateway {
     if (!retryCount || isNaN(retryCount)) {
       retryCount = 0;
     }
-    const txBroadcast = JSON.parse(rawTx);
+    const txBroadcast = rawTx;
+    // JSON.parse(rawTx);
     try {
-      const res = await axios.post(`${this._appClient}${this._url.postOneTransaction}`, { txBroadcast });
+      const res = await axios.post(`${this._appClient}${this._url.postOneTransaction}`, txBroadcast);
       const receipt = res.data;
-      return { txid: receipt.result[0].hash };
+      return { txid: receipt.txhash };
     } catch (err) {
       if (retryCount + 1 > 5) {
         logger.fatal(`Too many fails sending tx`);
         throw err;
       }
+      throw err;
       return this.sendRawTransaction(rawTx, retryCount + 1);
     }
   }
@@ -195,7 +171,10 @@ export abstract class CosmosBasedGateway extends BaseGateway {
       if (!balance) {
         return new BigNumber(0);
       }
-      const currencyBalance = balance.result.find(_balance => _balance.denom === this._currency.networkSymbol);
+      const currencyBalance = balance.result.find(_balance => _balance.denom === this.getCode());
+      if (!currencyBalance || !currencyBalance.amount) {
+        return new BigNumber(0);
+      }
       return new BigNumber(currencyBalance.amount);
     } catch (err) {
       throw err;
@@ -266,6 +245,7 @@ export abstract class CosmosBasedGateway extends BaseGateway {
 
   public abstract getFeeTx(rawTx: any): BigNumber;
 
+  public abstract getCode(): string;
   public abstract async convertCosmosBlock(block: any): Promise<Block>;
   /**
    * getFeeTx used to get the network transaction fee
@@ -295,7 +275,7 @@ export abstract class CosmosBasedGateway extends BaseGateway {
       const rawTx: ICosmosRawTransaction = this.getCosmosRawTx(result);
       const txFee = await this.getFeeTx(rawTx);
       const transactions = this._convertRawToCosmosTransactions(rawTx, blockHeader, latestBlock, txFee);
-      return transactions[0];
+      return transactions;
     } catch (err) {
       throw err;
     }
@@ -309,9 +289,6 @@ export abstract class CosmosBasedGateway extends BaseGateway {
    */
   protected async _getOneBlock(blockHash: string | number): Promise<Block> {
     try {
-      if (typeof blockHash === 'string') {
-        throw new Error(`Only supported number value.`);
-      }
       const response = await axios.get(`${this._appClient}${this._url.getBlockNumber}/${blockHash}`);
       const block = this.convertCosmosBlock(response.data);
       return block;

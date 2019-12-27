@@ -34,7 +34,7 @@ CurrencyRegistry.onCurrencyConfigSet((currency: ICurrency, config: ICurrencyConf
 export interface IParamsHDWallet {
   seed: string;
   accountIndex: string;
-  path;
+  path: string;
 }
 
 const logger = getLogger('BaseGateway');
@@ -96,7 +96,8 @@ export abstract class BaseGateway {
   public async createAccountHdWalletAsync(params: IParamsHDWallet): Promise<AccountHdWallet> {
     const privateKey = await this.generatePrivateKeyHdWalletAsync(params);
     const address = await this.getAccountFromPrivateKey(privateKey);
-    return new AccountHdWallet(privateKey, address.address, params.path + params.accountIndex.toString());
+    const path = params.path ? params.path : this._currency.hdPath;
+    return new AccountHdWallet(privateKey, address.address, path + params.accountIndex.toString());
   }
 
   public async generatePrivateKeyHdWalletAsync(params: IParamsHDWallet): Promise<string> {
@@ -106,7 +107,7 @@ export abstract class BaseGateway {
     }
     const seed = params.seed;
     const index = params.accountIndex;
-    if (!seed || !index) {
+    if (!seed || (index === null || typeof index === 'undefined')) {
       throw new Error(`Need seed and accountIndex to create addresses`);
     }
     const root = hdkey.fromMasterSeed(seed);

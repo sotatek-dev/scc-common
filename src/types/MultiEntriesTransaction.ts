@@ -38,7 +38,6 @@ export class MultiEntriesTransaction extends Transaction {
   }
   public _extractEntries(): TransferEntry[] {
     const entries: TransferEntry[] = [];
-
     // All in v Ins
     this.inputs.forEach(vIn => {
       const entry = this._convertVInToTransferEntry(vIn);

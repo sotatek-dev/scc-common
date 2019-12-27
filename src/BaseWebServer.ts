@@ -169,7 +169,7 @@ export abstract class BaseWebServer {
   }
 
   protected async createNewHdWalletAddress(req: any, res: any) {
-    const { accountIndex, path, seed } = req.params;
+    const { accountIndex, path, seed } = req.query;
     const address = await this.getGateway(this._currency.symbol).createAccountHdWalletAsync({
       accountIndex,
       path,

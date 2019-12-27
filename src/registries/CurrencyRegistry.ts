@@ -458,6 +458,7 @@ export class CurrencyRegistry {
       humanReadableScale: scale,
       nativeScale: 0,
       code,
+      hdPath: CurrencyRegistry.getOneCurrency(BlockchainPlatform.Terra).hdPath,
     };
 
     allTerraTokens.push(currency);

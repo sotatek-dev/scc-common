@@ -19,14 +19,20 @@ export interface ICosmosRawTransaction {
   readonly fee: BigNumber;
   readonly outEntries: IEntry[];
   readonly inEntries: IEntry[];
+  readonly gas: number;
 }
 
 export interface ICosmosTransactionProps extends IMultiEntriesTransactionProps {
   readonly memo: string;
+  readonly gas: number;
+  readonly txType: string;
 }
 
 export class CosmosTransaction extends MultiEntriesTransaction {
   public readonly memo: string;
+  public readonly gas: number;
+  public readonly txType: string;
+
   constructor(
     tx: ICosmosTransactionProps,
     outEntry: IEntry[],
@@ -36,6 +42,8 @@ export class CosmosTransaction extends MultiEntriesTransaction {
   ) {
     super(tx, outEntry, inEntry, block, lastNetworkBlockNumber);
     this.memo = tx.memo;
+    this.gas = tx.gas;
+    this.txType = tx.txType;
   }
 
   public extractAdditionalField(): any {
