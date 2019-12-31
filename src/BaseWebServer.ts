@@ -95,6 +95,8 @@ export abstract class BaseWebServer {
         valueString: e.amount.toFixed(),
       });
     });
+    // 24/12/2019 get transaction fee
+    const fee = tx.getNetworkFee();
 
     let resObj = {
       id: txid,
@@ -103,6 +105,7 @@ export abstract class BaseWebServer {
       blockHash: tx.block.hash,
       blockHeight: tx.block.number,
       confirmations: tx.confirmations,
+      txFee: fee.toString(),
       entries,
     };
 
