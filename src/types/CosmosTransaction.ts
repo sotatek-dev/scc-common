@@ -1,4 +1,4 @@
-import { BlockHeader, IEntry } from '../..';
+import { BlockHeader, IMultiEntriesTxEntry } from '../..';
 import { IMultiEntriesTransactionProps, MultiEntriesTransaction } from './MultiEntriesTransaction';
 import BigNumber from 'bignumber.js';
 
@@ -17,8 +17,8 @@ export interface ICosmosRawTransaction {
   readonly logs: string;
   readonly txType: string;
   readonly fee: BigNumber;
-  readonly outEntries: IEntry[];
-  readonly inEntries: IEntry[];
+  readonly outEntries: IMultiEntriesTxEntry[];
+  readonly inEntries: IMultiEntriesTxEntry[];
   readonly gas: number;
 }
 
@@ -32,24 +32,37 @@ export class CosmosTransaction extends MultiEntriesTransaction {
   public readonly memo: string;
   public readonly gas: number;
   public readonly txType: string;
-
+  public readonly fee: BigNumber;
   constructor(
     tx: ICosmosTransactionProps,
-    outEntry: IEntry[],
-    inEntry: IEntry[],
+    outputs: IMultiEntriesTxEntry[],
+    inputs: IMultiEntriesTxEntry[],
     block: BlockHeader,
     lastNetworkBlockNumber: number
   ) {
-    super(tx, outEntry, inEntry, block, lastNetworkBlockNumber);
+    const props = {
+      outputs,
+      inputs,
+      block,
+      lastNetworkBlockNumber,
+      txid: tx.txid,
+    };
+
+    super(props);
     this.memo = tx.memo;
     this.gas = tx.gas;
     this.txType = tx.txType;
+    this.fee = tx.fee;
   }
 
   public extractAdditionalField(): any {
     return {
       memo: this.memo,
     };
+  }
+
+  public getNetworkFee(): BigNumber {
+    return this.fee;
   }
 }
 

@@ -95,6 +95,8 @@ export abstract class BaseWebServer {
         valueString: e.amount.toFixed(),
       });
     });
+    // 24/12/2019 get transaction fee
+    const fee = tx.getNetworkFee();
 
     let resObj = {
       id: txid,
@@ -103,6 +105,7 @@ export abstract class BaseWebServer {
       blockHash: tx.block.hash,
       blockHeight: tx.block.number,
       confirmations: tx.confirmations,
+      txFee: fee.toString(),
       entries,
     };
 
@@ -122,9 +125,9 @@ export abstract class BaseWebServer {
     }
 
     const entries: any[] = [];
-    txs.forEach(tx => {
+    txs.forEach((tx: any) => {
       const extractedEntries = tx.extractEntries();
-      extractedEntries.forEach(e => {
+      extractedEntries.forEach((e: any) => {
         const entry = entries.find(_e => _e.address === e.address);
         if (entry) {
           const value = new BigNumber(entry.value).plus(e.amount);
@@ -176,6 +179,10 @@ export abstract class BaseWebServer {
       seed,
     });
     return res.json(address);
+  }
+
+  protected async _healthChecker() {
+    return { webService: { isOK: true } };
   }
 
   protected setup() {
@@ -244,6 +251,10 @@ export abstract class BaseWebServer {
       }
     });
 
+    this.app.get('/api/health', async (req, res) => {
+      res.status(200).json(await this._healthChecker());
+    });
+
     this.app.get('/api/:currency/address/hd_wallet', async (req, res) => {
       try {
         await this.createNewHdWalletAddress(req, res);
@@ -251,6 +262,6 @@ export abstract class BaseWebServer {
         logger.error(`createNewHdWalletAddress err=${util.inspect(e)}`);
         res.status(500).json({ error: e.toString() });
       }
-    });    
+    });
   }
 }

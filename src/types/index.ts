@@ -14,4 +14,5 @@ export * from './UTXOBasedTransactions';
 export * from './BitcoinBasedTransaction';
 export * from './BitcoinBasedTransactions';
 export * from './MultiEntriesTransaction';
+export * from './EndpointStatus';
 export * from './CosmosTransaction';

@@ -1,5 +1,5 @@
 import { getLogger } from '../Logger';
-import { ICurrency, IEosToken, IToken, IErc20TokenTomo, IBepToken, ITerraToken } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType } from '../enums';
 
@@ -43,6 +43,7 @@ const Bitcoin = {
   isUTXOBased: true,
   humanReadableScale: 8,
   nativeScale: 0,
+  hasMemo: false,
 };
 
 const Ethereum = {
@@ -54,6 +55,7 @@ const Ethereum = {
   isUTXOBased: false,
   humanReadableScale: 18,
   nativeScale: 0,
+  hasMemo: false,
 };
 
 const Cardano = {
@@ -65,6 +67,7 @@ const Cardano = {
   isUTXOBased: true,
   humanReadableScale: 6,
   nativeScale: 0,
+  hasMemo: false,
 };
 
 const BitcoinCash = {
@@ -76,6 +79,7 @@ const BitcoinCash = {
   isUTXOBased: true,
   humanReadableScale: 8,
   nativeScale: 0,
+  hasMemo: false,
 };
 
 const BitcoinSV = {
@@ -87,6 +91,7 @@ const BitcoinSV = {
   isUTXOBased: true,
   humanReadableScale: 8,
   nativeScale: 0,
+  hasMemo: false,
 };
 
 const EOS = {
@@ -98,6 +103,7 @@ const EOS = {
   isUTXOBased: false,
   humanReadableScale: 0,
   nativeScale: 4,
+  hasMemo: true,
 };
 
 const Litecoin = {
@@ -109,6 +115,7 @@ const Litecoin = {
   isUTXOBased: true,
   humanReadableScale: 8,
   nativeScale: 0,
+  hasMemo: false,
 };
 
 const Dash = {
@@ -120,6 +127,7 @@ const Dash = {
   isUTXOBased: true,
   humanReadableScale: 8,
   nativeScale: 0,
+  hasMemo: false,
 };
 
 const EthereumClasssic = {
@@ -131,6 +139,7 @@ const EthereumClasssic = {
   isUTXOBased: false,
   humanReadableScale: 18,
   nativeScale: 0,
+  hasMemo: false,
 };
 
 const NEO = {
@@ -142,6 +151,7 @@ const NEO = {
   isUTXOBased: true,
   humanReadableScale: 0,
   nativeScale: 0,
+  hasMemo: false,
 };
 
 const NEOGAS = {
@@ -153,6 +163,7 @@ const NEOGAS = {
   isUTXOBased: true,
   humanReadableScale: 0,
   nativeScale: 8,
+  hasMemo: false,
 };
 
 const Tomo = {
@@ -164,6 +175,7 @@ const Tomo = {
   isUTXOBased: false,
   humanReadableScale: 18,
   nativeScale: 0,
+  hasMemo: false,
 };
 
 const Ripple = {
@@ -175,6 +187,7 @@ const Ripple = {
   isUTXOBased: false,
   humanReadableScale: 0,
   nativeScale: 6,
+  hasMemo: true,
 };
 
 const Stellar = {
@@ -186,6 +199,7 @@ const Stellar = {
   isUTXOBased: false,
   humanReadableScale: 0,
   nativeScale: 6,
+  hasMemo: true,
 };
 
 const Nem = {
@@ -197,6 +211,7 @@ const Nem = {
   isUTXOBased: false,
   humanReadableScale: 6,
   nativeScale: 0,
+  hasMemo: true,
 };
 
 const Tron = {
@@ -208,6 +223,7 @@ const Tron = {
   isUTXOBased: true,
   humanReadableScale: 8,
   nativeScale: 6,
+  hasMemo: false,
 };
 
 const Binance = {
@@ -219,6 +235,7 @@ const Binance = {
   isUTXOBased: false,
   humanReadableScale: 8,
   nativeScale: 0,
+  hasMemo: true,
 };
 
 const Terra = {
@@ -231,6 +248,7 @@ const Terra = {
   humanReadableScale: 8,
   nativeScale: 0,
   hdPath: `m/44'/330'/0'/0/`,
+  hasMemo: true,
 };
 
 const nativeCurrencies: ICurrency[] = [
@@ -316,6 +334,7 @@ export class CurrencyRegistry {
       propertyId,
       humanReadableScale: 0,
       nativeScale: scale,
+      hasMemo: false,
     };
 
     allOmniAssets.push(currency);
@@ -347,6 +366,7 @@ export class CurrencyRegistry {
       decimals,
       humanReadableScale: decimals,
       nativeScale: 0,
+      hasMemo: false,
     };
 
     allErc20Tokens.push(currency);
@@ -392,6 +412,7 @@ export class CurrencyRegistry {
       decimals,
       humanReadableScale: decimals,
       nativeScale: 0,
+      hasMemo: false,
     };
 
     allTrc20Tokens.push(currency);
@@ -414,6 +435,7 @@ export class CurrencyRegistry {
       code,
       humanReadableScale: 0,
       nativeScale: scale,
+      hasMemo: true,
     };
 
     allEosTokens.push(currency);
@@ -436,6 +458,7 @@ export class CurrencyRegistry {
       humanReadableScale: scale,
       nativeScale: 0,
       originSymbol,
+      hasMemo: true,
     };
 
     allBepTokens.push(currency);
@@ -459,6 +482,7 @@ export class CurrencyRegistry {
       nativeScale: 0,
       code,
       hdPath: CurrencyRegistry.getOneCurrency(BlockchainPlatform.Terra).hdPath,
+      hasMemo: true,
     };
 
     allTerraTokens.push(currency);

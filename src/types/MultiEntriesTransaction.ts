@@ -1,44 +1,48 @@
-import { BlockHeader, Transaction, TransferEntry } from './';
-import { BigNumber, ICurrency } from '../..';
+import { Transaction } from './Transaction';
+import { ICurrency } from '../interfaces';
+import { BlockHeader } from './BlockHeader';
+import TransferEntry from './TransferEntry';
+import { BigNumber } from 'bignumber.js';
 
 export interface IMultiEntriesTransactionProps {
   readonly txid: string;
   readonly fee: BigNumber;
 }
 
-export interface IEntry {
+export interface IMultiEntriesTxEntry {
   readonly address: string;
   readonly currency: ICurrency;
   readonly amount: string;
 }
+// All in v Ins
+export interface IMultiEntriesTxProps {
+  readonly txid: string;
+  readonly inputs: IMultiEntriesTxEntry[];
+  readonly outputs: IMultiEntriesTxEntry[];
+  readonly block: BlockHeader;
+  readonly lastNetworkBlockNumber: number;
+}
 
-export class MultiEntriesTransaction extends Transaction {
-  public readonly block: BlockHeader;
-  public readonly outputs: IEntry[];
-  public readonly inputs: IEntry[];
-  public readonly fee: BigNumber;
-  constructor(
-    tx: IMultiEntriesTransactionProps,
-    outEntry: IEntry[],
-    inEntry: IEntry[],
-    block: BlockHeader,
-    lastNetworkBlockNumber: number
-  ) {
-    const txProps = {
-      confirmations: lastNetworkBlockNumber - block.number + 1,
-      height: block.number,
-      timestamp: block.timestamp,
-      txid: tx.txid,
-    };
-    super(txProps, block);
-    this.block = block;
-    this.inputs = inEntry;
-    this.outputs = outEntry;
-    this.fee = tx.fee;
+export abstract class MultiEntriesTransaction extends Transaction {
+  public readonly outputs: IMultiEntriesTxEntry[];
+  public readonly inputs: IMultiEntriesTxEntry[];
+  constructor(props: IMultiEntriesTxProps) {
+    super(
+      {
+        confirmations: props.lastNetworkBlockNumber - props.block.number + 1,
+        height: props.block.number,
+        timestamp: props.block.timestamp,
+        txid: props.txid,
+      },
+      props.block
+    );
+    this.inputs = props.inputs;
+    this.outputs = props.outputs;
   }
+
   public _extractEntries(): TransferEntry[] {
     const entries: TransferEntry[] = [];
-    // All in v Ins
+
     this.inputs.forEach(vIn => {
       const entry = this._convertVInToTransferEntry(vIn);
       if (entry) {
@@ -60,11 +64,7 @@ export class MultiEntriesTransaction extends Transaction {
     return Object.assign({}, super.getExtraDepositData(), {});
   }
 
-  public getNetworkFee(): BigNumber {
-    return this.fee;
-  }
-
-  protected _convertVInToTransferEntry(vIn: IEntry): TransferEntry {
+  protected _convertVInToTransferEntry(vIn: IMultiEntriesTxEntry): TransferEntry {
     return {
       amount: new BigNumber(-vIn.amount),
       currency: vIn.currency,
@@ -74,7 +74,7 @@ export class MultiEntriesTransaction extends Transaction {
     };
   }
 
-  protected _convertVoutToTransferEntry(vOut: IEntry): TransferEntry {
+  protected _convertVoutToTransferEntry(vOut: IMultiEntriesTxEntry): TransferEntry {
     return {
       amount: new BigNumber(vOut.amount),
       currency: vOut.currency,

@@ -29,6 +29,7 @@ export * from './src/BaseCurrencyWorker';
 export * from './src/BasePlatformWorker';
 export * from './src/BaseCrawler';
 export * from './src/BasePlatformCrawler';
+export * from './src/BitcoinBasedCrawler';
 export * from './src/NativeAssetCrawler';
 export * from './src/CustomAssetCrawler';
 export * from './src/BaseGateway';
@@ -42,6 +43,7 @@ export * from './src/RPCClient';
 export * from './src/Logger';
 export * from './src/RedisChannel';
 export * from './src/registries';
+export * from './src/Mailer';
 
 // External dependencies
 import BigNumber from 'bignumber.js';

@@ -66,6 +66,15 @@ export class EnvConfigRegistry {
   public static onNetworkChanged(func: (network: NetworkType) => void) {
     onNetworkChangedCallbacks.push(func);
   }
+
+  // 30/12/2019 Check whether the redis environment is enabled
+  public static isUsingRedis(): boolean {
+    const redisEnabled = EnvConfigRegistry.getCustomEnvConfig('REDIS_ENABLED');
+    if (redisEnabled && redisEnabled === 'true') {
+      return true;
+    }
+    return false;
+  }
 }
 
 export default EnvConfigRegistry;
