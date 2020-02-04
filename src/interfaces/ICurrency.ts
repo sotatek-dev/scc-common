@@ -36,6 +36,8 @@ export interface ICurrency {
   // - In Bitcoion it's 0: native runtime consume satoshi, and satoshi is indivisible
   // - In Ripple it's 6: native runtime consume xrp, and xrp can be divided to 0.000001 (10^-6)
   readonly nativeScale: number;
+
+  readonly hdPath?: string;
 }
 
 export default ICurrency;
@@ -66,4 +68,8 @@ export interface IOmniAsset extends IToken {
 export interface IEosToken extends IToken {
   readonly code: string;
   readonly networkSymbol: string;
+}
+
+export interface ITerraToken extends IToken {
+  readonly code: string;
 }

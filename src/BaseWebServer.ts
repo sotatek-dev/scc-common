@@ -109,6 +109,22 @@ export abstract class BaseWebServer {
     return res.json(normalizedAddr);
   }
 
+  protected generateSeed(req: any, res: any) {
+    const mnemonic = this.getGateway(this._currency.symbol).generateSeed();
+    logger.info(`WebService::generateSeed`);
+    return res.json(mnemonic);
+  }
+
+  protected async createNewHdWalletAddress(req: any, res: any) {
+    const { accountIndex, path, seed } = req.query;
+    const address = await this.getGateway(this._currency.symbol).createAccountHdWalletAsync({
+      accountIndex,
+      path,
+      seed,
+    });
+    return res.json(address);
+  }
+
   protected setup() {
     this.app.use(morgan('dev'));
 
@@ -162,6 +178,24 @@ export abstract class BaseWebServer {
         await this.normalizeAddress(req, res);
       } catch (e) {
         logger.error(`convertChecksumAddress err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.toString() });
+      }
+    });
+
+    this.app.get('/api/:currency/generate_seed', async (req, res) => {
+      try {
+        await this.generateSeed(req, res);
+      } catch (e) {
+        logger.error(`generateSeed err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.toString() });
+      }
+    });
+
+    this.app.get('/api/:currency/address/hd_wallet', async (req, res) => {
+      try {
+        await this.createNewHdWalletAddress(req, res);
+      } catch (e) {
+        logger.error(`createNewHdWalletAddress err=${util.inspect(e)}`);
         res.status(500).json({ error: e.toString() });
       }
     });

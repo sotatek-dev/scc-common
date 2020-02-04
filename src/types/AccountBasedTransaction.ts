@@ -19,6 +19,7 @@ export abstract class AccountBasedTransaction extends Transaction {
   public readonly fromAddress: Address;
   public readonly toAddress: Address;
   public readonly amount: BigNumber;
+  public readonly currency: ICurrency;
 
   constructor(currency: ICurrency, tx: IAccountBasedTransactionProps, block: BlockHeader) {
     // Construct tx props
@@ -30,8 +31,9 @@ export abstract class AccountBasedTransaction extends Transaction {
     };
 
     // Construct base transaction
-    super(currency, txProps, block);
+    super(txProps, block);
 
+    this.currency = currency;
     this.fromAddress = tx.fromAddress;
     this.toAddress = tx.toAddress;
     this.amount = tx.amount;
