@@ -1,100 +1,57 @@
-# cc-common
-
-## Environment preparation
-
-### EnvConfig
-
-- EnvConfig can be set via `EnvConfigRegistry::setCustomEnvConfig` method
-- These variables are usually set in `.env` file or database, depends on particular project
-
-### Currencies
-
-- Native currencies are all fixed in source code, and registered into `CurrencyRegistry` by default.
-- Custom currencies (like ERC20 tokens, Omni assets, ...) are loaded from other source (like user inputs, database, ...), then registered into `CurrencyRegistry` via one of these methods:
-  - CurrencyRegistry::registerOmniAsset
-  - CurrencyRegistry::registerErc20Token
-  - CurrencyRegistry::registerEosToken
-
-### Gateways
-
-- A gateway can be registered by `GatewayRegistry::registerLazyCreateMethod` method
-- For the platform gateways which can be constructed directly, just remember to call the registration method on top of the gateway module straightforwardly. For example:
+# Quick Start
 
 ```js
-GatewayRegistry.registerLazyCreateMethod(CurrencyRegistry.Bitcoin, () => new BtcGateway());
+const { CurrencyRegistry, GatewayRegistry } = require("sota-common");
+require("sota-eth");
+require("sota-btc");
 
-export class BtcGateway extends BitcoinBasedGateway {
-  // BtcGateway implementation here...
+async function prepareEnvironment() {
+  CurrencyRegistry.setCurrencyConfig(CurrencyRegistry.Ethereum, {
+    restEndpoint: `https://rinkeby.infura.io/v3/${process.env.INFURA_PROJECT_ID}`
+  });
+
+  const btcRPCConfig = {
+    protocol: process.env.BTC_RPC_PROTOCOL,
+    host: process.env.BTC_RPC_HOST,
+    port: process.env.BTC_RPC_PORT,
+    user: process.env.BTC_RPC_USER,
+    pass: process.env.BTC_RPC_PASS
+  };
+
+  CurrencyRegistry.setCurrencyConfig(CurrencyRegistry.Bitcoin, {
+    rpcEndpoint: JSON.stringify(btcRPCConfig),
+    restEndpoint: process.env.BTC_REST_ENDPOINT // http://priv-btc-explorer.sotatek.com/api
+  });
 }
-```
 
-- For the custom gateways which need parameters on constructor, detect everytime a custom currency is registered into `CurrencyRegistry`, also register the corresponding gateway to the `GatewayRegistry`. For example:
+async function main() {
+  await prepareEnvironment();
+  const ethGateway = GatewayRegistry.getGatewayInstance(
+    CurrencyRegistry.Ethereum
+  );
+  const contractAddress = "0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa";
+  const tokenInfo = await ethGateway.getErc20TokenInfo(contractAddress);
+  console.log(tokenInfo);
 
-```js
-CurrencyRegistry.onOmniAssetRegistered((asset: IOmniAsset) => {
-  GatewayRegistry.registerLazyCreateMethod(asset, () => new OmniGateway(asset));
-});
+  const btcGateway = GatewayRegistry.getGatewayInstance(
+    CurrencyRegistry.Bitcoin
+  );
+  const blockCount = await btcGateway.getBlockCount();
+  console.log(`Current block count: ${blockCount}`);
 
-export class OmniGateway extends AccountBasedGateway {
-  // OmniGateway implementation here...
+  const txid =
+    "4570f2cf7dc65a0fb80920b19c727563b19e392fce3f11d399e72d326d82fe8d";
+  const tx = await btcGateway.getOneTransaction(txid);
+  console.log(tx);
 }
-```
 
-### Currency configs
-
-- They consist information about the API endpoints, JSON-RPC endpoints, ... that will be utilized when communicating with blockchain network.
-- As other kind of configurations, these information can be come from database or anywhere. But no matter where they come from, just load them to the core app via `CurrencyRegistry::setCurrencyConfig` method.
-
-### Settle environment
-
-- Finally just put an `await settleEnvironment()` statement. Actually there's no much things that have to be resolved now, but we reserve this mechanism for the future, when the things become more complicated.
-- Complete example for a environment preparation method:
-
-```js
-export async function prepareEnvironment(): Promise<void> {
-  // First create and get connection to database
-  await createConnection({
-    // DB connection config here...
+main()
+  .then(() => {
+    console.log(`FINISHED.`);
+    process.exit(0);
+  })
+  .catch(e => {
+    console.error(e);
+    process.exit(1);
   });
-  const connection = getConnection();
-
-  // Then load the configurations and dynamic data from db
-  // These informations may come from other source like static json files, .env files, ... depends on each particular project
-  const [currencyConfigs, envConfigs, omniTokens, eosTokens] = await Promise.all([
-    connection.getRepository(CurrencyConfig).find({}),
-    connection.getRepository(EnvConfig).find({}),
-    connection.getRepository(OmniToken).find({}),
-    connection.getRepository(EosToken).find({})
-  ]);
-
-  // Setup EnvConfig
-  envConfigs.forEach(config => {
-    EnvConfigRegistry.setCustomEnvConfig(config.key, config.value);
-  });
-
-  // Register custom currencies
-  eosTokens.forEach(token => {
-    CurrencyRegistry.registerEosToken(token.code, token.symbol, token.scale);
-  });
-
-  omniTokens.forEach(token => {
-    CurrencyRegistry.registerOmniAsset(token.propertyId, token.symbol, token.name, token.scale);
-  });
-
-  // Load currencies config
-  currencyConfigs.forEach(config => {
-    if (!CurrencyRegistry.hasOneCurrency(config.currency)) {
-      throw new Error(`There's config for unknown currency: ${config.currency}`);
-    }
-
-    const currency = CurrencyRegistry.getOneCurrency(config.currency);
-    CurrencyRegistry.setCurrencyConfig(currency, config);
-  });
-
-  // Wait a little bit, until all the environment is settled
-  await settleEnvironment();
-
-  // The environment is ready now. Continue your work here. Happy coding...
-  return;
-}
 ```
