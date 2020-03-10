@@ -26,21 +26,16 @@ async function prepareEnvironment() {
 
 async function main() {
   await prepareEnvironment();
-  const ethGateway = GatewayRegistry.getGatewayInstance(
-    CurrencyRegistry.Ethereum
-  );
+  const ethGateway = GatewayRegistry.getGatewayInstance(CurrencyRegistry.Ethereum);
   const contractAddress = "0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa";
   const tokenInfo = await ethGateway.getErc20TokenInfo(contractAddress);
   console.log(tokenInfo);
 
-  const btcGateway = GatewayRegistry.getGatewayInstance(
-    CurrencyRegistry.Bitcoin
-  );
+  const btcGateway = GatewayRegistry.getGatewayInstance(CurrencyRegistry.Bitcoin);
   const blockCount = await btcGateway.getBlockCount();
   console.log(`Current block count: ${blockCount}`);
 
-  const txid =
-    "4570f2cf7dc65a0fb80920b19c727563b19e392fce3f11d399e72d326d82fe8d";
+  const txid = "4570f2cf7dc65a0fb80920b19c727563b19e392fce3f11d399e72d326d82fe8d";
   const tx = await btcGateway.getOneTransaction(txid);
   console.log(tx);
 }
