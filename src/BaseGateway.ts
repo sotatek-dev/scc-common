@@ -244,6 +244,15 @@ export abstract class BaseGateway {
     return txs;
   }
 
+  public async estimateFee(options: {
+    isConsolidate: boolean;
+    useLowerNetworkFee?: boolean;
+    totalInputs: number;
+    recentWithdrawalFee: number;
+  }): Promise<BigNumber> {
+    return new BigNumber(0);
+  }
+
   /**
    * No param
    * Returns the number of blocks in the local best block chain.

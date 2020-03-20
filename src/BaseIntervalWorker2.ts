@@ -8,8 +8,9 @@ import { IIntervalWorkerOptions } from './interfaces';
 export class BaseIntervalWorker2 extends BaseIntervalWorker {
   protected _options: IIntervalWorkerOptions;
 
-  public CurrencyIntervalWorker2(options: IIntervalWorkerOptions) {
+  public setOptions(options: IIntervalWorkerOptions) {
     this._options = options;
+    return this;
   }
 
   protected async prepare() {
