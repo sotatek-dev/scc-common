@@ -251,6 +251,18 @@ const Terra = {
   hasMemo: true,
 };
 
+const Sirius = {
+  symbol: BlockchainPlatform.Sirius,
+  networkSymbol: BlockchainPlatform.Sirius,
+  name: 'xpx',
+  platform: BlockchainPlatform.Sirius,
+  isNative: true,
+  isUTXOBased: false,
+  humanReadableScale: 6,
+  nativeScale: 0,
+  hasMemo: true,
+};
+
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
@@ -270,6 +282,7 @@ const nativeCurrencies: ICurrency[] = [
   Tron,
   Binance,
   Terra,
+  Sirius,
 ];
 
 export class CurrencyRegistry {
@@ -291,6 +304,7 @@ export class CurrencyRegistry {
   public static readonly Tron: ICurrency = Tron;
   public static readonly Binance: ICurrency = Binance;
   public static readonly Terra: ICurrency = Terra;
+  public static readonly Sirius: ICurrency = Sirius;
 
   /**
    * Register a currency on environment data
