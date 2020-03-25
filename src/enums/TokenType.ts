@@ -5,4 +5,5 @@ export enum TokenType {
   NEP5 = 'nep5',
   EOS = 'eos',
   BEP = 'bep',
+  TERRA = 'terra',
 }
