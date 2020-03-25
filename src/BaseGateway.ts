@@ -19,6 +19,9 @@ import { ICurrencyConfig, ISignedRawTransaction, ISubmittedTransaction } from '.
 import CurrencyRegistry from './registries/CurrencyRegistry';
 import GatewayRegistry from './registries/GatewayRegistry';
 import pLimit from 'p-limit';
+import hdkey from 'hdkey';
+import bip39 from 'bip39';
+import AccountHdWallet from './types/AccountHdWallet';
 
 CurrencyRegistry.onCurrencyConfigSet((currency: ICurrency, config: ICurrencyConfig) => {
   const gateway = GatewayRegistry.getGatewayInstance(currency);
@@ -28,6 +31,12 @@ CurrencyRegistry.onCurrencyConfigSet((currency: ICurrency, config: ICurrencyConf
     });
   }
 });
+
+export interface IParamsHDWallet {
+  seed: string;
+  accountIndex: string;
+  path: string;
+}
 
 const logger = getLogger('BaseGateway');
 /**
@@ -84,6 +93,33 @@ export abstract class BaseGateway {
    * @returns {Account} the account object
    */
   public abstract async createAccountAsync(): Promise<Account>;
+
+  public async createAccountHdWalletAsync(params: IParamsHDWallet): Promise<AccountHdWallet> {
+    const privateKey = await this.generatePrivateKeyHdWalletAsync(params);
+    const address = await this.getAccountFromPrivateKey(privateKey);
+    const path = params.path ? params.path : this._currency.hdPath;
+    return new AccountHdWallet(privateKey, address.address, path + params.accountIndex.toString());
+  }
+
+  public async generatePrivateKeyHdWalletAsync(params: IParamsHDWallet): Promise<string> {
+    const path = params.path ? params.path : this._currency.hdPath;
+    if (!path) {
+      throw new Error(`The curreny's hd path has set up`);
+    }
+    const seed = params.seed;
+    const index = params.accountIndex;
+    if (!seed || (index === null || typeof index === 'undefined')) {
+      throw new Error(`Need seed and accountIndex to create addresses`);
+    }
+    const root = hdkey.fromMasterSeed(seed);
+    const addrnode = root.derive(path + index.toString());
+    const privateKey = addrnode._privateKey.toString('hex');
+    return privateKey;
+  }
+
+  public generateSeed() {
+    return bip39.generateMnemonic();
+  }
 
   public abstract async getAccountFromPrivateKey(privateKey: string): Promise<Account>;
 

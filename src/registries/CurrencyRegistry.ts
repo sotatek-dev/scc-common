@@ -1,5 +1,5 @@
 import { getLogger } from '../Logger';
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType } from '../enums';
 
@@ -16,6 +16,7 @@ const allTrc20Tokens: IErc20TokenTomo[] = [];
 const allOmniAssets: IOmniAsset[] = [];
 const allEosTokens: IEosToken[] = [];
 const allBepTokens: IBepToken[] = [];
+const allTerraTokens: ITerraToken[] = [];
 
 const onCurrencyRegisteredCallbacks: Array<(currency: ICurrency) => void> = [];
 const onSpecificCurrencyRegisteredCallbacks = new Map<string, Array<() => void>>();
@@ -27,6 +28,7 @@ const eventCallbacks = {
   'omni-registered': Array<(asset: IOmniAsset) => void>(),
   'eos-token-registered': Array<(asset: IEosToken) => void>(),
   'bep-token-registered': Array<(asset: IBepToken) => void>(),
+  'terra-token-registered': Array<(asset: ITerraToken) => void>(),
 };
 
 /**
@@ -236,6 +238,19 @@ const Binance = {
   hasMemo: true,
 };
 
+const Terra = {
+  symbol: BlockchainPlatform.Terra,
+  networkSymbol: BlockchainPlatform.Terra,
+  name: 'Terra',
+  platform: BlockchainPlatform.Terra,
+  isNative: true,
+  isUTXOBased: false,
+  humanReadableScale: 8,
+  nativeScale: 0,
+  hdPath: `m/44'/330'/0'/0/`,
+  hasMemo: true,
+};
+
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
@@ -254,6 +269,7 @@ const nativeCurrencies: ICurrency[] = [
   Nem,
   Tron,
   Binance,
+  Terra,
 ];
 
 export class CurrencyRegistry {
@@ -274,6 +290,7 @@ export class CurrencyRegistry {
   public static readonly Nem: ICurrency = Nem;
   public static readonly Tron: ICurrency = Tron;
   public static readonly Binance: ICurrency = Binance;
+  public static readonly Terra: ICurrency = Terra;
 
   /**
    * Register a currency on environment data
@@ -450,6 +467,30 @@ export class CurrencyRegistry {
     return CurrencyRegistry.registerCurrency(currency);
   }
 
+  public static registerTerraToken(code: string, networkSymbol: string, scale: number): boolean {
+    const platform = BlockchainPlatform.Terra;
+    const symbol = [TokenType.TERRA, networkSymbol].join('.');
+    const currency: ITerraToken = {
+      symbol,
+      networkSymbol,
+      tokenType: TokenType.TERRA,
+      name: code,
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      humanReadableScale: scale,
+      nativeScale: 0,
+      code,
+      hdPath: CurrencyRegistry.getOneCurrency(BlockchainPlatform.Terra).hdPath,
+      hasMemo: true,
+    };
+
+    allTerraTokens.push(currency);
+    eventCallbacks['terra-token-registered'].forEach(callback => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
   public static getOneOmniAsset(propertyId: number): IOmniAsset {
     const symbol = [TokenType.OMNI, propertyId].join('.');
     return CurrencyRegistry.getOneCurrency(symbol) as IOmniAsset;
@@ -474,6 +515,10 @@ export class CurrencyRegistry {
 
   public static getAllTrc20Tokens(): IErc20Token[] {
     return allTrc20Tokens;
+  }
+
+  public static getAllTerraTokens(): ITerraToken[] {
+    return allTerraTokens;
   }
 
   public static getOneEosToken(contractAddress: string): IEosToken {
@@ -583,6 +628,10 @@ export class CurrencyRegistry {
 
       case BlockchainPlatform.Binance:
         result.push(...CurrencyRegistry.getAllBepTokens());
+        break;
+
+      case BlockchainPlatform.Terra:
+        result.push(...CurrencyRegistry.getAllTerraTokens());
         break;
 
       default:
@@ -737,6 +786,16 @@ export class CurrencyRegistry {
     }
 
     eventCallbacks['bep-token-registered'].push(callback);
+  }
+
+  public static onTerraTokenRegistered(callback: (token: ITerraToken) => void) {
+    if (allTerraTokens.length) {
+      allTerraTokens.forEach(token => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['terra-token-registered'].push(callback);
   }
 
   /**
