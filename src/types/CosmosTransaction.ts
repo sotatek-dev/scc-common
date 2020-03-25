@@ -1,5 +1,5 @@
 import { BlockHeader, IMultiEntriesTxEntry } from '../..';
-import { IMultiEntriesTransactionProps, MultiEntriesTransaction } from './MultiEntriesTransaction';
+import { MultiEntriesTransaction, IMultiEntriesTxProps } from './MultiEntriesTransaction';
 import BigNumber from 'bignumber.js';
 
 export const TypeTx = {
@@ -22,10 +22,12 @@ export interface ICosmosRawTransaction {
   readonly gas: number;
 }
 
-export interface ICosmosTransactionProps extends IMultiEntriesTransactionProps {
+export interface ICosmosTransactionProps {
   readonly memo: string;
   readonly gas: number;
   readonly txType: string;
+  readonly txid: string;
+  readonly fee: BigNumber;
 }
 
 export class CosmosTransaction extends MultiEntriesTransaction {
@@ -40,7 +42,7 @@ export class CosmosTransaction extends MultiEntriesTransaction {
     block: BlockHeader,
     lastNetworkBlockNumber: number
   ) {
-    const props = {
+    const props: IMultiEntriesTxProps = {
       outputs,
       inputs,
       block,
