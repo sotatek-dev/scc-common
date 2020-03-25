@@ -1,5 +1,5 @@
 import { getLogger } from '../Logger';
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ISiriusMosaic } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType } from '../enums';
 
@@ -17,6 +17,7 @@ const allOmniAssets: IOmniAsset[] = [];
 const allEosTokens: IEosToken[] = [];
 const allBepTokens: IBepToken[] = [];
 const allTerraTokens: ITerraToken[] = [];
+const allSiriusMosaics: ISiriusMosaic[] = [];
 
 const onCurrencyRegisteredCallbacks: Array<(currency: ICurrency) => void> = [];
 const onSpecificCurrencyRegisteredCallbacks = new Map<string, Array<() => void>>();
@@ -29,6 +30,7 @@ const eventCallbacks = {
   'eos-token-registered': Array<(asset: IEosToken) => void>(),
   'bep-token-registered': Array<(asset: IBepToken) => void>(),
   'terra-token-registered': Array<(asset: ITerraToken) => void>(),
+  'sirius-mosaic-registered': Array<(asset: ISiriusMosaic) => void>(),
 };
 
 /**
@@ -251,6 +253,18 @@ const Terra = {
   hasMemo: true,
 };
 
+const Sirius = {
+  symbol: BlockchainPlatform.Sirius,
+  networkSymbol: BlockchainPlatform.Sirius,
+  name: 'Sirius',
+  platform: BlockchainPlatform.Sirius,
+  isNative: true,
+  isUTXOBased: false,
+  humanReadableScale: 6,
+  nativeScale: 0,
+  hasMemo: true,
+};
+
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
@@ -270,6 +284,7 @@ const nativeCurrencies: ICurrency[] = [
   Tron,
   Binance,
   Terra,
+  Sirius,
 ];
 
 export class CurrencyRegistry {
@@ -291,6 +306,7 @@ export class CurrencyRegistry {
   public static readonly Tron: ICurrency = Tron;
   public static readonly Binance: ICurrency = Binance;
   public static readonly Terra: ICurrency = Terra;
+  public static readonly Sirius: ICurrency = Sirius;
 
   /**
    * Register a currency on environment data
@@ -491,6 +507,44 @@ export class CurrencyRegistry {
     return CurrencyRegistry.registerCurrency(currency);
   }
 
+  public static registerSiriusMosaic(
+    mosaicId: string,
+    networkSymbol: string,
+    divisibility: number,
+    duration?: number,
+    supplyMutable?: number,
+    transferable?: number,
+    alias?: string,
+    namespaceId?: string
+  ): boolean {
+    const platform = BlockchainPlatform.Sirius;
+    const symbol = [TokenType.SIRIUS, networkSymbol].join('.');
+    const currency: ISiriusMosaic = {
+      symbol,
+      networkSymbol,
+      tokenType: TokenType.SIRIUS,
+      name: mosaicId,
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      humanReadableScale: divisibility,
+      nativeScale: 0,
+      duration,
+      transferable,
+      supplyMutable,
+      alias,
+      namespaceId,
+      hasMemo: true,
+      mosaicId,
+      divisibility,
+    };
+
+    allSiriusMosaics.push(currency);
+    eventCallbacks['sirius-mosaic-registered'].forEach(callback => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
   public static getOneOmniAsset(propertyId: number): IOmniAsset {
     const symbol = [TokenType.OMNI, propertyId].join('.');
     return CurrencyRegistry.getOneCurrency(symbol) as IOmniAsset;
@@ -519,6 +573,10 @@ export class CurrencyRegistry {
 
   public static getAllTerraTokens(): ITerraToken[] {
     return allTerraTokens;
+  }
+
+  public static getAllSiriusMosaics(): ISiriusMosaic[] {
+    return allSiriusMosaics;
   }
 
   public static getOneEosToken(contractAddress: string): IEosToken {
@@ -632,6 +690,10 @@ export class CurrencyRegistry {
 
       case BlockchainPlatform.Terra:
         result.push(...CurrencyRegistry.getAllTerraTokens());
+        break;
+
+      case BlockchainPlatform.Sirius:
+        result.push(...CurrencyRegistry.getAllSiriusMosaics());
         break;
 
       default:
@@ -796,6 +858,16 @@ export class CurrencyRegistry {
     }
 
     eventCallbacks['terra-token-registered'].push(callback);
+  }
+
+  public static onSiriusMosaicRegistered(callback: (token: ISiriusMosaic) => void) {
+    if (allSiriusMosaics.length) {
+      allSiriusMosaics.forEach(token => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['sirius-mosaic-registered'].push(callback);
   }
 
   /**

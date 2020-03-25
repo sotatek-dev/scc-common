@@ -80,3 +80,13 @@ export interface IBepToken extends IToken {
 export interface ITerraToken extends IToken {
   readonly code: string;
 }
+
+export interface ISiriusMosaic extends IToken {
+  readonly mosaicId: string;
+  readonly namespaceId?: string;
+  readonly alias?: string;
+  readonly divisibility?: number;
+  readonly duration?: number;
+  readonly supplyMutable?: number;
+  readonly transferable?: number;
+}
