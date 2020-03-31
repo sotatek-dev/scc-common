@@ -111,9 +111,9 @@ export abstract class BaseGateway {
     if (!seed || (index === null || typeof index === 'undefined')) {
       throw new Error(`Need seed and accountIndex to create addresses`);
     }
-    const root = hdkey.fromMasterSeed(seed);
+    const root = hdkey.fromMasterSeed(new Buffer(seed, 'hex'));
     const addrnode = root.derive(path + index.toString());
-    const privateKey = addrnode._privateKey.toString('hex');
+    const privateKey = addrnode.privateKey.toString('hex');
     return privateKey;
   }
 

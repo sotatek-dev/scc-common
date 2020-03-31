@@ -85,8 +85,7 @@ export interface ISiriusMosaic extends IToken {
   readonly mosaicId: string;
   readonly namespaceId?: string;
   readonly alias?: string;
-  readonly divisibility?: number;
   readonly duration?: number;
-  readonly supplyMutable?: number;
-  readonly transferable?: number;
+  readonly supplyMutable?: boolean;
+  readonly transferable?: boolean;
 }

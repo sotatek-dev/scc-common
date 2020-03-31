@@ -512,8 +512,8 @@ export class CurrencyRegistry {
     networkSymbol: string,
     divisibility: number,
     duration?: number,
-    supplyMutable?: number,
-    transferable?: number,
+    supplyMutable?: boolean,
+    transferable?: boolean,
     alias?: string,
     namespaceId?: string
   ): boolean {
@@ -536,7 +536,6 @@ export class CurrencyRegistry {
       namespaceId,
       hasMemo: true,
       mosaicId,
-      divisibility,
     };
 
     allSiriusMosaics.push(currency);
