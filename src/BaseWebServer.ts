@@ -181,7 +181,7 @@ export abstract class BaseWebServer {
     return res.json(address);
   }
 
-  protected async _healthChecker() {
+  protected async checkHealth() {
     return { webService: { isOK: true } };
   }
 
@@ -252,7 +252,7 @@ export abstract class BaseWebServer {
     });
 
     this.app.get('/api/health', async (req, res) => {
-      res.status(200).json(await this._healthChecker());
+      res.status(200).json(await this.checkHealth());
     });
 
     this.app.get('/api/:currency/address/hd_wallet', async (req, res) => {
