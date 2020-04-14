@@ -3,6 +3,8 @@ import morgan from 'morgan';
 import util from 'util';
 import BaseGateway from './BaseGateway';
 import * as URL from 'url';
+import { Transaction } from './types';
+import BigNumber from 'bignumber.js';
 import { BlockchainPlatform } from './enums';
 import { getLogger } from './Logger';
 import { ICurrency } from './interfaces';
@@ -73,7 +75,13 @@ export abstract class BaseWebServer {
   protected async getTransactionDetails(req: any, res: any) {
     const { currency, txid } = req.params;
     // TODO: Update check txid
+    // TODO: currently hard code for workaround. Fix me later...
+    if (currency.startsWith('erc20.')) {
+      return this._getErc20TransactionDetails(req, res);
+    }
+
     const tx = await this.getGateway(currency).getOneTransaction(txid);
+
     if (!tx) {
       return res.status(404).json({ error: `Transaction not found: ${txid}` });
     }
@@ -87,6 +95,8 @@ export abstract class BaseWebServer {
         valueString: e.amount.toFixed(),
       });
     });
+    // 24/12/2019 get transaction fee
+    const fee = tx.getNetworkFee();
 
     let resObj = {
       id: txid,
@@ -95,10 +105,56 @@ export abstract class BaseWebServer {
       blockHash: tx.block.hash,
       blockHeight: tx.block.number,
       confirmations: tx.confirmations,
+      txFee: fee.toString(),
       entries,
     };
 
     resObj = { ...resObj, ...tx.extractAdditionalField() };
+    return res.json(resObj);
+  }
+
+  // TODO: FIXME
+  // This workaround is pretty ugly, need fix
+  protected async _getErc20TransactionDetails(req: any, res: any) {
+    const { currency, txid } = req.params;
+    const gw = this.getGateway(currency) as any;
+    const txs = await gw.getTransactionsByTxid(txid);
+
+    if (!txs || !txs.length) {
+      return res.status(404).json({ error: `Transaction not found: ${txid}` });
+    }
+
+    const entries: any[] = [];
+    txs.forEach((tx: any) => {
+      const extractedEntries = tx.extractEntries();
+      extractedEntries.forEach((e: any) => {
+        const entry = entries.find(_e => _e.address === e.address);
+        if (entry) {
+          const value = new BigNumber(entry.value).plus(e.amount);
+          entry.value = value.toFixed();
+          entry.valueString = value.toFixed();
+          return;
+        }
+
+        entries.push({
+          address: e.address,
+          value: e.amount.toFixed(),
+          valueString: e.amount.toFixed(),
+        });
+      });
+    });
+
+    let resObj = {
+      id: txid,
+      date: '',
+      timestamp: txs[0].block.timestamp,
+      blockHash: txs[0].block.hash,
+      blockHeight: txs[0].block.number,
+      confirmations: txs[0].confirmations,
+      entries,
+    };
+
+    resObj = { ...resObj, ...txs[0].extractAdditionalField() };
     return res.json(resObj);
   }
 
@@ -107,6 +163,26 @@ export abstract class BaseWebServer {
     const normalizedAddr = await this.getGateway(this._currency.symbol).normalizeAddress(address);
     logger.info(`WebService::normalizeAddress address=${address} result=${normalizedAddr}`);
     return res.json(normalizedAddr);
+  }
+
+  protected generateSeed(req: any, res: any) {
+    const mnemonic = this.getGateway(this._currency.symbol).generateSeed();
+    logger.info(`WebService::generateSeed`);
+    return res.json(mnemonic);
+  }
+
+  protected async createNewHdWalletAddress(req: any, res: any) {
+    const { accountIndex, path, seed } = req.query;
+    const address = await this.getGateway(this._currency.symbol).createAccountHdWalletAsync({
+      accountIndex,
+      path,
+      seed,
+    });
+    return res.json(address);
+  }
+
+  protected async _healthChecker() {
+    return { webService: { isOK: true } };
   }
 
   protected setup() {
@@ -162,6 +238,28 @@ export abstract class BaseWebServer {
         await this.normalizeAddress(req, res);
       } catch (e) {
         logger.error(`convertChecksumAddress err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.toString() });
+      }
+    });
+
+    this.app.get('/api/:currency/generate_seed', async (req, res) => {
+      try {
+        await this.generateSeed(req, res);
+      } catch (e) {
+        logger.error(`generateSeed err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.toString() });
+      }
+    });
+
+    this.app.get('/api/health', async (req, res) => {
+      res.status(200).json(await this._healthChecker());
+    });
+
+    this.app.get('/api/:currency/address/hd_wallet', async (req, res) => {
+      try {
+        await this.createNewHdWalletAddress(req, res);
+      } catch (e) {
+        logger.error(`createNewHdWalletAddress err=${util.inspect(e)}`);
         res.status(500).json({ error: e.toString() });
       }
     });
