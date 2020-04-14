@@ -32,6 +32,7 @@ interface IRedisPromiseClient {
   setex(key: string, seconds: number, value: string): Promise<string>;
   set(key: string, value: string): Promise<string>;
   get(key: string): Promise<string>;
+  publish(channel: string, message: string): Promise<string>;
 }
 
 let client: RedisClient;
@@ -55,6 +56,7 @@ export function getClient() {
       setex: util.promisify(client.setex).bind(client),
       set: util.promisify(client.set).bind(client),
       get: util.promisify(client.get).bind(client),
+      publish: util.promisify(client.publish).bind(client),
     };
   }
   return promiseClient;
