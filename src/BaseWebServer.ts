@@ -5,7 +5,7 @@ import BaseGateway from './BaseGateway';
 import * as URL from 'url';
 import { Transaction } from './types';
 import BigNumber from 'bignumber.js';
-import { BlockchainPlatform } from './enums';
+import { BlockchainPlatform, WebServiceStatus } from './enums';
 import { getLogger } from './Logger';
 import { ICurrency } from './interfaces';
 import { CurrencyRegistry, GatewayRegistry } from './registries';
@@ -182,7 +182,7 @@ export abstract class BaseWebServer {
   }
 
   protected async checkHealth() {
-    return { webService: { isOK: true } };
+    return { webService: { status: WebServiceStatus.OK } };
   }
 
   protected setup() {
