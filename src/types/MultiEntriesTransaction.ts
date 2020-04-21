@@ -9,7 +9,7 @@ export interface IMultiEntriesTxEntry {
   readonly currency: ICurrency;
   readonly amount: string;
 }
-
+// All in v Ins
 export interface IMultiEntriesTxProps {
   readonly txid: string;
   readonly inputs: IMultiEntriesTxEntry[];
@@ -55,6 +55,9 @@ export abstract class MultiEntriesTransaction extends Transaction {
 
     return TransferEntry.mergeEntries(entries);
   }
+  public getExtraDepositData(): any {
+    return Object.assign({}, super.getExtraDepositData(), {});
+  }
 
   protected _convertVInToTransferEntry(vIn: IMultiEntriesTxEntry): TransferEntry {
     return {
@@ -76,3 +79,5 @@ export abstract class MultiEntriesTransaction extends Transaction {
     };
   }
 }
+
+export default MultiEntriesTransaction;
