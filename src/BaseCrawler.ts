@@ -124,6 +124,8 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
       toBlockNumber = latestNetworkBlock;
     }
 
+    logger.info(`BaseCrawler::doProcess fromBlock=${fromBlockNumber} toBlock=${toBlockNumber}`);
+
     /**
      * Actual crawl and process blocks
      * about 10 minutes timeout based on speed of gateway
