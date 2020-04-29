@@ -33,6 +33,8 @@ exports.implement = Utils_1.implement;
 __export(require("./src/types"));
 __export(require("./src/enums"));
 __export(require("./src/Logger"));
+__export(require("./src/BaseWorker"));
+__export(require("./src/BaseWorker2"));
 __export(require("./src/BaseIntervalWorker"));
 __export(require("./src/BaseIntervalWorker2"));
 __export(require("./src/BaseCurrencyWorker"));

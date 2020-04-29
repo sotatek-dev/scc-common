@@ -61,7 +61,6 @@ var express_1 = __importDefault(require("express"));
 var morgan_1 = __importDefault(require("morgan"));
 var util_1 = __importDefault(require("util"));
 var URL = __importStar(require("url"));
-var bignumber_js_1 = __importDefault(require("bignumber.js"));
 var Logger_1 = require("./Logger");
 var registries_1 = require("./registries");
 var logger = Logger_1.getLogger('BaseWebServer');
@@ -162,9 +161,6 @@ var BaseWebServer = (function () {
                 switch (_b.label) {
                     case 0:
                         _a = req.params, currency = _a.currency, txid = _a.txid;
-                        if (currency.startsWith('erc20.')) {
-                            return [2, this._getErc20TransactionDetails(req, res)];
-                        }
                         return [4, this.getGateway(currency).getOneTransaction(txid)];
                     case 1:
                         tx = _b.sent();
@@ -197,53 +193,6 @@ var BaseWebServer = (function () {
             });
         });
     };
-    BaseWebServer.prototype._getErc20TransactionDetails = function (req, res) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, currency, txid, gw, txs, entries, resObj;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _a = req.params, currency = _a.currency, txid = _a.txid;
-                        gw = this.getGateway(currency);
-                        return [4, gw.getTransactionsByTxid(txid)];
-                    case 1:
-                        txs = _b.sent();
-                        if (!txs || !txs.length) {
-                            return [2, res.status(404).json({ error: "Transaction not found: " + txid })];
-                        }
-                        entries = [];
-                        txs.forEach(function (tx) {
-                            var extractedEntries = tx.extractEntries();
-                            extractedEntries.forEach(function (e) {
-                                var entry = entries.find(function (_e) { return _e.address === e.address; });
-                                if (entry) {
-                                    var value = new bignumber_js_1.default(entry.value).plus(e.amount);
-                                    entry.value = value.toFixed();
-                                    entry.valueString = value.toFixed();
-                                    return;
-                                }
-                                entries.push({
-                                    address: e.address,
-                                    value: e.amount.toFixed(),
-                                    valueString: e.amount.toFixed(),
-                                });
-                            });
-                        });
-                        resObj = {
-                            id: txid,
-                            date: '',
-                            timestamp: txs[0].block.timestamp,
-                            blockHash: txs[0].block.hash,
-                            blockHeight: txs[0].block.number,
-                            confirmations: txs[0].confirmations,
-                            entries: entries,
-                        };
-                        resObj = __assign(__assign({}, resObj), txs[0].extractAdditionalField());
-                        return [2, res.json(resObj)];
-                }
-            });
-        });
-    };
     BaseWebServer.prototype.normalizeAddress = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
             var address, normalizedAddr;
@@ -260,10 +209,60 @@ var BaseWebServer = (function () {
             });
         });
     };
+    BaseWebServer.prototype.generateSeed = function (req, res) {
+        var mnemonic = this.getGateway(this._currency.symbol).generateSeed();
+        logger.info("WebService::generateSeed");
+        return res.json(mnemonic);
+    };
+    BaseWebServer.prototype.createNewHdWalletAddress = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a, accountIndex, path, seed, address;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = req.query, accountIndex = _a.accountIndex, path = _a.path, seed = _a.seed;
+                        return [4, this.getGateway(this._currency.symbol).createAccountHdWalletAsync({
+                                accountIndex: accountIndex,
+                                path: path,
+                                seed: seed,
+                            })];
+                    case 1:
+                        address = _b.sent();
+                        return [2, res.json(address)];
+                }
+            });
+        });
+    };
     BaseWebServer.prototype._healthChecker = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 return [2, { webService: { isOK: true } }];
+            });
+        });
+    };
+    BaseWebServer.prototype.estimateFee = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var currency, _a, total_inputs, recent_withdrawal_fee, use_lower_network_fee, totalInputs, currentCurrency, isConsolidate, fee;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        currency = req.params.currency;
+                        _a = req.query, total_inputs = _a.total_inputs, recent_withdrawal_fee = _a.recent_withdrawal_fee, use_lower_network_fee = _a.use_lower_network_fee;
+                        totalInputs = parseInt(total_inputs, 10);
+                        currentCurrency = registries_1.CurrencyRegistry.getOneCurrency(currency);
+                        isConsolidate = !currentCurrency.isNative;
+                        return [4, this.getGateway(currency).estimateFee({
+                                totalInputs: totalInputs,
+                                useLowerNetworkFee: use_lower_network_fee,
+                                isConsolidate: isConsolidate,
+                                recentWithdrawalFee: recent_withdrawal_fee,
+                            })];
+                    case 1:
+                        fee = _b.sent();
+                        return [2, res.json({
+                                fee: fee.toNumber(),
+                            })];
+                }
             });
         });
     };
@@ -384,6 +383,25 @@ var BaseWebServer = (function () {
                 }
             });
         }); });
+        this.app.get('/api/:currency/generate_seed', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+            var e_7;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4, this.generateSeed(req, res)];
+                    case 1:
+                        _a.sent();
+                        return [3, 3];
+                    case 2:
+                        e_7 = _a.sent();
+                        logger.error("generateSeed err=" + util_1.default.inspect(e_7));
+                        res.status(500).json({ error: e_7.toString() });
+                        return [3, 3];
+                    case 3: return [2];
+                }
+            });
+        }); });
         this.app.get('/api/health', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
             var _a, _b;
             return __generator(this, function (_c) {
@@ -394,6 +412,44 @@ var BaseWebServer = (function () {
                     case 1:
                         _b.apply(_a, [_c.sent()]);
                         return [2];
+                }
+            });
+        }); });
+        this.app.get('/api/:currency/address/hd_wallet', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+            var e_8;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4, this.createNewHdWalletAddress(req, res)];
+                    case 1:
+                        _a.sent();
+                        return [3, 3];
+                    case 2:
+                        e_8 = _a.sent();
+                        logger.error("createNewHdWalletAddress err=" + util_1.default.inspect(e_8));
+                        res.status(500).json({ error: e_8.toString() });
+                        return [3, 3];
+                    case 3: return [2];
+                }
+            });
+        }); });
+        this.app.get('/api/:currency/estimate_fee/:total_inputs*?/:recent_withdrawal_fee*?/:use_lower_network_fee*?', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+            var e_9;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4, this.estimateFee(req, res)];
+                    case 1:
+                        _a.sent();
+                        return [3, 3];
+                    case 2:
+                        e_9 = _a.sent();
+                        logger.error("estimate fee err=" + util_1.default.inspect(e_9));
+                        res.status(500).json({ error: e_9.toString() });
+                        return [3, 3];
+                    case 3: return [2];
                 }
             });
         }); });

@@ -16,12 +16,14 @@ export declare abstract class BaseWebServer {
     protected validateAddress(req: any, res: any): Promise<void>;
     protected isNeedTag(req: any, res: any): Promise<void>;
     protected getTransactionDetails(req: any, res: any): Promise<any>;
-    protected _getErc20TransactionDetails(req: any, res: any): Promise<any>;
     protected normalizeAddress(req: any, res: any): Promise<any>;
+    protected generateSeed(req: any, res: any): any;
+    protected createNewHdWalletAddress(req: any, res: any): Promise<any>;
     protected _healthChecker(): Promise<{
         webService: {
             isOK: boolean;
         };
     }>;
+    protected estimateFee(req: any, res: any): Promise<any>;
     protected setup(): void;
 }

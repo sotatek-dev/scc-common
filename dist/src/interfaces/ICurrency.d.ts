@@ -10,6 +10,7 @@ export interface ICurrency {
     readonly isNative: boolean;
     readonly humanReadableScale: number;
     readonly nativeScale: number;
+    readonly hdPath?: string;
     readonly hasMemo: boolean;
 }
 export default ICurrency;
@@ -37,4 +38,7 @@ export interface IEosToken extends IToken {
 }
 export interface IBepToken extends IToken {
     readonly originSymbol: string;
+}
+export interface ITerraToken extends IToken {
+    readonly code: string;
 }

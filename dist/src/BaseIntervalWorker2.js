@@ -58,8 +58,9 @@ var BaseIntervalWorker2 = (function (_super) {
     function BaseIntervalWorker2() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    BaseIntervalWorker2.prototype.CurrencyIntervalWorker2 = function (options) {
+    BaseIntervalWorker2.prototype.setOptions = function (options) {
         this._options = options;
+        return this;
     };
     BaseIntervalWorker2.prototype.prepare = function () {
         return __awaiter(this, void 0, void 0, function () {

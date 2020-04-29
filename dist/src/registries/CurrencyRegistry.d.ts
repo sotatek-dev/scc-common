@@ -1,4 +1,4 @@
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform } from '../enums';
 export declare class CurrencyRegistry {
@@ -19,6 +19,7 @@ export declare class CurrencyRegistry {
     static readonly Nem: ICurrency;
     static readonly Tron: ICurrency;
     static readonly Binance: ICurrency;
+    static readonly Terra: ICurrency;
     static registerCurrency(c: ICurrency): boolean;
     static registerOmniAsset(propertyId: number, networkSymbol: string, name: string, scale: number): boolean;
     static registerErc20Token(contractAddress: string, networkSymbol: string, name: string, decimals: number): boolean;
@@ -26,12 +27,14 @@ export declare class CurrencyRegistry {
     static registerTrc20Token(contractAddress: string, networkSymbol: string, name: string, decimals: number): boolean;
     static registerEosToken(code: string, networkSymbol: string, scale: number): boolean;
     static registerBepToken(originSymbol: string, networkSymbol: string, scale: number): boolean;
+    static registerTerraToken(code: string, networkSymbol: string, scale: number): boolean;
     static getOneOmniAsset(propertyId: number): IOmniAsset;
     static getAllOmniAssets(): IOmniAsset[];
     static getOneErc20Token(contractAddress: string): IErc20Token;
     static getAllBepTokens(): IBepToken[];
     static getAllErc20Tokens(): IErc20Token[];
     static getAllTrc20Tokens(): IErc20Token[];
+    static getAllTerraTokens(): ITerraToken[];
     static getOneEosToken(contractAddress: string): IEosToken;
     static getAllEosTokens(): IEosToken[];
     static getAllCurrencies(): ICurrency[];
@@ -49,6 +52,7 @@ export declare class CurrencyRegistry {
     static onOmniAssetRegistered(callback: (asset: IOmniAsset) => void): void;
     static onEOSTokenRegistered(callback: (token: IEosToken) => void): void;
     static onBepTokenRegistered(callback: (token: IBepToken) => void): void;
+    static onTerraTokenRegistered(callback: (token: ITerraToken) => void): void;
     static onCurrencyConfigSet(callback: (currency: ICurrency, config: ICurrencyConfig) => void): void;
     protected static unregisterCurrency(symbol: string): boolean;
 }

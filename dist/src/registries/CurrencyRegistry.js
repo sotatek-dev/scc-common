@@ -10,6 +10,7 @@ var allTrc20Tokens = [];
 var allOmniAssets = [];
 var allEosTokens = [];
 var allBepTokens = [];
+var allTerraTokens = [];
 var onCurrencyRegisteredCallbacks = [];
 var onSpecificCurrencyRegisteredCallbacks = new Map();
 var onCurrencyConfigSetCallbacks = [];
@@ -19,6 +20,7 @@ var eventCallbacks = {
     'omni-registered': Array(),
     'eos-token-registered': Array(),
     'bep-token-registered': Array(),
+    'terra-token-registered': Array(),
 };
 var Bitcoin = {
     symbol: enums_1.BlockchainPlatform.Bitcoin,
@@ -207,6 +209,18 @@ var Binance = {
     nativeScale: 0,
     hasMemo: true,
 };
+var Terra = {
+    symbol: enums_1.BlockchainPlatform.Terra,
+    networkSymbol: enums_1.BlockchainPlatform.Terra,
+    name: 'Terra',
+    platform: enums_1.BlockchainPlatform.Terra,
+    isNative: true,
+    isUTXOBased: false,
+    humanReadableScale: 8,
+    nativeScale: 0,
+    hdPath: "m/44'/330'/0'/0/",
+    hasMemo: true,
+};
 var nativeCurrencies = [
     Bitcoin,
     Ethereum,
@@ -225,6 +239,7 @@ var nativeCurrencies = [
     Nem,
     Tron,
     Binance,
+    Terra,
 ];
 var CurrencyRegistry = (function () {
     function CurrencyRegistry() {
@@ -360,6 +375,27 @@ var CurrencyRegistry = (function () {
         eventCallbacks['bep-token-registered'].forEach(function (callback) { return callback(currency); });
         return CurrencyRegistry.registerCurrency(currency);
     };
+    CurrencyRegistry.registerTerraToken = function (code, networkSymbol, scale) {
+        var platform = enums_1.BlockchainPlatform.Terra;
+        var symbol = [enums_1.TokenType.TERRA, networkSymbol].join('.');
+        var currency = {
+            symbol: symbol,
+            networkSymbol: networkSymbol,
+            tokenType: enums_1.TokenType.TERRA,
+            name: code,
+            platform: platform,
+            isNative: false,
+            isUTXOBased: false,
+            humanReadableScale: scale,
+            nativeScale: 0,
+            code: code,
+            hdPath: CurrencyRegistry.getOneCurrency(enums_1.BlockchainPlatform.Terra).hdPath,
+            hasMemo: true,
+        };
+        allTerraTokens.push(currency);
+        eventCallbacks['terra-token-registered'].forEach(function (callback) { return callback(currency); });
+        return CurrencyRegistry.registerCurrency(currency);
+    };
     CurrencyRegistry.getOneOmniAsset = function (propertyId) {
         var symbol = [enums_1.TokenType.OMNI, propertyId].join('.');
         return CurrencyRegistry.getOneCurrency(symbol);
@@ -379,6 +415,9 @@ var CurrencyRegistry = (function () {
     };
     CurrencyRegistry.getAllTrc20Tokens = function () {
         return allTrc20Tokens;
+    };
+    CurrencyRegistry.getAllTerraTokens = function () {
+        return allTerraTokens;
     };
     CurrencyRegistry.getOneEosToken = function (contractAddress) {
         var symbol = [enums_1.TokenType.EOS, contractAddress].join('.');
@@ -457,6 +496,9 @@ var CurrencyRegistry = (function () {
                 break;
             case enums_1.BlockchainPlatform.Binance:
                 result.push.apply(result, CurrencyRegistry.getAllBepTokens());
+                break;
+            case enums_1.BlockchainPlatform.Terra:
+                result.push.apply(result, CurrencyRegistry.getAllTerraTokens());
                 break;
             default:
                 throw new Error("CurrencyRegistry::getCurrenciesOfPlatform hasn't been implemented for " + platform + " yet.");
@@ -540,6 +582,14 @@ var CurrencyRegistry = (function () {
         }
         eventCallbacks['bep-token-registered'].push(callback);
     };
+    CurrencyRegistry.onTerraTokenRegistered = function (callback) {
+        if (allTerraTokens.length) {
+            allTerraTokens.forEach(function (token) {
+                callback(token);
+            });
+        }
+        eventCallbacks['terra-token-registered'].push(callback);
+    };
     CurrencyRegistry.onCurrencyConfigSet = function (callback) {
         onCurrencyConfigSetCallbacks.push(callback);
     };
@@ -567,6 +617,7 @@ var CurrencyRegistry = (function () {
     CurrencyRegistry.Nem = Nem;
     CurrencyRegistry.Tron = Tron;
     CurrencyRegistry.Binance = Binance;
+    CurrencyRegistry.Terra = Terra;
     return CurrencyRegistry;
 }());
 exports.CurrencyRegistry = CurrencyRegistry;

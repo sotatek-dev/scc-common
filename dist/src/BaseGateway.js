@@ -55,6 +55,9 @@ var __1 = require("..");
 var CurrencyRegistry_1 = __importDefault(require("./registries/CurrencyRegistry"));
 var GatewayRegistry_1 = __importDefault(require("./registries/GatewayRegistry"));
 var p_limit_1 = __importDefault(require("p-limit"));
+var hdkey_1 = __importDefault(require("hdkey"));
+var bip39_1 = __importDefault(require("bip39"));
+var AccountHdWallet_1 = __importDefault(require("./types/AccountHdWallet"));
 CurrencyRegistry_1.default.onCurrencyConfigSet(function (currency, config) {
     var gateway = GatewayRegistry_1.default.getGatewayInstance(currency);
     if (gateway) {
@@ -92,6 +95,46 @@ var BaseGateway = (function () {
                 logger.error("BaseGateway::constructor could not contruct RPC Client due to error: " + util_1.default.inspect(e));
             }
         }
+    };
+    BaseGateway.prototype.createAccountHdWalletAsync = function (params) {
+        return __awaiter(this, void 0, void 0, function () {
+            var privateKey, address, path;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this.generatePrivateKeyHdWalletAsync(params)];
+                    case 1:
+                        privateKey = _a.sent();
+                        return [4, this.getAccountFromPrivateKey(privateKey)];
+                    case 2:
+                        address = _a.sent();
+                        path = params.path ? params.path : this._currency.hdPath;
+                        return [2, new AccountHdWallet_1.default(privateKey, address.address, path + params.accountIndex.toString())];
+                }
+            });
+        });
+    };
+    BaseGateway.prototype.generatePrivateKeyHdWalletAsync = function (params) {
+        return __awaiter(this, void 0, void 0, function () {
+            var path, seed, index, root, addrnode, privateKey;
+            return __generator(this, function (_a) {
+                path = params.path ? params.path : this._currency.hdPath;
+                if (!path) {
+                    throw new Error("The curreny's hd path has set up");
+                }
+                seed = params.seed;
+                index = params.accountIndex;
+                if (!seed || (index === null || typeof index === 'undefined')) {
+                    throw new Error("Need seed and accountIndex to create addresses");
+                }
+                root = hdkey_1.default.fromMasterSeed(Buffer.from(seed));
+                addrnode = root.derive(path + index.toString());
+                privateKey = addrnode.privateKey.toString('hex');
+                return [2, privateKey];
+            });
+        });
+    };
+    BaseGateway.prototype.generateSeed = function () {
+        return bip39_1.default.generateMnemonic();
     };
     BaseGateway.prototype.isValidAddressAsync = function (address) {
         return __awaiter(this, void 0, void 0, function () {
@@ -252,6 +295,13 @@ var BaseGateway = (function () {
                         txs = _a.sent();
                         return [2, txs];
                 }
+            });
+        });
+    };
+    BaseGateway.prototype.estimateFee = function (options) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2, new __1.BigNumber(0)];
             });
         });
     };

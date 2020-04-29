@@ -1,6 +1,12 @@
 import LRU from 'lru-cache';
 import { Account, Block, Transaction, Transactions, TransactionStatus, RPCClient, ICurrency, BigNumber, IEndpointsStatus } from '..';
 import { ICurrencyConfig, ISignedRawTransaction, ISubmittedTransaction } from './interfaces';
+import AccountHdWallet from './types/AccountHdWallet';
+export interface IParamsHDWallet {
+    seed: string;
+    accountIndex: string;
+    path: string;
+}
 export declare abstract class BaseGateway {
     protected _cacheBlock: LRU<string | number, Block>;
     protected _cacheTxByHash: LRU<string, Transaction>;
@@ -11,6 +17,9 @@ export declare abstract class BaseGateway {
     getCurrencyConfig(): ICurrencyConfig;
     loadCurrencyConfig(): void;
     abstract createAccountAsync(): Promise<Account>;
+    createAccountHdWalletAsync(params: IParamsHDWallet): Promise<AccountHdWallet>;
+    generatePrivateKeyHdWalletAsync(params: IParamsHDWallet): Promise<string>;
+    generateSeed(): string;
     abstract getAccountFromPrivateKey(privateKey: string): Promise<Account>;
     isValidAddressAsync(address: string): Promise<boolean>;
     isNeedTagAsync(address: string): Promise<boolean>;
@@ -22,6 +31,12 @@ export declare abstract class BaseGateway {
     getOneBlock(blockHash: string | number): Promise<Block>;
     getMultiBlocksTransactions(fromBlockNumber: number, toBlockNumber: number): Promise<Transactions>;
     getBlockTransactions(blockNumber: string | number): Promise<Transactions>;
+    estimateFee(options: {
+        isConsolidate: boolean;
+        useLowerNetworkFee?: boolean;
+        totalInputs: number;
+        recentWithdrawalFee: number;
+    }): Promise<BigNumber>;
     abstract getBlockCount(): Promise<number>;
     abstract getAddressBalance(address: string): Promise<BigNumber>;
     abstract getTransactionStatus(txid: string): Promise<TransactionStatus>;

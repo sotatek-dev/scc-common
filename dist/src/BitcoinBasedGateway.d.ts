@@ -18,6 +18,9 @@ export declare abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     getOneTxVouts(txid: string, address?: string): Promise<IBoiledVOut[]>;
     getMultiTxsVouts(txids: string[], address?: string): Promise<IBoiledVOut[]>;
     getBlockTransactions(blockNumber: string | number): Promise<BitcoinBasedTransactions>;
+    estimateFee(options: {
+        totalInputs: number;
+    }): Promise<BigNumber>;
     getInsightAPIEndpoint(): string;
     getFeeInSatoshisPerByte(): Promise<number>;
     getParallelNetworkRequestLimit(): number;

@@ -508,6 +508,21 @@ var BitcoinBasedGateway = (function (_super) {
             });
         });
     };
+    BitcoinBasedGateway.prototype.estimateFee = function (options) {
+        return __awaiter(this, void 0, void 0, function () {
+            var estimatedTxSize, _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        estimatedTxSize = options.totalInputs * 181 + 34 + 10;
+                        _a = __1.BigNumber.bind;
+                        _b = estimatedTxSize;
+                        return [4, this.getFeeInSatoshisPerByte()];
+                    case 1: return [2, new (_a.apply(__1.BigNumber, [void 0, _b * (_c.sent())]))()];
+                }
+            });
+        });
+    };
     BitcoinBasedGateway.prototype.getInsightAPIEndpoint = function () {
         return this.getCurrencyConfig().restEndpoint;
     };

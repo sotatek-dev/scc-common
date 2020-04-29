@@ -16,4 +16,5 @@ __export(require("./UTXOBasedTransactions"));
 __export(require("./BitcoinBasedTransaction"));
 __export(require("./BitcoinBasedTransactions"));
 __export(require("./MultiEntriesTransaction"));
+__export(require("./CosmosTransaction"));
 //# sourceMappingURL=index.js.map

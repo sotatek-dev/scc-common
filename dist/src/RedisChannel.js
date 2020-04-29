@@ -48,6 +48,7 @@ function getClient() {
             setex: util_1.default.promisify(client.setex).bind(client),
             set: util_1.default.promisify(client.set).bind(client),
             get: util_1.default.promisify(client.get).bind(client),
+            publish: util_1.default.promisify(client.publish).bind(client),
         };
     }
     return promiseClient;

@@ -4,5 +4,6 @@ export declare enum TokenType {
     OMNI = "omni",
     NEP5 = "nep5",
     EOS = "eos",
-    BEP = "bep"
+    BEP = "bep",
+    TERRA = "terra"
 }

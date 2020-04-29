@@ -6,6 +6,8 @@ export * from './src/types';
 export * from './src/enums';
 export * from './src/interfaces';
 export * from './src/Logger';
+export * from './src/BaseWorker';
+export * from './src/BaseWorker2';
 export * from './src/BaseIntervalWorker';
 export * from './src/BaseIntervalWorker2';
 export * from './src/BaseCurrencyWorker';

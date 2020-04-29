@@ -49,6 +49,9 @@ var MultiEntriesTransaction = (function (_super) {
         });
         return TransferEntry_1.default.mergeEntries(entries);
     };
+    MultiEntriesTransaction.prototype.getExtraDepositData = function () {
+        return Object.assign({}, _super.prototype.getExtraDepositData.call(this), {});
+    };
     MultiEntriesTransaction.prototype._convertVInToTransferEntry = function (vIn) {
         return {
             amount: new bignumber_js_1.BigNumber(-vIn.amount),
@@ -70,4 +73,5 @@ var MultiEntriesTransaction = (function (_super) {
     return MultiEntriesTransaction;
 }(Transaction_1.Transaction));
 exports.MultiEntriesTransaction = MultiEntriesTransaction;
+exports.default = MultiEntriesTransaction;
 //# sourceMappingURL=MultiEntriesTransaction.js.map

@@ -51,58 +51,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var BaseCrawler_1 = __importDefault(require("./BaseCrawler"));
-var registries_1 = require("./registries");
-var Logger_1 = require("./Logger");
-var Utils = __importStar(require("./Utils"));
-var p_limit_1 = __importDefault(require("p-limit"));
-var limit = p_limit_1.default(1);
-var logger = Logger_1.getLogger('BasePlatformCrawler');
-var BasePlatformCrawler = (function (_super) {
-    __extends(BasePlatformCrawler, _super);
-    function BasePlatformCrawler() {
+var BaseWorker_1 = __importDefault(require("./BaseWorker"));
+var BaseWorker2 = (function (_super) {
+    __extends(BaseWorker2, _super);
+    function BaseWorker2() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    BasePlatformCrawler.prototype.processBlocks = function (fromBlock, toBlock, latestNetworkBlock) {
+    BaseWorker2.prototype.setOptions = function (options) {
+        this._options = options;
+        return this;
+    };
+    BaseWorker2.prototype.prepare = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var allCurrencies;
-            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        allCurrencies = registries_1.CurrencyRegistry.getCurrenciesOfPlatform(this._nativeCurrency.platform);
-                        return [4, Utils.PromiseAll(allCurrencies.map(function (c) { return __awaiter(_this, void 0, void 0, function () {
-                                var _this = this;
-                                return __generator(this, function (_a) {
-                                    return [2, limit(function () { return __awaiter(_this, void 0, void 0, function () {
-                                            var gateway, allTxs;
-                                            return __generator(this, function (_a) {
-                                                switch (_a.label) {
-                                                    case 0:
-                                                        gateway = registries_1.GatewayRegistry.getGatewayInstance(c);
-                                                        return [4, gateway.getMultiBlocksTransactions(fromBlock, toBlock)];
-                                                    case 1:
-                                                        allTxs = _a.sent();
-                                                        return [4, this._options.onCrawlingTxs(this, allTxs)];
-                                                    case 2:
-                                                        _a.sent();
-                                                        logger.info(this.constructor.name + "::processBlocks FINISH: currency=" + c.networkSymbol +
-                                                            ("\tblock=" + fromBlock + "\u2192" + toBlock + " / " + latestNetworkBlock) +
-                                                            ("\ttxs=" + allTxs.length));
-                                                        return [2];
-                                                }
-                                            });
-                                        }); })];
-                                });
-                            }); }))];
+                    case 0: return [4, this._options.prepare(this)];
                     case 1:
                         _a.sent();
                         return [2];
@@ -110,7 +74,20 @@ var BasePlatformCrawler = (function (_super) {
             });
         });
     };
-    return BasePlatformCrawler;
-}(BaseCrawler_1.default));
-exports.BasePlatformCrawler = BasePlatformCrawler;
-//# sourceMappingURL=BasePlatformCrawler.js.map
+    BaseWorker2.prototype.doProcess = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4, this._options.doProcess(this)];
+                    case 1:
+                        _a.sent();
+                        return [2];
+                }
+            });
+        });
+    };
+    return BaseWorker2;
+}(BaseWorker_1.default));
+exports.BaseWorker2 = BaseWorker2;
+exports.default = BaseWorker2;
+//# sourceMappingURL=BaseWorker2.js.map

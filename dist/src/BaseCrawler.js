@@ -138,6 +138,7 @@ var BaseCrawler = (function (_super) {
                         if (toBlockNumber > latestNetworkBlock) {
                             toBlockNumber = latestNetworkBlock;
                         }
+                        logger.info("BaseCrawler::doProcess fromBlock=" + fromBlockNumber + " toBlock=" + toBlockNumber);
                         return [4, this.processBlocks(fromBlockNumber, toBlockNumber, latestNetworkBlock)];
                     case 4:
                         _a.sent();
