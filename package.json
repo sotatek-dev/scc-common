@@ -1,6 +1,6 @@
 {
   "name": "@sotatek/crypto-currency-common",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "SotaTek cryptocurrency common lib",
   "main": "dist/index.js",
   "scripts": {
@@ -13,7 +13,7 @@
   },
   "peerDependencies": {},
   "dependencies": {
-    "@types/amqplib": "0.5.9",
+    "@types/amqplib": "0.5.13",
     "@types/express": "4.16.0",
     "@types/hdkey": "0.7.1",
     "@types/lodash": "4.14.119",
@@ -22,7 +22,7 @@
     "@types/nodemailer": "6.2.2",
     "@types/redis": "2.8.12",
     "@types/uuid": "3.4.4",
-    "amqplib": "0.5.3",
+    "amqplib": "0.5.5",
     "aws-sdk": "2.400.0",
     "axios": "0.19.0",
     "bignumber.js": "8.1.1",
