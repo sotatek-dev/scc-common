@@ -263,6 +263,7 @@ const Sirius = {
   humanReadableScale: 6,
   nativeScale: 0,
   hasMemo: true,
+  nativeToken: 'prx.xpx',
 };
 
 const nativeCurrencies: ICurrency[] = [

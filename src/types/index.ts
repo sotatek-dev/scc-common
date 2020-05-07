@@ -16,3 +16,5 @@ export * from './BitcoinBasedTransactions';
 export * from './MultiEntriesTransaction';
 export * from './EndpointStatus';
 export * from './CosmosTransaction';
+export * from './PublicAccount';
+export * from './MultisigAccount';

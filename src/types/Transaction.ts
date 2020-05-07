@@ -2,12 +2,14 @@ import util from 'util';
 import BigNumber from 'bignumber.js';
 import { Address, BlockHeader, TransferEntry } from '../..';
 import { ICurrency } from '../interfaces';
+import { TransactionType } from '../enums/TransactionType';
 
-interface ITransactionProps {
+export interface ITransactionProps {
   readonly txid: string;
   readonly height: number;
   readonly timestamp: number;
   confirmations: number;
+  readonly transactionType?: TransactionType;
 }
 
 /**
@@ -22,7 +24,7 @@ export abstract class Transaction implements ITransactionProps {
   public readonly block: BlockHeader;
   public confirmations: number;
   public isFailed: boolean;
-
+  public readonly transactionType: TransactionType = TransactionType.TRANSFER;
   protected _allEntries: TransferEntry[];
 
   constructor(props: ITransactionProps, block: BlockHeader) {
@@ -30,6 +32,7 @@ export abstract class Transaction implements ITransactionProps {
     this.block = block;
     this.isFailed = false;
     this._allEntries = [];
+    this.transactionType = props.transactionType ? props.transactionType : TransactionType.TRANSFER;
   }
 
   /**

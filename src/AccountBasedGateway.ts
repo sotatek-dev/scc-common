@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { IRawTransaction } from './interfaces';
+import { IRawTransaction, IRawMultisigTransaction } from './interfaces';
 import { BaseGateway } from './BaseGateway';
 import { Address } from './types';
 
@@ -21,6 +21,28 @@ export abstract class AccountBasedGateway extends BaseGateway {
       isConsolidate?: boolean;
       destinationTag?: string;
       useLowerNetworkFee?: boolean;
+      multisigConfig?: {
+        signAddress: string;
+      };
     }
   ): Promise<IRawTransaction>;
+
+  public async construcRawMultisigCompleteAggregateTransaction(
+    fromPublicKey: string,
+    toAddress: string,
+    value: BigNumber,
+    options: {
+      isConsolidate?: boolean;
+      destinationTag?: string;
+      multisigConfig: {
+        signAddress: string;
+      };
+    }
+  ): Promise<IRawMultisigTransaction> {
+    throw new Error(`This currency don't support multisig transaction`);
+  }
+
+  public async construcRawLockTransaction(fromAddress: string, signedRawTx: string): Promise<IRawTransaction> {
+    throw new Error('Method not implemented.');
+  }
 }

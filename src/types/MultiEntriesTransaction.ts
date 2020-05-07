@@ -3,6 +3,7 @@ import { ICurrency } from '../interfaces';
 import { BlockHeader } from './BlockHeader';
 import TransferEntry from './TransferEntry';
 import { BigNumber } from 'bignumber.js';
+import { TransactionType } from '../enums';
 
 export interface IMultiEntriesTxEntry {
   readonly address: string;
@@ -16,6 +17,7 @@ export interface IMultiEntriesTxProps {
   readonly outputs: IMultiEntriesTxEntry[];
   readonly block: BlockHeader;
   readonly lastNetworkBlockNumber: number;
+  readonly transactionType?: TransactionType;
 }
 
 export abstract class MultiEntriesTransaction extends Transaction {
@@ -29,6 +31,7 @@ export abstract class MultiEntriesTransaction extends Transaction {
         height: props.block.number,
         timestamp: props.block.timestamp,
         txid: props.txid,
+        transactionType: props.transactionType,
       },
       props.block
     );

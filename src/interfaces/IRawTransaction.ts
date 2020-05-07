@@ -8,12 +8,23 @@ export interface IRawTransaction {
   unsignedRaw: string;
 }
 
+
+export interface IRawMultisigTransaction {
+  txid: string;
+  unsignedRaw: string;
+  cosignatory: string;
+}
+
 /**
  * Basically IRawTransaction with signature(s)
  * Ready to send/broadcast to network
  */
 export interface ISignedRawTransaction extends IRawTransaction {
   signedRaw: string;
+}
+
+export interface ISignedRawMultisigTransaction extends ISignedRawTransaction {
+  cosignatory: string;
 }
 
 /**

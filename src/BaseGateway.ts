@@ -22,6 +22,7 @@ import pLimit from 'p-limit';
 import hdkey from 'hdkey';
 import bip39 from 'bip39';
 import AccountHdWallet from './types/AccountHdWallet';
+import { PublicKey, MultisigAccount } from './types';
 
 CurrencyRegistry.onCurrencyConfigSet((currency: ICurrency, config: ICurrencyConfig) => {
   const gateway = GatewayRegistry.getGatewayInstance(currency);
@@ -287,6 +288,49 @@ export abstract class BaseGateway {
     recentWithdrawalFee: number;
   }): Promise<BigNumber> {
     return new BigNumber(0);
+  }
+
+  public async checkCosignatoryBalance(address: string, amount?: number) {
+    return true;
+  }
+
+  public async signRawMultisigTransaction(
+    unsignedRaw: string,
+    signerPrivateKey: string,
+    publicKey: PublicKey
+  ): Promise<ISignedRawTransaction> {
+    throw new Error('Method not implemented.');
+  }
+
+  public async signRawMultisigTransactionWithManyAccounts(
+    unsignedRaw: string,
+    signerPrivateKey: string,
+    listPrivateKey: string[]
+  ): Promise<ISignedRawTransaction> {
+    throw new Error('Method not implemented.');
+  }
+
+  public cosignAggregateBondedTransaction(
+    rawSignedAggregateBondedTransaction: string,
+    privateKey: string
+  ): ISignedRawTransaction {
+    throw new Error('Method not implemented.');
+  }
+
+  public async getAggregateBondedTransaction(publicKey: PublicKey, txId: string): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+
+  public async signLockTransaction(signedRawTx: string, rawTx, privateKey: string): Promise<ISignedRawTransaction> {
+    throw new Error('Method not implemented.');
+  }
+
+  public async getMultisigAccount(address: string): Promise<MultisigAccount> {
+    throw new Error('Method not implemented.');
+  }
+
+  public getAmountLockFund(): number {
+    throw new Error('Method not implemented.');
   }
 
   /**

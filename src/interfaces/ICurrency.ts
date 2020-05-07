@@ -37,7 +37,7 @@ export interface ICurrency {
   // - In Ripple it's 6: native runtime consume xrp, and xrp can be divided to 0.000001 (10^-6)
   readonly nativeScale: number;
   readonly hdPath?: string;
-
+  readonly nativeToken?: string;
   // There're no memo/tag for transactions in old platforms
   // This option is availble on only some modern platform like EOS/Ripple/Stellar
   readonly hasMemo: boolean;
