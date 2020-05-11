@@ -1,5 +1,9 @@
 import { BlockHeader, IMultiEntriesTxEntry } from '../..';
-import { IMultiEntriesTransactionProps, MultiEntriesTransaction } from './MultiEntriesTransaction';
+import {
+  IMultiEntriesTransactionProps,
+  MultiEntriesTransaction,
+  IMultiEntriesTxProps,
+} from './MultiEntriesTransaction';
 import BigNumber from 'bignumber.js';
 
 export const TypeTx = {
@@ -40,7 +44,7 @@ export class CosmosTransaction extends MultiEntriesTransaction {
     block: BlockHeader,
     lastNetworkBlockNumber: number
   ) {
-    const props = {
+    const props: IMultiEntriesTxProps = {
       outputs,
       inputs,
       block,
