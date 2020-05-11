@@ -15,6 +15,8 @@ if (!ERROR_SENDING_INTERVAL || isNaN(ERROR_SENDING_INTERVAL)) {
   ERROR_SENDING_INTERVAL = 15 * 60 * 1000;
 }
 
+let _mailCallback: (messages: any) => Promise<void>;
+
 setInterval(notifyErrors, ERROR_SENDING_INTERVAL);
 
 const enumerateErrorFormat = winston.format(info => {
@@ -88,6 +90,11 @@ export function getLogger(name: string) {
   };
 }
 
+export function registerMailEventCallback(callback: (messages: any) => Promise<void>) {
+  _mailCallback = callback;
+  getLogger('Logger').info(`MailService::A callback has just been registered`);
+}
+
 async function notifyErrors() {
   if (!ERROR_STASHES.length) {
     return;
@@ -104,5 +111,10 @@ async function notifyErrors() {
   const appName: string = process.env.APP_NAME || 'Exchange Wallet';
   const env: string = process.env.NODE_ENV || 'development';
   const subject = `[${appName}][${env}] Error Notifier`;
+  if (_mailCallback) {
+    await _mailCallback(messages);
+    return;
+  }
+
   Utils.sendMail(mailReceiver, subject, `${messages.join('<br />')}`);
 }

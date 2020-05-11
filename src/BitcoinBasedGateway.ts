@@ -26,12 +26,17 @@ import {
   IBoiledVOut,
   IBitcoreUtxoInput,
 } from './interfaces';
+import LRU from 'lru-cache';
 import { EnvConfigRegistry } from './registries';
 import pLimit from 'p-limit';
 import { getClient } from '../src/RedisChannel';
 const limit = pLimit(1);
 const INSIGHT_REQUEST_MAX_RETRIES = 10;
 const logger = getLogger('BitcoinBasedGateway');
+const _cacheRawTxByBlockUrl: LRU<string, IInsightTxsInfo> = new LRU({
+  max: 1024,
+  maxAge: 1000 * 60 * 5,
+});
 
 export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
   public static convertInsightUtxoToBitcoreUtxo(utxos: IInsightUtxoInfo[]): IBitcoreUtxoInput[] {
@@ -378,6 +383,11 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     return listTxs;
   }
 
+  public async estimateFee(options: { totalInputs: number }): Promise<BigNumber> {
+    const estimatedTxSize = options.totalInputs * 181 + 34 + 10;
+    return new BigNumber(estimatedTxSize * (await this.getFeeInSatoshisPerByte()));
+  }
+
   public getInsightAPIEndpoint(): string {
     return this.getCurrencyConfig().restEndpoint;
   }
@@ -412,8 +422,14 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       logger.debug(`${gwName}::getBlockTransactions block=${blockNumber} pageNum=${page + 1}/${pageTotal}`);
       try {
         const key = this.getCurrency().symbol + url;
-        const redisClient = getClient();
-        const cachedData = await redisClient.get(key);
+        let redisClient;
+        let cachedData;
+        if (!!EnvConfigRegistry.isUsingRedis()) {
+          redisClient = getClient();
+          cachedData = await redisClient.get(key);
+        } else {
+          cachedData = JSON.stringify(_cacheRawTxByBlockUrl.get(key));
+        }
         if (!!cachedData) {
           data = JSON.parse(cachedData);
           confirmations = networkBlockCount - blockNumber + 1;
@@ -422,7 +438,11 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
 
         pageResponse = await Axios.get<IInsightTxsInfo>(url);
         data = pageResponse.data;
-        redisClient.setex(key, 7200000, JSON.stringify(pageResponse.data));
+        if (redisClient) {
+          redisClient.setex(key, 7200000, JSON.stringify(pageResponse.data));
+        } else {
+          _cacheRawTxByBlockUrl.set(key, data);
+        }
         break;
       } catch (e) {
         let errMsg = `Could not get txs of block=${blockNumber} page=${page} fetching url=${url} err=${e.toString()}`;

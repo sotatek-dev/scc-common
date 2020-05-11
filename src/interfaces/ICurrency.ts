@@ -36,8 +36,11 @@ export interface ICurrency {
   // - In Bitcoion it's 0: native runtime consume satoshi, and satoshi is indivisible
   // - In Ripple it's 6: native runtime consume xrp, and xrp can be divided to 0.000001 (10^-6)
   readonly nativeScale: number;
-
   readonly hdPath?: string;
+
+  // There're no memo/tag for transactions in old platforms
+  // This option is availble on only some modern platform like EOS/Ripple/Stellar
+  readonly hasMemo: boolean;
 }
 
 export default ICurrency;
@@ -68,6 +71,10 @@ export interface IOmniAsset extends IToken {
 export interface IEosToken extends IToken {
   readonly code: string;
   readonly networkSymbol: string;
+}
+
+export interface IBepToken extends IToken {
+  readonly originSymbol: string;
 }
 
 export interface ITerraToken extends IToken {

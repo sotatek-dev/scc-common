@@ -3,6 +3,8 @@ import morgan from 'morgan';
 import util from 'util';
 import BaseGateway from './BaseGateway';
 import * as URL from 'url';
+import { Transaction } from './types';
+import BigNumber from 'bignumber.js';
 import { BlockchainPlatform } from './enums';
 import { getLogger } from './Logger';
 import { ICurrency } from './interfaces';
@@ -72,8 +74,9 @@ export abstract class BaseWebServer {
 
   protected async getTransactionDetails(req: any, res: any) {
     const { currency, txid } = req.params;
-    // TODO: Update check txid
+
     const tx = await this.getGateway(currency).getOneTransaction(txid);
+
     if (!tx) {
       return res.status(404).json({ error: `Transaction not found: ${txid}` });
     }
@@ -87,6 +90,8 @@ export abstract class BaseWebServer {
         valueString: e.amount.toFixed(),
       });
     });
+    // 24/12/2019 get transaction fee
+    const fee = tx.getNetworkFee();
 
     let resObj = {
       id: txid,
@@ -95,6 +100,7 @@ export abstract class BaseWebServer {
       blockHash: tx.block.hash,
       blockHeight: tx.block.number,
       confirmations: tx.confirmations,
+      txFee: fee.toString(),
       entries,
     };
 
@@ -123,6 +129,28 @@ export abstract class BaseWebServer {
       seed,
     });
     return res.json(address);
+  }
+
+  protected async _healthChecker() {
+    return { webService: { isOK: true } };
+  }
+
+  protected async estimateFee(req: any, res: any) {
+    const { currency } = req.params;
+    const { total_inputs, recent_withdrawal_fee, use_lower_network_fee } = req.query;
+    const totalInputs = parseInt(total_inputs, 10);
+    const currentCurrency = CurrencyRegistry.getOneCurrency(currency);
+    const isConsolidate = !currentCurrency.isNative;
+
+    const fee: BigNumber = await this.getGateway(currency).estimateFee({
+      totalInputs,
+      useLowerNetworkFee: use_lower_network_fee,
+      isConsolidate,
+      recentWithdrawalFee: recent_withdrawal_fee,
+    });
+    return res.json({
+      fee: fee.toNumber(),
+    });
   }
 
   protected setup() {
@@ -191,6 +219,10 @@ export abstract class BaseWebServer {
       }
     });
 
+    this.app.get('/api/health', async (req, res) => {
+      res.status(200).json(await this._healthChecker());
+    });
+
     this.app.get('/api/:currency/address/hd_wallet', async (req, res) => {
       try {
         await this.createNewHdWalletAddress(req, res);
@@ -199,5 +231,17 @@ export abstract class BaseWebServer {
         res.status(500).json({ error: e.toString() });
       }
     });
+
+    this.app.get(
+      '/api/:currency/estimate_fee/:total_inputs*?/:recent_withdrawal_fee*?/:use_lower_network_fee*?',
+      async (req, res) => {
+        try {
+          await this.estimateFee(req, res);
+        } catch (e) {
+          logger.error(`estimate fee err=${util.inspect(e)}`);
+          res.status(500).json({ error: e.toString() });
+        }
+      }
+    );
   }
 }

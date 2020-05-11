@@ -11,6 +11,9 @@ if (process.env.isEnvSet_KnV5Ha0UlAAEME69I6KA === '1') {
 }
 process.env.isEnvSet_KnV5Ha0UlAAEME69I6KA = '1';
 
+// Try to decrypt env variables if they're encrypted
+import './EnvDecrypt';
+
 import * as Utils from './src/Utils';
 export { Utils };
 
@@ -20,12 +23,15 @@ export * from './src/types';
 export * from './src/enums';
 export * from './src/interfaces';
 export * from './src/Logger';
+export * from './src/BaseWorker';
+export * from './src/BaseWorker2';
 export * from './src/BaseIntervalWorker';
 export * from './src/BaseIntervalWorker2';
 export * from './src/BaseCurrencyWorker';
 export * from './src/BasePlatformWorker';
 export * from './src/BaseCrawler';
 export * from './src/BasePlatformCrawler';
+export * from './src/BitcoinBasedCrawler';
 export * from './src/NativeAssetCrawler';
 export * from './src/CustomAssetCrawler';
 export * from './src/BaseGateway';
@@ -39,6 +45,7 @@ export * from './src/RPCClient';
 export * from './src/Logger';
 export * from './src/RedisChannel';
 export * from './src/registries';
+export * from './src/Mailer';
 
 // External dependencies
 import BigNumber from 'bignumber.js';
