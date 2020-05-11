@@ -171,7 +171,7 @@ export abstract class CosmosBasedGateway extends BaseGateway {
       if (!balance) {
         return new BigNumber(0);
       }
-      const currencyBalance = balance.result.find(_balance => _balance.denom === this.getCode());
+      const currencyBalance = balance.result.find((_balance: any) => _balance.denom === this.getCode());
       if (!currencyBalance || !currencyBalance.amount) {
         return new BigNumber(0);
       }

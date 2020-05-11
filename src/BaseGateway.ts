@@ -111,7 +111,7 @@ export abstract class BaseGateway {
     if (!seed || (index === null || typeof index === 'undefined')) {
       throw new Error(`Need seed and accountIndex to create addresses`);
     }
-    const root = hdkey.fromMasterSeed(new Buffer(seed, 'hex'));
+    const root = hdkey.fromMasterSeed(Buffer.from(seed));
     const addrnode = root.derive(path + index.toString());
     const privateKey = addrnode.privateKey.toString('hex');
     return privateKey;
@@ -278,6 +278,15 @@ export abstract class BaseGateway {
 
     const txs = await this.getTransactionsByIds(_.compact(block.txids));
     return txs;
+  }
+
+  public async estimateFee(options: {
+    isConsolidate: boolean;
+    useLowerNetworkFee?: boolean;
+    totalInputs: number;
+    recentWithdrawalFee: number;
+  }): Promise<BigNumber> {
+    return new BigNumber(0);
   }
 
   /**
