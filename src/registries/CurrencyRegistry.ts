@@ -264,6 +264,7 @@ const Sirius = {
   nativeScale: 0,
   hasMemo: true,
   nativeToken: 'prx.xpx',
+  isSuportMultiOutput: true,
 };
 
 const nativeCurrencies: ICurrency[] = [
@@ -537,6 +538,7 @@ export class CurrencyRegistry {
       namespaceId,
       hasMemo: true,
       mosaicId,
+      isSuportMultiOutput: true,
     };
 
     allSiriusMosaics.push(currency);

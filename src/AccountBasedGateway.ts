@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 import { IRawTransaction, IRawMultisigTransaction } from './interfaces';
-import { BaseGateway } from './BaseGateway';
+import { BaseGateway, IMultiEntryParams } from './BaseGateway';
 import { Address } from './types';
 
 export abstract class AccountBasedGateway extends BaseGateway {
@@ -28,9 +28,20 @@ export abstract class AccountBasedGateway extends BaseGateway {
   ): Promise<IRawTransaction>;
 
   public async construcRawMultisigCompleteAggregateTransaction(
-    fromPublicKey: string,
-    toAddress: string,
-    value: BigNumber,
+    outputs: IMultiEntryParams[],
+    options: {
+      isConsolidate?: boolean;
+      destinationTag?: string;
+      multisigConfig: {
+        signAddress: string;
+      };
+    }
+  ): Promise<IRawMultisigTransaction> {
+    throw new Error(`This currency don't support multisig transaction`);
+  }
+
+  public async construcRawMultisigBondedAggregateTransaction(
+    outputs: IMultiEntryParams[],
     options: {
       isConsolidate?: boolean;
       destinationTag?: string;

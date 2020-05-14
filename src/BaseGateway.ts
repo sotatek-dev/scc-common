@@ -33,6 +33,13 @@ CurrencyRegistry.onCurrencyConfigSet((currency: ICurrency, config: ICurrencyConf
   }
 });
 
+export interface IMultiEntryParams {
+  fromAddress: MultisigAccount;
+  value: BigNumber;
+  toAddress;
+  currency: ICurrency;
+}
+
 export interface IParamsHDWallet {
   seed: string;
   accountIndex: string;
