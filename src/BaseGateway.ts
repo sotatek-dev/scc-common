@@ -317,6 +317,14 @@ export abstract class BaseGateway {
     throw new Error('Method not implemented.');
   }
 
+  public async signRawAggregateBondedMultisigTransactionWithManyAccounts(
+    unsignedRaw: string,
+    signerPrivateKey: string,
+    listPrivateKey: string[]
+  ): Promise<ISignedRawTransaction> {
+    throw new Error('Method not implemented.');
+  }
+
   public cosignAggregateBondedTransaction(
     rawSignedAggregateBondedTransaction: string,
     privateKey: string
@@ -376,6 +384,8 @@ export abstract class BaseGateway {
     unsignedRaw: string,
     secret: string | string[]
   ): Promise<ISignedRawTransaction>;
+
+  public abstract async sendAggrebondedTransaction(signedRawTx: string): Promise<ISubmittedTransaction>;
 
   /**
    * Validate a transaction and broadcast it to the blockchain network
