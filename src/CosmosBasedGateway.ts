@@ -16,6 +16,7 @@ import {
   Transaction,
 } from '..';
 import BaseGateway from './BaseGateway';
+import crypto from 'crypto';
 
 const logger = getLogger('TerraGateway');
 const _cacheBlockNumber = {
@@ -103,33 +104,50 @@ export abstract class CosmosBasedGateway extends BaseGateway {
    */
   public async getBlockTransactions(blockHeight: number): Promise<GenericTransactions<Transaction>> {
     try {
-      const res = await axios.get(`${this._appClient}${this._url.getAllBlockTransactions}${blockHeight}`);
+      // const res = await axios.get(`${this._appClient}${this._url.getAllBlockTransactions}${blockHeight}`);
+      const res = await axios.get(`${this._appClient}${this._url.getBlockNumber}/${blockHeight}`);
       const transactions = new GenericTransactions();
-      const data = res.data;
-      if (!data) {
+
+      const data = res.data.block.data;
+      if (!res.data) {
         throw new Error(`Request fail`);
       }
-      const txs = data.txs;
+
+      const txs = await Promise.all(_.map(data.txs, async tx => await this.getTx(tx)));
       if (!txs || !txs.length) {
         return transactions;
       }
-      const blockInfo = (await this.getOneBlock(blockHeight)) as Block;
-      const latestBlock = await this.getBlockCount();
-      const blockHeader = new BlockHeader({
-        hash: blockInfo.hash,
-        number: blockInfo.number,
-        timestamp: blockInfo.timestamp,
-      });
 
       _.map(txs, tx => {
-        const rawTx: ICosmosRawTransaction = this.getCosmosRawTx(tx);
-        const _transaction = this._convertRawToCosmosTransactions(rawTx, blockHeader, latestBlock);
-        transactions.push(_transaction);
+        transactions.push(tx);
       });
+
       return transactions;
     } catch (err) {
       throw err;
     }
+  }
+
+  /**
+   * @param {string} tx: txid of transaction
+   * @return {CosmosTransaction}: a transaction
+   */
+  public async getTx(tx: string) {
+    tx = this.getTxHash(tx);
+    return await this.getOneTransaction(tx);
+  }
+
+  /**
+   * @param {string} txString
+   * @return {string}: txid
+   */
+  public getTxHash(txString: string): string {
+    const s256Buffer = crypto
+      .createHash(`sha256`)
+      .update(Buffer.from(txString, `base64`))
+      .digest();
+    const txbytes = new Uint8Array(s256Buffer);
+    return Buffer.from(txbytes.slice(0, 32)).toString(`hex`);
   }
 
   /**
