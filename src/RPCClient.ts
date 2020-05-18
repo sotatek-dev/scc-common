@@ -77,7 +77,7 @@ export class RPCClient {
     }
   }
 
-  protected _getEndpoint(): string {
+  public _getEndpoint(): string {
     const protocol = this._config.protocol;
     const host = this._config.host;
     const port = this._config.port;

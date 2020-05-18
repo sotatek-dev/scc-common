@@ -299,15 +299,6 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       });
   }
 
-  @implement
-  public async getMultiAddressesUtxos(addresses: string[]): Promise<IInsightUtxoInfo[]> {
-    const result: IInsightUtxoInfo[] = [];
-    for (const address of addresses) {
-      result.push(...(await this.getOneAddressUtxos(address)));
-    }
-    return result;
-  }
-
   public async getOneTxVouts(txid: string, address?: string): Promise<IBoiledVOut[]> {
     const apiEndpoint = this.getInsightAPIEndpoint();
     let response;
