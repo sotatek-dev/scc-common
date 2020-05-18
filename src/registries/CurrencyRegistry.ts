@@ -635,7 +635,7 @@ export class CurrencyRegistry {
         break;
 
       case BlockchainPlatform.NEO:
-        result.push(NEO);
+        result.push(CurrencyRegistry.NEO);
         break;
 
       default:
