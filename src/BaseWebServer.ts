@@ -131,6 +131,12 @@ export abstract class BaseWebServer {
     return res.json(address);
   }
 
+  protected async getMultisigAccountsFromCosigner(req: any, res: any) {
+    const { address } = req.params;
+    const listMultisign = await this.getGateway(this._currency.symbol).getMultisigAccountsFromCosigner(address);
+    return res.json(listMultisign);
+  }
+
   protected async _healthChecker() {
     return { webService: { isOK: true } };
   }
@@ -238,6 +244,15 @@ export abstract class BaseWebServer {
     this.app.get('/api/:currency/address/hd_wallet', async (req, res) => {
       try {
         await this.createNewHdWalletAddress(req, res);
+      } catch (e) {
+        logger.error(`createNewHdWalletAddress err=${util.inspect(e)}`);
+        res.status(500).json({ error: e.toString() });
+      }
+    });
+
+    this.app.get('/api/:currency/cosignatory/:address/multisig', async (req, res) => {
+      try {
+        await this.getMultisigAccountsFromCosigner(req, res);
       } catch (e) {
         logger.error(`createNewHdWalletAddress err=${util.inspect(e)}`);
         res.status(500).json({ error: e.toString() });

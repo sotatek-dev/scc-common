@@ -344,6 +344,10 @@ export abstract class BaseGateway {
     throw new Error('Method not implemented.');
   }
 
+  public async getMultisigAccountsFromCosigner(address: string): Promise<string[]> {
+    throw new Error('Method not implemented.');
+  }
+
   public getAmountLockFund(): number {
     throw new Error('Method not implemented.');
   }
