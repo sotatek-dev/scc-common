@@ -1,7 +1,14 @@
 import { BaseGateway } from '..';
-import { IRawVOut, IRawTransaction, IInsightUtxoInfo } from './interfaces';
+import { IRawVOut, IRawTransaction, IInsightUtxoInfo, IBoiledVOut } from './interfaces';
 
 export abstract class UTXOBasedGateway extends BaseGateway {
+  public async getMultiAddressesUtxos(addresses: string[]): Promise<IInsightUtxoInfo[]> {
+    const result: IInsightUtxoInfo[] = [];
+    for (const address of addresses) {
+      result.push(...(await this.getOneAddressUtxos(address)));
+    }
+    return result;
+  }
   /**
    * Create a raw transaction that tranfers currencies
    * from an address (in most cast it's a hot wallet address)
@@ -26,6 +33,10 @@ export abstract class UTXOBasedGateway extends BaseGateway {
    * @param rawTx
    */
   public abstract reconstructRawTx(rawTx: string): IRawTransaction;
+
+  public abstract async getOneTxVouts(txid: string, address?: string): Promise<IBoiledVOut[]>;
+
+  public abstract async getOneAddressUtxos(address: string): Promise<IInsightUtxoInfo[]>;
 
   /**
    * Usually use to make sure the raw transaction has been constructed correctly
