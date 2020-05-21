@@ -1,6 +1,6 @@
 import { Address } from '../types';
 import BlockchainPlatform from '../enums/BlockchainPlatform';
-import { TokenType } from '../enums';
+import { TokenType, TransactionBaseType } from '../enums';
 
 export interface ICurrency {
   // Currency symbol. It can be primary assets of a platform like btc, eth
@@ -19,6 +19,9 @@ export interface ICurrency {
 
   // Account-based or UTXO-based
   readonly isUTXOBased: boolean;
+
+  // TODO in future/ type is required, replace for isUTXOBased
+  readonly type?: TransactionBaseType;
 
   // Currency is native asset
   readonly isNative: boolean;

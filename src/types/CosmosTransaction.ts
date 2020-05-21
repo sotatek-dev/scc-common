@@ -12,6 +12,7 @@ export const TypeTx = {
 
 export const TypeMsg = {
   MsgSend: 'bank/MsgSend',
+  MsgMultiSend: 'bank/MsgMultiSend',
 };
 
 export interface ICosmosRawTransaction {
