@@ -1,5 +1,5 @@
 try {
-  require('dotenv-safe').config();
+  require('dotenv').config();
 } catch (e) {
   console.error(e.toString());
   process.exit(1);
