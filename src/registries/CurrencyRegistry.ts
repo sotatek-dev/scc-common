@@ -636,6 +636,10 @@ export class CurrencyRegistry {
         result.push(...CurrencyRegistry.getAllTerraTokens());
         break;
 
+      case BlockchainPlatform.NEO:
+        result.push(CurrencyRegistry.NEO);
+        break;
+
       default:
         throw new Error(`CurrencyRegistry::getCurrenciesOfPlatform hasn't been implemented for ${platform} yet.`);
     }
