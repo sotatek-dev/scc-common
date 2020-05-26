@@ -21,6 +21,8 @@ export abstract class AccountBasedGateway extends BaseGateway {
       isConsolidate?: boolean;
       destinationTag?: string;
       useLowerNetworkFee?: boolean;
+      explicitGasPrice?: number;
+      explicitGasLimit?: number;
     }
   ): Promise<IRawTransaction>;
 }
