@@ -13,14 +13,19 @@ import { CurrencyRegistry, GatewayRegistry } from './registries';
 const logger = getLogger('BaseWebServer');
 
 export abstract class BaseWebServer {
-  public readonly protocol: string;
-  public readonly host: string;
-  public readonly port: number;
+  protected protocol: string;
+  protected host: string;
+  protected port: number;
   protected app: express.Express = express();
   protected readonly _currency: ICurrency;
 
   public constructor(platform: BlockchainPlatform) {
     this._currency = CurrencyRegistry.getOneNativeCurrency(platform);
+    this._parseConfig(platform)
+    this.setup();
+  }
+
+  protected _parseConfig(platform: BlockchainPlatform) {
     const config = CurrencyRegistry.getCurrencyConfig(this._currency);
     if (!config) {
       throw new Error(`Cannot find configuration for ${this._currency.symbol} at config table`);
@@ -35,7 +40,6 @@ export abstract class BaseWebServer {
     this.protocol = internalEndpoint.protocol;
     this.host = internalEndpoint.hostname;
     this.port = parseInt(internalEndpoint.port, 10);
-    this.setup();
   }
 
   public start() {
@@ -243,5 +247,17 @@ export abstract class BaseWebServer {
         }
       }
     );
+  }
+
+  public getProtocol(): string {
+    return this.protocol;
+  }
+
+  public getHost(): string {
+    return this.host;
+  }
+
+  public getPort(): number {
+    return this.port;
   }
 }

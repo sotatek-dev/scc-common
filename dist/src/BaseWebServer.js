@@ -68,6 +68,10 @@ var BaseWebServer = (function () {
     function BaseWebServer(platform) {
         this.app = express_1.default();
         this._currency = registries_1.CurrencyRegistry.getOneNativeCurrency(platform);
+        this._parseConfig(platform);
+        this.setup();
+    }
+    BaseWebServer.prototype._parseConfig = function (platform) {
         var config = registries_1.CurrencyRegistry.getCurrencyConfig(this._currency);
         if (!config) {
             throw new Error("Cannot find configuration for " + this._currency.symbol + " at config table");
@@ -80,8 +84,7 @@ var BaseWebServer = (function () {
         this.protocol = internalEndpoint.protocol;
         this.host = internalEndpoint.hostname;
         this.port = parseInt(internalEndpoint.port, 10);
-        this.setup();
-    }
+    };
     BaseWebServer.prototype.start = function () {
         var _this = this;
         this.app.listen(this.port, this.host, function () {
@@ -453,6 +456,15 @@ var BaseWebServer = (function () {
                 }
             });
         }); });
+    };
+    BaseWebServer.prototype.getProtocol = function () {
+        return this.protocol;
+    };
+    BaseWebServer.prototype.getHost = function () {
+        return this.host;
+    };
+    BaseWebServer.prototype.getPort = function () {
+        return this.port;
     };
     return BaseWebServer;
 }());

@@ -3,12 +3,13 @@ import BaseGateway from './BaseGateway';
 import { BlockchainPlatform } from './enums';
 import { ICurrency } from './interfaces';
 export declare abstract class BaseWebServer {
-    readonly protocol: string;
-    readonly host: string;
-    readonly port: number;
+    protected protocol: string;
+    protected host: string;
+    protected port: number;
     protected app: express.Express;
     protected readonly _currency: ICurrency;
     constructor(platform: BlockchainPlatform);
+    protected _parseConfig(platform: BlockchainPlatform): void;
     start(): void;
     getGateway(symbol: string): BaseGateway;
     protected createNewAddress(req: any, res: any): Promise<void>;
@@ -26,4 +27,7 @@ export declare abstract class BaseWebServer {
     }>;
     protected estimateFee(req: any, res: any): Promise<any>;
     protected setup(): void;
+    getProtocol(): string;
+    getHost(): string;
+    getPort(): number;
 }
