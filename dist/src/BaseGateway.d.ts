@@ -34,8 +34,8 @@ export declare abstract class BaseGateway {
     estimateFee(options: {
         isConsolidate: boolean;
         useLowerNetworkFee?: boolean;
-        totalInputs: number;
-        recentWithdrawalFee: number;
+        totalInputs?: number;
+        recentWithdrawalFee?: number;
     }): Promise<BigNumber>;
     abstract getBlockCount(): Promise<number>;
     abstract getAddressBalance(address: string): Promise<BigNumber>;

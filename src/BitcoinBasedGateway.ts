@@ -383,7 +383,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     return listTxs;
   }
 
-  public async estimateFee(options: { totalInputs: number }): Promise<BigNumber> {
+  public async estimateFee(options: { totalInputs?: number }): Promise<BigNumber> {
     const estimatedTxSize = options.totalInputs * 181 + 34 + 10;
     return new BigNumber(estimatedTxSize * (await this.getFeeInSatoshisPerByte()));
   }
