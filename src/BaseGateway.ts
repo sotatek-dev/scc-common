@@ -283,8 +283,8 @@ export abstract class BaseGateway {
   public async estimateFee(options: {
     isConsolidate: boolean;
     useLowerNetworkFee?: boolean;
-    totalInputs: number;
-    recentWithdrawalFee: number;
+    totalInputs?: number;
+    recentWithdrawalFee?: number;
   }): Promise<BigNumber> {
     return new BigNumber(0);
   }
