@@ -4,3 +4,4 @@ export * from './MessageQueueName';
 export * from './TokenType';
 export * from './TransactionStatus';
 export * from './NetworkType';
+export * from './TransactionBaseType';

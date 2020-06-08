@@ -4,6 +4,11 @@ import { BlockHeader } from './BlockHeader';
 import TransferEntry from './TransferEntry';
 import { BigNumber } from 'bignumber.js';
 
+export interface IMultiEntriesTransactionProps {
+  readonly txid: string;
+  readonly fee: BigNumber;
+}
+
 export interface IMultiEntriesTxEntry {
   readonly address: string;
   readonly currency: ICurrency;
@@ -21,7 +26,6 @@ export interface IMultiEntriesTxProps {
 export abstract class MultiEntriesTransaction extends Transaction {
   public readonly outputs: IMultiEntriesTxEntry[];
   public readonly inputs: IMultiEntriesTxEntry[];
-
   constructor(props: IMultiEntriesTxProps) {
     super(
       {
@@ -46,6 +50,7 @@ export abstract class MultiEntriesTransaction extends Transaction {
       }
     });
 
+    // All in v Outs
     this.outputs.forEach(vOut => {
       const entry = this._convertVoutToTransferEntry(vOut);
       if (entry) {
