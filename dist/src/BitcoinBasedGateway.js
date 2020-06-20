@@ -579,7 +579,7 @@ var BitcoinBasedGateway = (function (_super) {
                         pageResponse = _a.sent();
                         data = pageResponse.data;
                         if (redisClient) {
-                            redisClient.setex(key, 7200000, JSON.stringify(pageResponse.data));
+                            redisClient.setex(key, 300, JSON.stringify(pageResponse.data));
                         }
                         else {
                             _cacheRawTxByBlockUrl.set(key, data);

@@ -439,7 +439,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         pageResponse = await Axios.get<IInsightTxsInfo>(url);
         data = pageResponse.data;
         if (redisClient) {
-          redisClient.setex(key, 7200000, JSON.stringify(pageResponse.data));
+          redisClient.setex(key, 300, JSON.stringify(pageResponse.data));
         } else {
           _cacheRawTxByBlockUrl.set(key, data);
         }
