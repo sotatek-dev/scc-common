@@ -64,14 +64,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var util_1 = require("util");
 var lodash_1 = __importDefault(require("lodash"));
 var axios_1 = __importDefault(require("axios"));
-var __1 = require("..");
+var bignumber_js_1 = __importDefault(require("bignumber.js"));
+var Utils_1 = require("./Utils");
+var Logger_1 = require("./Logger");
+var Block_1 = require("./types/Block");
+var UTXOBasedGateway_1 = require("./UTXOBasedGateway");
+var TransactionStatus_1 = require("./enums/TransactionStatus");
+var BitcoinBasedTransaction_1 = require("./types/BitcoinBasedTransaction");
+var BitcoinBasedTransactions_1 = require("./types/BitcoinBasedTransactions");
 var lru_cache_1 = __importDefault(require("lru-cache"));
 var registries_1 = require("./registries");
 var p_limit_1 = __importDefault(require("p-limit"));
 var RedisChannel_1 = require("../src/RedisChannel");
 var limit = p_limit_1.default(1);
 var INSIGHT_REQUEST_MAX_RETRIES = 10;
-var logger = __1.getLogger('BitcoinBasedGateway');
+var logger = Logger_1.getLogger('BitcoinBasedGateway');
 var _cacheRawTxByBlockUrl = new lru_cache_1.default({
     max: 1024,
     maxAge: 1000 * 60 * 5,
@@ -149,9 +156,9 @@ var BitcoinBasedGateway = (function (_super) {
                         allUtxos = _c.sent();
                         totalOutputAmount = vouts.reduce(function (memo, vout) {
                             return memo.plus(vout.amount);
-                        }, new __1.BigNumber(0));
-                        totalInputAmount = new __1.BigNumber(0);
-                        esitmatedFee = new __1.BigNumber(0);
+                        }, new bignumber_js_1.default(0));
+                        totalInputAmount = new bignumber_js_1.default(0);
+                        esitmatedFee = new bignumber_js_1.default(0);
                         estimatedTxSize = vouts.length * 34 + 10;
                         isSufficientBalance = false;
                         _i = 0, allUtxos_1 = allUtxos;
@@ -162,12 +169,12 @@ var BitcoinBasedGateway = (function (_super) {
                         pickedUtxos.push(utxo);
                         totalInputAmount = totalInputAmount.plus(utxo.satoshis);
                         estimatedTxSize += 181;
-                        _a = __1.BigNumber.bind;
+                        _a = bignumber_js_1.default.bind;
                         _b = estimatedTxSize;
                         return [4, this.getFeeInSatoshisPerByte()];
                     case 3:
-                        esitmatedFee = new (_a.apply(__1.BigNumber, [void 0, _b * (_c.sent())]))();
-                        if (totalInputAmount.gt(new __1.BigNumber(totalOutputAmount.plus(esitmatedFee)))) {
+                        esitmatedFee = new (_a.apply(bignumber_js_1.default, [void 0, _b * (_c.sent())]))();
+                        if (totalInputAmount.gt(new bignumber_js_1.default(totalOutputAmount.plus(esitmatedFee)))) {
                             isSufficientBalance = true;
                             return [3, 5];
                         }
@@ -196,14 +203,14 @@ var BitcoinBasedGateway = (function (_super) {
                 switch (_c.label) {
                     case 0:
                         totalInputAmount = pickedUtxos.reduce(function (memo, utxo) {
-                            return memo.plus(new __1.BigNumber(utxo.satoshis));
-                        }, new __1.BigNumber(0));
+                            return memo.plus(new bignumber_js_1.default(utxo.satoshis));
+                        }, new bignumber_js_1.default(0));
                         estimatedTxSize = pickedUtxos.length * 181 + 34 + 10;
-                        _a = __1.BigNumber.bind;
+                        _a = bignumber_js_1.default.bind;
                         _b = estimatedTxSize;
                         return [4, this.getFeeInSatoshisPerByte()];
                     case 1:
-                        estimatedFee = new (_a.apply(__1.BigNumber, [void 0, _b * (_c.sent())]))();
+                        estimatedFee = new (_a.apply(bignumber_js_1.default, [void 0, _b * (_c.sent())]))();
                         vout = {
                             toAddress: toAddress,
                             amount: totalInputAmount.minus(estimatedFee),
@@ -306,7 +313,7 @@ var BitcoinBasedGateway = (function (_super) {
                         throw new Error("Could not get balance of address=" + address + " error=" + e_1.toString() + " info=" + errMsg);
                     case 4:
                         addressInfo = response.data;
-                        return [2, new __1.BigNumber(addressInfo.balanceSat)];
+                        return [2, new bignumber_js_1.default(addressInfo.balanceSat)];
                 }
             });
         });
@@ -320,13 +327,13 @@ var BitcoinBasedGateway = (function (_super) {
                     case 1:
                         tx = _a.sent();
                         if (!tx) {
-                            return [2, __1.TransactionStatus.UNKNOWN];
+                            return [2, TransactionStatus_1.TransactionStatus.UNKNOWN];
                         }
                         requiredConfirmations = this.getCurrencyConfig().requiredConfirmations;
                         if (tx.confirmations >= requiredConfirmations) {
-                            return [2, __1.TransactionStatus.COMPLETED];
+                            return [2, TransactionStatus_1.TransactionStatus.COMPLETED];
                         }
-                        return [2, __1.TransactionStatus.CONFIRMING];
+                        return [2, TransactionStatus_1.TransactionStatus.CONFIRMING];
                 }
             });
         });
@@ -453,7 +460,7 @@ var BitcoinBasedGateway = (function (_super) {
                     case 1:
                         block = _a.sent();
                         endpoint = this.getInsightAPIEndpoint();
-                        listTxs = new __1.BitcoinBasedTransactions();
+                        listTxs = new BitcoinBasedTransactions_1.BitcoinBasedTransactions();
                         txsUrl = endpoint + "/txs?block=" + blockNumber;
                         retryCount = 0;
                         _a.label = 2;
@@ -494,7 +501,7 @@ var BitcoinBasedGateway = (function (_super) {
                                                     case 0: return [4, this._fetchOneBlockTxsInsightPage(block, page, pageTotal, networkBlockCount)];
                                                     case 1:
                                                         txs = _a.sent();
-                                                        listTxs.mutableConcat(txs);
+                                                        listTxs.push.apply(listTxs, txs);
                                                         return [2];
                                                 }
                                             });
@@ -515,10 +522,10 @@ var BitcoinBasedGateway = (function (_super) {
                 switch (_c.label) {
                     case 0:
                         estimatedTxSize = options.totalInputs * 181 + 34 + 10;
-                        _a = __1.BigNumber.bind;
+                        _a = bignumber_js_1.default.bind;
                         _b = estimatedTxSize;
                         return [4, this.getFeeInSatoshisPerByte()];
-                    case 1: return [2, new (_a.apply(__1.BigNumber, [void 0, _b * (_c.sent())]))()];
+                    case 1: return [2, new (_a.apply(bignumber_js_1.default, [void 0, _b * (_c.sent())]))()];
                 }
             });
         });
@@ -560,7 +567,7 @@ var BitcoinBasedGateway = (function (_super) {
                         redisClient = void 0;
                         cachedData = void 0;
                         if (!!!registries_1.EnvConfigRegistry.isUsingRedis()) return [3, 4];
-                        redisClient = RedisChannel_1.getClient();
+                        redisClient = RedisChannel_1.getRedisClient();
                         return [4, redisClient.get(key)];
                     case 3:
                         cachedData = _a.sent();
@@ -612,7 +619,7 @@ var BitcoinBasedGateway = (function (_super) {
                             if (confirmations > 0) {
                                 tx.confirmations = confirmations;
                             }
-                            return new __1.BitcoinBasedTransaction(currency, tx, block);
+                            return new BitcoinBasedTransaction_1.BitcoinBasedTransaction(currency, tx, block);
                         });
                         return [2, lodash_1.default.compact(result)];
                 }
@@ -622,11 +629,11 @@ var BitcoinBasedGateway = (function (_super) {
     BitcoinBasedGateway.prototype._constructRawTransaction = function (pickedUtxos, vouts, esitmatedFee) {
         var tx;
         var totalInput = pickedUtxos.reduce(function (memo, utxo) {
-            return memo.plus(new __1.BigNumber(utxo.satoshis));
-        }, new __1.BigNumber(0));
+            return memo.plus(new bignumber_js_1.default(utxo.satoshis));
+        }, new bignumber_js_1.default(0));
         var totalOutput = vouts.reduce(function (memo, vout) {
             return memo.plus(vout.amount);
-        }, new __1.BigNumber(0));
+        }, new bignumber_js_1.default(0));
         if (totalInput.lt(totalOutput.plus(esitmatedFee))) {
             throw new Error("Could not construct tx: input=" + totalInput + ", output=" + totalOutput + ", fee=" + esitmatedFee);
         }
@@ -693,7 +700,7 @@ var BitcoinBasedGateway = (function (_super) {
                             number: block.height,
                             timestamp: block.time,
                         };
-                        return [2, new __1.Block(blockProps, block.tx)];
+                        return [2, new Block_1.Block(blockProps, block.tx)];
                 }
             });
         });
@@ -723,78 +730,78 @@ var BitcoinBasedGateway = (function (_super) {
                         return [4, this.getOneBlock(txInfo.blockhash)];
                     case 5:
                         block = _a.sent();
-                        return [2, new __1.BitcoinBasedTransaction(this.getCurrency(), txInfo, block)];
+                        return [2, new BitcoinBasedTransaction_1.BitcoinBasedTransaction(this.getCurrency(), txInfo, block)];
                 }
             });
         });
     };
     __decorate([
-        __1.override,
+        Utils_1.override,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [String]),
         __metadata("design:returntype", Promise)
     ], BitcoinBasedGateway.prototype, "isValidAddressAsync", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], BitcoinBasedGateway.prototype, "createAccountAsync", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [String]),
         __metadata("design:returntype", Object)
     ], BitcoinBasedGateway.prototype, "reconstructRawTx", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], BitcoinBasedGateway.prototype, "getBlockCount", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [String]),
         __metadata("design:returntype", Promise)
     ], BitcoinBasedGateway.prototype, "getAddressBalance", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [String]),
         __metadata("design:returntype", Promise)
     ], BitcoinBasedGateway.prototype, "getTransactionStatus", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [String]),
         __metadata("design:returntype", Promise)
     ], BitcoinBasedGateway.prototype, "getOneAddressUtxos", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Array]),
         __metadata("design:returntype", Promise)
     ], BitcoinBasedGateway.prototype, "getMultiAddressesUtxos", null);
     __decorate([
-        __1.override,
+        Utils_1.override,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object]),
         __metadata("design:returntype", Promise)
     ], BitcoinBasedGateway.prototype, "getBlockTransactions", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object]),
         __metadata("design:returntype", Promise)
     ], BitcoinBasedGateway.prototype, "_getOneBlock", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [String]),
         __metadata("design:returntype", Promise)
     ], BitcoinBasedGateway.prototype, "_getOneTransaction", null);
     return BitcoinBasedGateway;
-}(__1.UTXOBasedGateway));
+}(UTXOBasedGateway_1.UTXOBasedGateway));
 exports.BitcoinBasedGateway = BitcoinBasedGateway;
 //# sourceMappingURL=BitcoinBasedGateway.js.map

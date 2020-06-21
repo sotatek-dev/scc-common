@@ -1,4 +1,10 @@
-import { Account, Block, UTXOBasedGateway, TransactionStatus, BitcoinBasedTransactions, BitcoinBasedTransaction, BigNumber } from '..';
+import BigNumber from 'bignumber.js';
+import { Account } from './types/Account';
+import { Block } from './types/Block';
+import { UTXOBasedGateway } from './UTXOBasedGateway';
+import { TransactionStatus } from './enums/TransactionStatus';
+import { BitcoinBasedTransaction } from './types/BitcoinBasedTransaction';
+import { BitcoinBasedTransactions } from './types/BitcoinBasedTransactions';
 import { ISignedRawTransaction, ISubmittedTransaction, IRawVOut, IRawTransaction, IInsightUtxoInfo, IBoiledVOut, IBitcoreUtxoInput } from './interfaces';
 export declare abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     static convertInsightUtxoToBitcoreUtxo(utxos: IInsightUtxoInfo[]): IBitcoreUtxoInput[];

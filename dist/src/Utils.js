@@ -40,7 +40,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var url_1 = __importDefault(require("url"));
-var __1 = require("..");
+var EnvConfigRegistry_1 = require("./registries/EnvConfigRegistry");
 var Logger_1 = require("./Logger");
 var logger = Logger_1.getLogger('Utils_Common');
 var nodemailer = require('nodemailer');
@@ -150,22 +150,22 @@ function sendMail(mailReceiver, subject, text) {
                         logger.warn("Invalid mail receiver: " + mailReceiver);
                         return [2];
                     }
-                    mailUserName = __1.EnvConfigRegistry.getCustomEnvConfig('MAILER_ACCOUNT');
-                    mailPassword = __1.EnvConfigRegistry.getCustomEnvConfig('MAILER_PASSWORD');
+                    mailUserName = EnvConfigRegistry_1.EnvConfigRegistry.getCustomEnvConfig('MAILER_ACCOUNT');
+                    mailPassword = EnvConfigRegistry_1.EnvConfigRegistry.getCustomEnvConfig('MAILER_PASSWORD');
                     if (!(mailUserName && mailPassword)) return [3, 2];
                     return [4, sendNormalMail(mailUserName, mailPassword, mailReceiver, subject, text)];
                 case 1:
                     _a.sent();
                     return [2];
                 case 2:
-                    mailUserName = __1.EnvConfigRegistry.getCustomEnvConfig('MAIL_USERNAME');
-                    mailPassword = __1.EnvConfigRegistry.getCustomEnvConfig('MAIL_PASSWORD');
-                    mailHost = __1.EnvConfigRegistry.getCustomEnvConfig('MAIL_HOST');
-                    mailPort = __1.EnvConfigRegistry.getCustomEnvConfig('MAIL_PORT');
-                    mailFromName = __1.EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_NAME');
-                    mailFromAddress = __1.EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_ADDRESS');
-                    mailDrive = __1.EnvConfigRegistry.getCustomEnvConfig('MAIL_DRIVER');
-                    mailEncryption = __1.EnvConfigRegistry.getCustomEnvConfig('MAIL_ENCRYPTION');
+                    mailUserName = EnvConfigRegistry_1.EnvConfigRegistry.getCustomEnvConfig('MAIL_USERNAME');
+                    mailPassword = EnvConfigRegistry_1.EnvConfigRegistry.getCustomEnvConfig('MAIL_PASSWORD');
+                    mailHost = EnvConfigRegistry_1.EnvConfigRegistry.getCustomEnvConfig('MAIL_HOST');
+                    mailPort = EnvConfigRegistry_1.EnvConfigRegistry.getCustomEnvConfig('MAIL_PORT');
+                    mailFromName = EnvConfigRegistry_1.EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_NAME');
+                    mailFromAddress = EnvConfigRegistry_1.EnvConfigRegistry.getCustomEnvConfig('MAIL_FROM_ADDRESS');
+                    mailDrive = EnvConfigRegistry_1.EnvConfigRegistry.getCustomEnvConfig('MAIL_DRIVER');
+                    mailEncryption = EnvConfigRegistry_1.EnvConfigRegistry.getCustomEnvConfig('MAIL_ENCRYPTION');
                     if (!mailUserName || !mailPassword) {
                         logger.error("Revise this: MAILER_ACCOUNT=" + mailUserName + ", MAILER_PASSWORD=" + mailPassword + "}");
                         return [2];

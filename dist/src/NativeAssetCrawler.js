@@ -49,8 +49,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var __1 = require("..");
-var logger = __1.getLogger('CustomAssetCrawler');
+var BaseCrawler_1 = require("./BaseCrawler");
+var Logger_1 = require("./Logger");
+var logger = Logger_1.getLogger('CustomAssetCrawler');
 var NativeAssetCrawler = (function (_super) {
     __extends(NativeAssetCrawler, _super);
     function NativeAssetCrawler() {
@@ -78,6 +79,6 @@ var NativeAssetCrawler = (function (_super) {
         });
     };
     return NativeAssetCrawler;
-}(__1.BaseCrawler));
+}(BaseCrawler_1.BaseCrawler));
 exports.NativeAssetCrawler = NativeAssetCrawler;
 //# sourceMappingURL=NativeAssetCrawler.js.map

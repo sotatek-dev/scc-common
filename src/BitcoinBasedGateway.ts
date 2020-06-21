@@ -1,18 +1,15 @@
 import { inspect } from 'util';
 import _ from 'lodash';
 import Axios from 'axios';
-import {
-  Account,
-  Block,
-  UTXOBasedGateway,
-  TransactionStatus,
-  BitcoinBasedTransactions,
-  BitcoinBasedTransaction,
-  getLogger,
-  override,
-  implement,
-  BigNumber,
-} from '..';
+import BigNumber from 'bignumber.js';
+import { override, implement } from './Utils';
+import { getLogger } from './Logger';
+import { Account } from './types/Account';
+import { Block } from './types/Block';
+import { UTXOBasedGateway } from './UTXOBasedGateway';
+import { TransactionStatus } from './enums/TransactionStatus';
+import { BitcoinBasedTransaction } from './types/BitcoinBasedTransaction';
+import { BitcoinBasedTransactions } from './types/BitcoinBasedTransactions';
 import {
   ISignedRawTransaction,
   ISubmittedTransaction,
@@ -29,7 +26,7 @@ import {
 import LRU from 'lru-cache';
 import { EnvConfigRegistry } from './registries';
 import pLimit from 'p-limit';
-import { getClient } from '../src/RedisChannel';
+import { getRedisClient } from '../src/RedisChannel';
 const limit = pLimit(1);
 const INSIGHT_REQUEST_MAX_RETRIES = 10;
 const logger = getLogger('BitcoinBasedGateway');
@@ -376,7 +373,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       pages.map(async page => {
         return limit(async () => {
           const txs = await this._fetchOneBlockTxsInsightPage(block, page, pageTotal, networkBlockCount);
-          listTxs.mutableConcat(txs);
+          listTxs.push(...txs);
         });
       })
     );
@@ -425,7 +422,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         let redisClient;
         let cachedData;
         if (!!EnvConfigRegistry.isUsingRedis()) {
-          redisClient = getClient();
+          redisClient = getRedisClient();
           cachedData = await redisClient.get(key);
         } else {
           cachedData = JSON.stringify(_cacheRawTxByBlockUrl.get(key));

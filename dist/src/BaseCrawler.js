@@ -64,9 +64,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var uuid_1 = require("uuid");
 var BaseIntervalWorker_1 = __importDefault(require("./BaseIntervalWorker"));
 var CurrencyRegistry_1 = __importDefault(require("./registries/CurrencyRegistry"));
-var __1 = require("..");
+var Utils_1 = require("./Utils");
 var registries_1 = require("./registries");
-var logger = __1.getLogger('BaseCrawler');
+var Logger_1 = require("./Logger");
+var logger = Logger_1.getLogger('BaseCrawler');
 var LATEST_PROCESSED_BLOCK = new Map();
 var BaseCrawler = (function (_super) {
     __extends(BaseCrawler, _super);
@@ -169,13 +170,13 @@ var BaseCrawler = (function (_super) {
         });
     };
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], BaseCrawler.prototype, "prepare", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)

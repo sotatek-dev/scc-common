@@ -61,9 +61,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var _ = __importStar(require("lodash"));
 var axios_1 = __importDefault(require("axios"));
-var __1 = require("..");
+var bignumber_js_1 = __importDefault(require("bignumber.js"));
+var enums_1 = require("./enums");
+var types_1 = require("./types");
+var Utils = __importStar(require("./Utils"));
+var Logger_1 = require("./Logger");
 var BaseGateway_1 = __importDefault(require("./BaseGateway"));
-var logger = __1.getLogger('TerraGateway');
+var logger = Logger_1.getLogger('TerraGateway');
 var _cacheBlockNumber = {
     value: 0,
     updatedAt: 0,
@@ -112,13 +116,13 @@ var CosmosBasedGateway = (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        now = __1.Utils.nowInMillis();
+                        now = Utils.nowInMillis();
                         CACHE_TIME = 10000;
                         if (_cacheBlockNumber.value > 0 && now - _cacheBlockNumber.updatedAt < CACHE_TIME) {
                             return [2, _cacheBlockNumber.value];
                         }
                         if (!_cacheBlockNumber.isRequesting) return [3, 2];
-                        return [4, __1.Utils.timeout(500)];
+                        return [4, Utils.timeout(500)];
                     case 1:
                         _a.sent();
                         return [2, this.getBlockCount()];
@@ -138,7 +142,7 @@ var CosmosBasedGateway = (function (_super) {
                         blockHeight = _cacheBlockNumber.value;
                         return [3, 6];
                     case 6:
-                        newUpdateAt = __1.Utils.nowInMillis();
+                        newUpdateAt = Utils.nowInMillis();
                         _cacheBlockNumber.value = blockHeight;
                         _cacheBlockNumber.updatedAt = newUpdateAt;
                         _cacheBlockNumber.isRequesting = false;
@@ -159,7 +163,7 @@ var CosmosBasedGateway = (function (_super) {
                         return [4, axios_1.default.get("" + this._appClient + this._url.getAllBlockTransactions + blockHeight)];
                     case 1:
                         res = _a.sent();
-                        transactions_1 = new __1.GenericTransactions();
+                        transactions_1 = new types_1.GenericTransactions();
                         data = res.data;
                         if (!data) {
                             throw new Error("Request fail");
@@ -174,7 +178,7 @@ var CosmosBasedGateway = (function (_super) {
                         return [4, this.getBlockCount()];
                     case 3:
                         latestBlock_1 = _a.sent();
-                        blockHeader_1 = new __1.BlockHeader({
+                        blockHeader_1 = new types_1.BlockHeader({
                             hash: blockInfo.hash,
                             number: blockInfo.number,
                             timestamp: blockInfo.timestamp,
@@ -236,13 +240,13 @@ var CosmosBasedGateway = (function (_super) {
                         res = _a.sent();
                         balance = res.data;
                         if (!balance) {
-                            return [2, new __1.BigNumber(0)];
+                            return [2, new bignumber_js_1.default(0)];
                         }
                         currencyBalance = balance.result.find(function (_balance) { return _balance.denom === _this.getCode(); });
                         if (!currencyBalance || !currencyBalance.amount) {
-                            return [2, new __1.BigNumber(0)];
+                            return [2, new bignumber_js_1.default(0)];
                         }
-                        return [2, new __1.BigNumber(currencyBalance.amount)];
+                        return [2, new bignumber_js_1.default(currencyBalance.amount)];
                     case 2:
                         err_4 = _a.sent();
                         throw err_4;
@@ -281,21 +285,21 @@ var CosmosBasedGateway = (function (_super) {
                     case 1:
                         response = _a.sent();
                         if (!response) {
-                            txStatus = __1.TransactionStatus.FAILED;
+                            txStatus = enums_1.TransactionStatus.FAILED;
                         }
                         else {
                             tx = response;
-                            if (new __1.BigNumber(tx.block.number).gte(this.getCurrencyConfig().requiredConfirmations)) {
-                                txStatus = __1.TransactionStatus.COMPLETED;
+                            if (new bignumber_js_1.default(tx.block.number).gte(this.getCurrencyConfig().requiredConfirmations)) {
+                                txStatus = enums_1.TransactionStatus.COMPLETED;
                             }
                             else {
-                                txStatus = __1.TransactionStatus.CONFIRMING;
+                                txStatus = enums_1.TransactionStatus.CONFIRMING;
                             }
                         }
                         return [3, 3];
                     case 2:
                         err_5 = _a.sent();
-                        txStatus = __1.TransactionStatus.UNKNOWN;
+                        txStatus = enums_1.TransactionStatus.UNKNOWN;
                         return [3, 3];
                     case 3: return [2, txStatus];
                 }
@@ -320,13 +324,13 @@ var CosmosBasedGateway = (function (_super) {
                     case 1:
                         res = _a.sent();
                         result = res.data;
-                        return [4, this.getOneBlock(new __1.BigNumber(result.height).toNumber())];
+                        return [4, this.getOneBlock(new bignumber_js_1.default(result.height).toNumber())];
                     case 2:
                         blockInfo = _a.sent();
                         return [4, this.getBlockCount()];
                     case 3:
                         latestBlock = _a.sent();
-                        blockHeader = new __1.BlockHeader({
+                        blockHeader = new types_1.BlockHeader({
                             hash: blockInfo.hash,
                             number: blockInfo.number,
                             timestamp: blockInfo.timestamp,

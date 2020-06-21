@@ -1,23 +1,6 @@
 import _ from 'lodash';
 import winston from 'winston';
 import util from 'util';
-import EnvConfigRegistry from './registries/EnvConfigRegistry';
-import { Utils } from '..';
-
-let ERROR_STASHES: string[] = [];
-let ERROR_SENDING_INTERVAL: number;
-if (process.env.ERROR_SENDING_INTERVAL) {
-  ERROR_SENDING_INTERVAL = parseInt(process.env.ERROR_SENDING_INTERVAL, 10);
-}
-
-// Default interval is 15 minutes
-if (!ERROR_SENDING_INTERVAL || isNaN(ERROR_SENDING_INTERVAL)) {
-  ERROR_SENDING_INTERVAL = 15 * 60 * 1000;
-}
-
-let _mailCallback: (messages: any) => Promise<void>;
-
-setInterval(notifyErrors, ERROR_SENDING_INTERVAL);
 
 const enumerateErrorFormat = winston.format(info => {
   if (info instanceof Error) {
@@ -70,51 +53,10 @@ export function getLogger(name: string) {
       return winston.loggers.get(name).warn(msg);
     },
     error(msg: any) {
-      ERROR_STASHES.push(`[ERROR] ${msg}`);
       return winston.loggers.get(name).error(msg);
     },
     fatal(msg: any) {
-      // Setup error
-      ERROR_STASHES.push(`[ERROR] ${msg}`);
       return winston.loggers.get(name).error(msg);
     },
-    async notifyErrorsImmediately() {
-      try {
-        await notifyErrors();
-      } catch (err) {
-        console.error(`======= UNCAUGHT ERROR NOTIFYING BEGIN =======`);
-        console.error(err);
-        console.error(`======= UNCAUGHT ERROR NOTIFYING END =======`);
-      }
-    },
   };
-}
-
-export function registerMailEventCallback(callback: (messages: any) => Promise<void>) {
-  _mailCallback = callback;
-  getLogger('Logger').info(`MailService::A callback has just been registered`);
-}
-
-async function notifyErrors() {
-  if (!ERROR_STASHES.length) {
-    return;
-  }
-
-  const messages = _.uniq(ERROR_STASHES);
-  ERROR_STASHES = [];
-  let mailReceiver = EnvConfigRegistry.getCustomEnvConfig('MAIL_RECEIVER');
-  // Fallback to old env config
-  if (!mailReceiver) {
-    mailReceiver = EnvConfigRegistry.getCustomEnvConfig('MAILER_RECEIVER');
-  }
-
-  const appName: string = process.env.APP_NAME || 'Exchange Wallet';
-  const env: string = process.env.NODE_ENV || 'development';
-  const subject = `[${appName}][${env}] Error Notifier`;
-  if (_mailCallback) {
-    await _mailCallback(messages);
-    return;
-  }
-
-  Utils.sendMail(mailReceiver, subject, `${messages.join('<br />')}`);
 }

@@ -17,8 +17,8 @@
     "watch": false,
     "outDir": "./dist",
     "lib": ["es2015", "dom"],
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "include": ["src/**/*", "index.ts"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts", "**/__mocks__/*"]
 }

@@ -47,11 +47,23 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var lodash_1 = __importDefault(require("lodash"));
 var lru_cache_1 = __importDefault(require("lru-cache"));
 var util_1 = __importDefault(require("util"));
-var __1 = require("..");
+var bignumber_js_1 = __importDefault(require("bignumber.js"));
+var Utils = __importStar(require("./Utils"));
+var Utils_1 = require("./Utils");
+var RPCClient_1 = __importDefault(require("./RPCClient"));
+var Logger_1 = require("./Logger");
+var types_1 = require("./types");
 var CurrencyRegistry_1 = __importDefault(require("./registries/CurrencyRegistry"));
 var GatewayRegistry_1 = __importDefault(require("./registries/GatewayRegistry"));
 var p_limit_1 = __importDefault(require("p-limit"));
@@ -66,7 +78,7 @@ CurrencyRegistry_1.default.onCurrencyConfigSet(function (currency, config) {
         });
     }
 });
-var logger = __1.getLogger('BaseGateway');
+var logger = Logger_1.getLogger('BaseGateway');
 var BaseGateway = (function () {
     function BaseGateway(currency) {
         this._cacheBlock = new lru_cache_1.default(this._getCacheOptions());
@@ -89,7 +101,7 @@ var BaseGateway = (function () {
         if (rpcRawConfig) {
             try {
                 var rpcConfig = JSON.parse(rpcRawConfig);
-                this._rpcClient = new __1.RPCClient(rpcConfig);
+                this._rpcClient = new RPCClient_1.default(rpcConfig);
             }
             catch (e) {
                 logger.error("BaseGateway::constructor could not contruct RPC Client due to error: " + util_1.default.inspect(e));
@@ -196,7 +208,7 @@ var BaseGateway = (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        result = new __1.Transactions();
+                        result = new types_1.Transactions();
                         if (!txids || !txids.length) {
                             return [2, result];
                         }
@@ -215,7 +227,7 @@ var BaseGateway = (function () {
                             });
                         }); };
                         limit = p_limit_1.default(this.getParallelNetworkRequestLimit());
-                        return [4, __1.Utils.PromiseAll(txids.map(function (txid) { return __awaiter(_this, void 0, void 0, function () {
+                        return [4, Utils.PromiseAll(txids.map(function (txid) { return __awaiter(_this, void 0, void 0, function () {
                                 return __generator(this, function (_a) {
                                     return [2, limit(function () { return getOneTx(txid); })];
                                 });
@@ -258,7 +270,7 @@ var BaseGateway = (function () {
                         }
                         count = toBlockNumber - fromBlockNumber + 1;
                         blockNumbers = Array.from(new Array(count), function (val, index) { return index + fromBlockNumber; });
-                        result = new __1.Transactions();
+                        result = new types_1.Transactions();
                         return [4, Promise.all(blockNumbers.map(function (blockNumber) { return __awaiter(_this, void 0, void 0, function () {
                                 var txs, transactions;
                                 return __generator(this, function (_a) {
@@ -301,7 +313,7 @@ var BaseGateway = (function () {
     BaseGateway.prototype.estimateFee = function (options) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2, new __1.BigNumber(0)];
+                return [2, new bignumber_js_1.default(0)];
             });
         });
     };
@@ -312,43 +324,43 @@ var BaseGateway = (function () {
         };
     };
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [String]),
         __metadata("design:returntype", String)
     ], BaseGateway.prototype, "normalizeAddress", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [String]),
         __metadata("design:returntype", Promise)
     ], BaseGateway.prototype, "getOneTransaction", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Array]),
         __metadata("design:returntype", Promise)
     ], BaseGateway.prototype, "getTransactionsByIds", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object]),
         __metadata("design:returntype", Promise)
     ], BaseGateway.prototype, "getOneBlock", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Number, Number]),
         __metadata("design:returntype", Promise)
     ], BaseGateway.prototype, "getMultiBlocksTransactions", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object]),
         __metadata("design:returntype", Promise)
     ], BaseGateway.prototype, "getBlockTransactions", null);
     __decorate([
-        __1.implement,
+        Utils_1.implement,
         __metadata("design:type", Function),
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", void 0)

@@ -23,6 +23,9 @@ var EnvConfigRegistry = (function () {
                 _globalEnvConfig = Object.assign(_globalEnvConfig, { network: value });
                 onNetworkChangedCallbacks.forEach(function (func) { return func(value); });
                 break;
+            case 'APP_ID':
+                this.setAppId(value);
+                break;
             default:
                 break;
         }

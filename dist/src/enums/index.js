@@ -5,7 +5,6 @@ function __export(m) {
 Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./BlockchainPlatform"));
 __export(require("./HotWalletType"));
-__export(require("./MessageQueueName"));
 __export(require("./TokenType"));
 __export(require("./TransactionStatus"));
 __export(require("./NetworkType"));

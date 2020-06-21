@@ -9,7 +9,7 @@ var registries_1 = require("./registries");
 var Logger_1 = require("./Logger");
 var logger = Logger_1.getLogger('RedisChannel');
 var sub = null;
-function getRedisSubscriber() {
+function getRedisSubscriber(customChannel) {
     if (sub) {
         return sub;
     }
@@ -25,13 +25,18 @@ function getRedisSubscriber() {
         url: url,
     });
     var appId = registries_1.EnvConfigRegistry.getAppId();
-    sub.subscribe("" + appId);
+    if (!customChannel) {
+        sub.subscribe("" + appId);
+    }
+    else {
+        sub.subscribe(appId + ":" + customChannel);
+    }
     return sub;
 }
 exports.getRedisSubscriber = getRedisSubscriber;
 var client;
 var promiseClient;
-function getClient() {
+function getRedisClient() {
     if (!registries_1.EnvConfigRegistry.isUsingRedis()) {
         throw new Error("Redis is not enabled now.");
     }
@@ -53,5 +58,5 @@ function getClient() {
     }
     return promiseClient;
 }
-exports.getClient = getClient;
+exports.getRedisClient = getRedisClient;
 //# sourceMappingURL=RedisChannel.js.map

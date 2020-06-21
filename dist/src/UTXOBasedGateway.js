@@ -13,7 +13,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var __1 = require("..");
+var BaseGateway_1 = require("./BaseGateway");
 var UTXOBasedGateway = (function (_super) {
     __extends(UTXOBasedGateway, _super);
     function UTXOBasedGateway() {
@@ -24,6 +24,6 @@ var UTXOBasedGateway = (function (_super) {
         return tx.txid === rawTx.txid && tx.unsignedRaw === rawTx.unsignedRaw;
     };
     return UTXOBasedGateway;
-}(__1.BaseGateway));
+}(BaseGateway_1.BaseGateway));
 exports.UTXOBasedGateway = UTXOBasedGateway;
 //# sourceMappingURL=UTXOBasedGateway.js.map

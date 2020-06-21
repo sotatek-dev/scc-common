@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { Address, BlockHeader, TransferEntry } from '../..';
+import { Address, BlockHeader, TransferEntry } from './index';
 interface ITransactionProps {
     readonly txid: string;
     readonly height: number;

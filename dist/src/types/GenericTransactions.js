@@ -33,9 +33,6 @@ var GenericTransactions = (function (_super) {
         });
         return result;
     };
-    GenericTransactions.prototype.mutableConcat = function (txs) {
-        this.push.apply(this, txs);
-    };
     return GenericTransactions;
 }(Array));
 exports.GenericTransactions = GenericTransactions;

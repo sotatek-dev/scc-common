@@ -24,7 +24,6 @@ if (process.env.isEnvSet_KnV5Ha0UlAAEME69I6KA === '1') {
     throw new Error("Something went wrong. The [sota-common] lib declared multiple times.");
 }
 process.env.isEnvSet_KnV5Ha0UlAAEME69I6KA = '1';
-require("./EnvDecrypt");
 var Utils = __importStar(require("./src/Utils"));
 exports.Utils = Utils;
 var Utils_1 = require("./src/Utils");
@@ -48,8 +47,6 @@ __export(require("./src/BaseGateway"));
 __export(require("./src/AccountBasedGateway"));
 __export(require("./src/UTXOBasedGateway"));
 __export(require("./src/BitcoinBasedGateway"));
-__export(require("./src/BaseMQConsumer"));
-__export(require("./src/BaseMQProducer"));
 __export(require("./src/BaseWebServer"));
 __export(require("./src/RPCClient"));
 __export(require("./src/Logger"));

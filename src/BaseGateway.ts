@@ -1,20 +1,14 @@
 import _ from 'lodash';
 import LRU from 'lru-cache';
 import util from 'util';
-import {
-  Account,
-  Block,
-  Transaction,
-  Transactions,
-  TransactionStatus,
-  RPCClient,
-  ICurrency,
-  implement,
-  Utils,
-  BigNumber,
-  getLogger,
-  IEndpointsStatus,
-} from '..';
+import BigNumber from 'bignumber.js';
+import * as Utils from './Utils';
+import { implement } from './Utils';
+import RPCClient from './RPCClient';
+import { getLogger } from './Logger';
+import { ICurrency } from './interfaces';
+import { Account, Block, Transaction, Transactions, IEndpointsStatus } from './types';
+import { TransactionStatus } from './enums';
 import { ICurrencyConfig, ISignedRawTransaction, ISubmittedTransaction } from './interfaces';
 import CurrencyRegistry from './registries/CurrencyRegistry';
 import GatewayRegistry from './registries/GatewayRegistry';

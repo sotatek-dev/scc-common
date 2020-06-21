@@ -56,7 +56,6 @@ export abstract class BaseIntervalWorker {
     const classname = this.constructor.name;
     const timer = setTimeout(async () => {
       logger.fatal(`${classname}::onTick timeout (${duration} ms) is exceeded. Worker will be restarted shortly...`);
-      await logger.notifyErrorsImmediately();
       process.exit(1);
     }, duration);
 

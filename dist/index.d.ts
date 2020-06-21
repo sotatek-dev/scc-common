@@ -1,4 +1,3 @@
-import './EnvDecrypt';
 import * as Utils from './src/Utils';
 export { Utils };
 export { override, implement } from './src/Utils';
@@ -21,8 +20,6 @@ export * from './src/BaseGateway';
 export * from './src/AccountBasedGateway';
 export * from './src/UTXOBasedGateway';
 export * from './src/BitcoinBasedGateway';
-export * from './src/BaseMQConsumer';
-export * from './src/BaseMQProducer';
 export * from './src/BaseWebServer';
 export * from './src/RPCClient';
 export * from './src/Logger';

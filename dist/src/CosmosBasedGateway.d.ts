@@ -1,4 +1,7 @@
-import { BlockHeader, TransactionStatus, BigNumber, ISubmittedTransaction, Block, CosmosTransaction, IToken, GenericTransactions, ICosmosRawTransaction, Transaction } from '..';
+import BigNumber from 'bignumber.js';
+import { IToken, ISubmittedTransaction } from './interfaces';
+import { TransactionStatus } from './enums';
+import { Transaction, Block, BlockHeader, CosmosTransaction, GenericTransactions, ICosmosRawTransaction } from './types';
 import BaseGateway from './BaseGateway';
 export declare abstract class CosmosBasedGateway extends BaseGateway {
     protected _currency: IToken;

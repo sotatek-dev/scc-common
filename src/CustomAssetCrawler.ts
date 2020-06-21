@@ -2,7 +2,7 @@ import { ICurrency } from './interfaces';
 import { getLogger } from './Logger';
 import { NativeAssetCrawler } from './NativeAssetCrawler';
 import { ICrawlerOptions } from './BaseCrawler';
-import { Utils } from '..';
+import * as Utils from './Utils';
 import { BlockchainPlatform } from './enums';
 import { GatewayRegistry } from './registries';
 

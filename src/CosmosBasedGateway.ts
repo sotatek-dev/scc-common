@@ -1,20 +1,18 @@
 import * as _ from 'lodash';
 import axios from 'axios';
+import BigNumber from 'bignumber.js';
+import { IToken, ISubmittedTransaction } from './interfaces';
+import { TransactionStatus } from './enums';
 import {
-  Transactions,
-  BlockHeader,
-  TransactionStatus,
-  BigNumber,
-  getLogger,
-  ISubmittedTransaction,
-  Utils,
+  Transaction,
   Block,
+  BlockHeader,
   CosmosTransaction,
-  IToken,
   GenericTransactions,
   ICosmosRawTransaction,
-  Transaction,
-} from '..';
+} from './types';
+import * as Utils from './Utils';
+import { getLogger } from './Logger';
 import BaseGateway from './BaseGateway';
 
 const logger = getLogger('TerraGateway');

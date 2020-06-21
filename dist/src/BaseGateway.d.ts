@@ -1,5 +1,9 @@
 import LRU from 'lru-cache';
-import { Account, Block, Transaction, Transactions, TransactionStatus, RPCClient, ICurrency, BigNumber, IEndpointsStatus } from '..';
+import BigNumber from 'bignumber.js';
+import RPCClient from './RPCClient';
+import { ICurrency } from './interfaces';
+import { Account, Block, Transaction, Transactions, IEndpointsStatus } from './types';
+import { TransactionStatus } from './enums';
 import { ICurrencyConfig, ISignedRawTransaction, ISubmittedTransaction } from './interfaces';
 import AccountHdWallet from './types/AccountHdWallet';
 export interface IParamsHDWallet {

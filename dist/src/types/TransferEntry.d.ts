@@ -1,4 +1,5 @@
-import { Address, Transaction, ICurrency } from '../..';
+import { Address, Transaction } from './index';
+import { ICurrency } from '../interfaces';
 import BigNumber from 'bignumber.js';
 interface ITransferEntryProps {
     readonly currency: ICurrency;

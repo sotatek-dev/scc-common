@@ -5,6 +5,4 @@ export declare function getLogger(name: string): {
     warn(msg: any): winston.Logger;
     error(msg: any): winston.Logger;
     fatal(msg: any): winston.Logger;
-    notifyErrorsImmediately(): Promise<void>;
 };
-export declare function registerMailEventCallback(callback: (messages: any) => Promise<void>): void;

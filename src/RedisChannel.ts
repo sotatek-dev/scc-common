@@ -6,7 +6,7 @@ import { getLogger } from './Logger';
 const logger = getLogger('RedisChannel');
 let sub: RedisClient = null;
 
-export function getRedisSubscriber(): RedisClient {
+export function getRedisSubscriber(customChannel?: string): RedisClient {
   if (sub) {
     return sub;
   }
@@ -17,13 +17,20 @@ export function getRedisSubscriber(): RedisClient {
   if ((!host && !url) || (!port && !url)) {
     throw new Error(`Some redis configs are missing. REDIS_HOST=${host}, REDIS_PORT=${port}, REDIS_URL=${url}`);
   }
+
   sub = createClient({
     host,
     port: parseInt(port, 10),
     url,
   });
+
   const appId = EnvConfigRegistry.getAppId();
-  sub.subscribe(`${appId}`);
+
+  if (!customChannel) {
+    sub.subscribe(`${appId}`);
+  } else {
+    sub.subscribe(`${appId}:${customChannel}`);
+  }
 
   return sub;
 }
@@ -37,7 +44,7 @@ interface IRedisPromiseClient {
 
 let client: RedisClient;
 let promiseClient: IRedisPromiseClient;
-export function getClient() {
+export function getRedisClient() {
   if (!EnvConfigRegistry.isUsingRedis()) {
     throw new Error(`Redis is not enabled now.`);
   }
@@ -52,6 +59,7 @@ export function getClient() {
       port: parseInt(port, 10),
       url,
     });
+
     promiseClient = {
       setex: util.promisify(client.setex).bind(client),
       set: util.promisify(client.set).bind(client),
@@ -59,5 +67,6 @@ export function getClient() {
       publish: util.promisify(client.publish).bind(client),
     };
   }
+
   return promiseClient;
 }

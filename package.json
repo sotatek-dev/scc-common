@@ -4,11 +4,15 @@
   "description": "SotaTek cryptocurrency common lib",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "LOG_LEVEL=warn jest",
+    "coverage": "LOG_LEVEL=warn jest --coverage"
   },
   "author": "an.nguyen@sotatek.com",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "26.0.0",
+    "jest": "26.0.1",
+    "ts-jest": "26.1.0",
     "typescript": "3.8.3"
   },
   "peerDependencies": {},
@@ -39,6 +43,23 @@
     "uuid": "3.3.2",
     "winston": "3.2.1",
     "winston-cloudwatch": "2.0.4"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "setupFilesAfterEnv": [
+      "./jestMockDependencies.js"
+    ],
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json"
+    ],
+    "testEnvironment": "node",
+    "verbose": true
   },
   "repository": {
     "type": "git",

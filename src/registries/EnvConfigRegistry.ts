@@ -25,6 +25,10 @@ export class EnvConfigRegistry {
         onNetworkChangedCallbacks.forEach(func => func(value as NetworkType));
         break;
 
+      case 'APP_ID':
+        this.setAppId(value);
+        break;
+
       default:
         break;
     }
@@ -67,12 +71,12 @@ export class EnvConfigRegistry {
     onNetworkChangedCallbacks.push(func);
   }
 
-  // 30/12/2019 Check whether the redis environment is enabled
   public static isUsingRedis(): boolean {
     const redisEnabled = EnvConfigRegistry.getCustomEnvConfig('REDIS_ENABLED');
     if (redisEnabled && redisEnabled === 'true') {
       return true;
     }
+
     return false;
   }
 }

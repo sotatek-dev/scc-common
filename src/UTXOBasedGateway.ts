@@ -1,4 +1,4 @@
-import { BaseGateway } from '..';
+import { BaseGateway } from './BaseGateway';
 import { IRawVOut, IRawTransaction, IInsightUtxoInfo } from './interfaces';
 
 export abstract class UTXOBasedGateway extends BaseGateway {
