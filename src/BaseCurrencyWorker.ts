@@ -1,7 +1,4 @@
 import BaseIntervalWorker2 from './BaseIntervalWorker2';
-import BaseMQConsumer from './BaseMQConsumer';
-import BaseMQProducer from './BaseMQProducer';
-import { Options } from 'amqplib';
 import { ICurrency, ICurrencyWorkerOptions } from './interfaces';
 
 // const MixedClass = BaseMQConsumer(BaseMQProducer(BaseIntervalWorker2));

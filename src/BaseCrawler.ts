@@ -4,9 +4,10 @@ import BaseIntervalWorker from './BaseIntervalWorker';
 import CurrencyRegistry from './registries/CurrencyRegistry';
 import { Block, Transactions } from './types';
 import { ICurrency } from './interfaces';
-import { getLogger, implement } from '..';
+import { implement } from './Utils';
 import { BlockchainPlatform } from './enums';
 import { GatewayRegistry } from './registries';
+import { getLogger } from './Logger';
 
 const logger = getLogger('BaseCrawler');
 
@@ -123,6 +124,8 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
     if (toBlockNumber > latestNetworkBlock) {
       toBlockNumber = latestNetworkBlock;
     }
+
+    logger.info(`BaseCrawler::doProcess fromBlock=${fromBlockNumber} toBlock=${toBlockNumber}`);
 
     /**
      * Actual crawl and process blocks

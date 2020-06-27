@@ -1,4 +1,5 @@
-import { BaseCrawler, getLogger } from '..';
+import { BaseCrawler } from './BaseCrawler';
+import { getLogger } from './Logger';
 
 const logger = getLogger('CustomAssetCrawler');
 /**

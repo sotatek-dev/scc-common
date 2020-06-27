@@ -2,6 +2,8 @@ import BaseCrawler from './BaseCrawler';
 import { CurrencyRegistry, GatewayRegistry } from './registries';
 import { getLogger } from './Logger';
 import * as Utils from './Utils';
+import pLimit from 'p-limit';
+const limit = pLimit(1);
 
 const logger = getLogger('BasePlatformCrawler');
 
@@ -16,19 +18,21 @@ export class BasePlatformCrawler extends BaseCrawler {
     const allCurrencies = CurrencyRegistry.getCurrenciesOfPlatform(this._nativeCurrency.platform);
     await Utils.PromiseAll(
       allCurrencies.map(async c => {
-        const gateway = GatewayRegistry.getGatewayInstance(c);
+        return limit(async () => {
+          const gateway = GatewayRegistry.getGatewayInstance(c);
 
-        // Get all transactions in the block
-        const allTxs = await gateway.getMultiBlocksTransactions(fromBlock, toBlock);
+          // Get all transactions in the block
+          const allTxs = await gateway.getMultiBlocksTransactions(fromBlock, toBlock);
 
-        // Use callback to process all crawled transactions
-        await this._options.onCrawlingTxs(this, allTxs);
+          // Use callback to process all crawled transactions
+          await this._options.onCrawlingTxs(this, allTxs);
 
-        logger.info(
-          `${this.constructor.name}::processBlocks FINISH: currency=${c.networkSymbol}` +
-            `\tblock=${fromBlock}→${toBlock} / ${latestNetworkBlock}` +
-            `\ttxs=${allTxs.length}`
-        );
+          logger.info(
+            `${this.constructor.name}::processBlocks FINISH: currency=${c.networkSymbol}` +
+              `\tblock=${fromBlock}→${toBlock} / ${latestNetworkBlock}` +
+              `\ttxs=${allTxs.length}`
+          );
+        });
       })
     );
   }

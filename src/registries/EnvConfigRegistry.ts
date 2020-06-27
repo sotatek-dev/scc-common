@@ -1,5 +1,6 @@
 import { NetworkType } from '../enums';
 import { IGlobalEnvConfig } from '../interfaces';
+import { getLogger } from '../Logger';
 
 const envConfig = new Map<string, string>();
 let _appId: string = 'PP70ExC8Hr';
@@ -8,13 +9,24 @@ let _globalEnvConfig: IGlobalEnvConfig = {
 };
 const onNetworkChangedCallbacks: Array<(network: NetworkType) => void> = [];
 
+/**
+ * List of configuration keys that are used in common lib
+ * - NETWORK:
+ *   + May impact to how addresses are generated in some platforms (like Bitcoin family)
+ * - REDIS_ENABLED:
+ *   + Indicates that redis is available for cache and pub/sub
+ * - REDIS_HOST/REDIS_PORT/REDIS_USER/REDIS_PASSWORD:
+ *   + Config redis credentials when they're not the default values
+ */
+
 export class EnvConfigRegistry {
   public static getCustomEnvConfig(key: string): string {
     return envConfig.get(key);
   }
 
   public static setCustomEnvConfig(key: string, value: string) {
-    console.log(`setCustomEnvConfig key=${key}, value=${value}`);
+    const logger = getLogger('EnvConfigRegistry');
+    logger.info(`setCustomEnvConfig key=${key}, value=${value}`);
     switch (key) {
       case 'NETWORK':
         if (value !== NetworkType.MainNet && value !== NetworkType.TestNet && value !== NetworkType.PrivateNet) {
@@ -23,6 +35,10 @@ export class EnvConfigRegistry {
 
         _globalEnvConfig = Object.assign(_globalEnvConfig, { network: value });
         onNetworkChangedCallbacks.forEach(func => func(value as NetworkType));
+        break;
+
+      case 'APP_ID':
+        this.setAppId(value);
         break;
 
       default:
@@ -67,12 +83,12 @@ export class EnvConfigRegistry {
     onNetworkChangedCallbacks.push(func);
   }
 
-  // 30/12/2019 Check whether the redis environment is enabled
   public static isUsingRedis(): boolean {
     const redisEnabled = EnvConfigRegistry.getCustomEnvConfig('REDIS_ENABLED');
-    if (redisEnabled && redisEnabled === 'true') {
+    if (redisEnabled === 'true') {
       return true;
     }
+
     return false;
   }
 }
