@@ -16,7 +16,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var winston_1 = __importDefault(require("winston"));
 var util_1 = __importDefault(require("util"));
+var os_1 = __importDefault(require("os"));
 var winston_cloudwatch_1 = __importDefault(require("winston-cloudwatch"));
+var randomSuffix = Math.random().toString(36).substr(2, 5);
 var enumerateErrorFormat = winston_1.default.format(function (info) {
     if (info instanceof Error) {
         return Object.assign({
@@ -59,9 +61,8 @@ function _createConsoleTransport() {
 }
 function _createCwlTransport() {
     var logGroupName = process.env.CWL_LOG_GROUP_NAME || 'sotatek-scc-common';
-    var logStreamPrefix = process.env.CWL_LOG_STREAM_PREFIX || 'sotatek-scc-common';
+    var logStreamPrefix = process.env.CWL_LOG_STREAM_PREFIX || os_1.default.hostname();
     var createdDate = new Date().toISOString().split('T')[0];
-    var randomSuffix = Math.random().toString(36).substr(2, 5);
     var logStreamName = logStreamPrefix + "-" + createdDate + "-" + randomSuffix;
     var uploadRate = process.env.CWL_UPLOAD_RATE ? parseInt(process.env.CWL_UPLOAD_RATE, 10) : undefined;
     return new winston_cloudwatch_1.default({

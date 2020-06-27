@@ -2,7 +2,10 @@ import _ from 'lodash';
 import winston from 'winston';
 import Transport from 'winston-transport';
 import util from 'util';
+import os from 'os';
 import WinstonCloudWatch from 'winston-cloudwatch';
+
+const randomSuffix = Math.random().toString(36).substr(2, 5);
 
 const enumerateErrorFormat = winston.format(info => {
   if (info instanceof Error) {
@@ -63,9 +66,8 @@ function _createConsoleTransport(): Transport {
 
 function _createCwlTransport(): Transport {
   const logGroupName = process.env.CWL_LOG_GROUP_NAME || 'sotatek-scc-common';
-  const logStreamPrefix = process.env.CWL_LOG_STREAM_PREFIX || 'sotatek-scc-common';
+  const logStreamPrefix = process.env.CWL_LOG_STREAM_PREFIX || os.hostname();
   const createdDate = new Date().toISOString().split('T')[0];
-  const randomSuffix = Math.random().toString(36).substr(2, 5);
   const logStreamName = `${logStreamPrefix}-${createdDate}-${randomSuffix}`;
   const uploadRate = process.env.CWL_UPLOAD_RATE ? parseInt(process.env.CWL_UPLOAD_RATE, 10) : undefined;
 
