@@ -50,3 +50,28 @@ main()
     process.exit(1);
   });
 ```
+
+# Notes for logging
+
+## Log level
+Application log level can be configured by this environment variable:
+```
+LOG_LEVEL={debug/info/warn/error}
+```
+If the log level is not explicit defined, the `info` level will be used as default.
+
+## Config for CloudWatch
+To enable CloudWatch logger, these environment variables must be set:
+```
+CWL_ENABLED={true/false}
+CWL_LOG_GROUP_NAME=<Custom log group name here>
+CWL_LOG_STREAM_PREFIX=<Custom log stream prefix here>
+```
+Some optional configurations can be set to customized CW settings:
+```
+CWL_LOG_LEVEL={debug/info/warn/error}
+CWL_UPLOAD_RATE=<time in milliseconds>
+CWL_AWS_ACCESS_KEY_ID=
+CWL_AWS_ACCESS_KEY_SECRET=
+CWL_AWS_REGION_ID=
+```
