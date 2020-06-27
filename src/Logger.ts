@@ -66,7 +66,7 @@ function _createCwlTransport(): Transport {
   const logStreamPrefix = process.env.CWL_LOG_STREAM_PREFIX || 'sotatek-scc-common';
   const createdDate = new Date().toISOString().split('T')[0];
   const randomSuffix = Math.random().toString(36).substr(2, 5);
-  const logStreamName = `${logStreamPrefix}:${createdDate}-${randomSuffix}`;
+  const logStreamName = `${logStreamPrefix}-${createdDate}-${randomSuffix}`;
   const uploadRate = process.env.CWL_UPLOAD_RATE ? parseInt(process.env.CWL_UPLOAD_RATE, 10) : undefined;
 
   return new WinstonCloudWatch({

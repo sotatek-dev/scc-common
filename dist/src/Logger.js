@@ -62,7 +62,7 @@ function _createCwlTransport() {
     var logStreamPrefix = process.env.CWL_LOG_STREAM_PREFIX || 'sotatek-scc-common';
     var createdDate = new Date().toISOString().split('T')[0];
     var randomSuffix = Math.random().toString(36).substr(2, 5);
-    var logStreamName = logStreamPrefix + ":" + createdDate + "-" + randomSuffix;
+    var logStreamName = logStreamPrefix + "-" + createdDate + "-" + randomSuffix;
     var uploadRate = process.env.CWL_UPLOAD_RATE ? parseInt(process.env.CWL_UPLOAD_RATE, 10) : undefined;
     return new winston_cloudwatch_1.default({
         level: process.env.CWL_LOG_LEVEL || process.env.LOG_LEVEL || 'info',
