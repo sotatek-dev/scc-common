@@ -1,6 +1,6 @@
 {
   "name": "@sotatek/crypto-currency-common",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "SotaTek cryptocurrency common lib",
   "main": "dist/index.js",
   "scripts": {

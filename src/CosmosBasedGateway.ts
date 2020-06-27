@@ -141,18 +141,16 @@ export abstract class CosmosBasedGateway extends BaseGateway {
       retryCount = 0;
     }
     const txBroadcast = rawTx;
-    // JSON.parse(rawTx);
     try {
       const res = await axios.post(`${this._appClient}${this._url.postOneTransaction}`, txBroadcast);
       const receipt = res.data;
       return { txid: receipt.txhash };
     } catch (err) {
       if (retryCount + 1 > 5) {
-        logger.fatal(`Too many fails sending tx`);
+        logger.error(`Too many fails sending tx`);
         throw err;
       }
       throw err;
-      return this.sendRawTransaction(rawTx, retryCount + 1);
     }
   }
 

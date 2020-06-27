@@ -78,7 +78,7 @@ var BaseIntervalWorker = (function () {
         var classname = this.constructor.name;
         var timer = setTimeout(function () { return __awaiter(_this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                logger.fatal(classname + "::onTick timeout (" + duration + " ms) is exceeded. Worker will be restarted shortly...");
+                logger.error(classname + "::onTick timeout (" + duration + " ms) is exceeded. Worker will be restarted shortly...");
                 process.exit(1);
                 return [2];
             });

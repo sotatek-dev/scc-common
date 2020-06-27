@@ -218,7 +218,7 @@ var CosmosBasedGateway = (function (_super) {
                     case 3:
                         err_3 = _a.sent();
                         if (retryCount + 1 > 5) {
-                            logger.fatal("Too many fails sending tx");
+                            logger.error("Too many fails sending tx");
                             throw err_3;
                         }
                         throw err_3;

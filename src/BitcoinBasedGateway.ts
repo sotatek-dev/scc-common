@@ -448,7 +448,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         }
 
         if (++retryCount === INSIGHT_REQUEST_MAX_RETRIES) {
-          logger.fatal(`Too many fails: ${errMsg}`);
+          logger.error(`Too many fails: ${errMsg}`);
           throw new Error(errMsg);
         } else {
           logger.error(errMsg);

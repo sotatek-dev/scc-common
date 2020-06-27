@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var enums_1 = require("../enums");
+var Logger_1 = require("../Logger");
 var envConfig = new Map();
 var _appId = 'PP70ExC8Hr';
 var _globalEnvConfig = {
@@ -14,7 +15,8 @@ var EnvConfigRegistry = (function () {
         return envConfig.get(key);
     };
     EnvConfigRegistry.setCustomEnvConfig = function (key, value) {
-        console.log("setCustomEnvConfig key=" + key + ", value=" + value);
+        var logger = Logger_1.getLogger('EnvConfigRegistry');
+        logger.info("setCustomEnvConfig key=" + key + ", value=" + value);
         switch (key) {
             case 'NETWORK':
                 if (value !== enums_1.NetworkType.MainNet && value !== enums_1.NetworkType.TestNet && value !== enums_1.NetworkType.PrivateNet) {
@@ -57,7 +59,7 @@ var EnvConfigRegistry = (function () {
     };
     EnvConfigRegistry.isUsingRedis = function () {
         var redisEnabled = EnvConfigRegistry.getCustomEnvConfig('REDIS_ENABLED');
-        if (redisEnabled && redisEnabled === 'true') {
+        if (redisEnabled === 'true') {
             return true;
         }
         return false;

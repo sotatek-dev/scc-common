@@ -599,7 +599,7 @@ var BitcoinBasedGateway = (function (_super) {
                             errMsg += " response=" + JSON.stringify(e_5.response.data) + " status=" + e_5.response.status + " retryCount=" + retryCount;
                         }
                         if (++retryCount === INSIGHT_REQUEST_MAX_RETRIES) {
-                            logger.fatal("Too many fails: " + errMsg);
+                            logger.error("Too many fails: " + errMsg);
                             throw new Error(errMsg);
                         }
                         else {
