@@ -1,6 +1,6 @@
 // Get current timestamp in millisecond
 import URL from 'url';
-import { EnvConfigRegistry } from '..';
+import { EnvConfigRegistry } from './registries/EnvConfigRegistry';
 import { getLogger } from './Logger';
 const logger = getLogger('Utils_Common');
 const nodemailer = require('nodemailer');

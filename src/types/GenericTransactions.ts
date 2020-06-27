@@ -24,10 +24,6 @@ export class GenericTransactions<T extends Transaction> extends Array<T> {
 
     return result;
   }
-
-  public mutableConcat(txs: T[]): void {
-    this.push(...txs);
-  }
 }
 
 export default GenericTransactions;

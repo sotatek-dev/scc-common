@@ -1,23 +1,8 @@
 import _ from 'lodash';
 import winston from 'winston';
+import Transport from 'winston-transport';
 import util from 'util';
-import EnvConfigRegistry from './registries/EnvConfigRegistry';
-import { Utils } from '..';
-
-let ERROR_STASHES: string[] = [];
-let ERROR_SENDING_INTERVAL: number;
-if (process.env.ERROR_SENDING_INTERVAL) {
-  ERROR_SENDING_INTERVAL = parseInt(process.env.ERROR_SENDING_INTERVAL, 10);
-}
-
-// Default interval is 15 minutes
-if (!ERROR_SENDING_INTERVAL || isNaN(ERROR_SENDING_INTERVAL)) {
-  ERROR_SENDING_INTERVAL = 15 * 60 * 1000;
-}
-
-let _mailCallback: (messages: any) => Promise<void>;
-
-setInterval(notifyErrors, ERROR_SENDING_INTERVAL);
+import WinstonCloudWatch from 'winston-cloudwatch';
 
 const enumerateErrorFormat = winston.format(info => {
   if (info instanceof Error) {
@@ -32,89 +17,66 @@ const enumerateErrorFormat = winston.format(info => {
   return info;
 });
 
-export function getLogger(name: string) {
-  const has = winston.loggers.has(name);
-  if (!has) {
-    const transports: any[] = [];
-    transports.push(
-      new winston.transports.Console({
-        format: winston.format.combine(
-          winston.format.colorize(),
-          winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-          winston.format.printf(info => {
-            const { timestamp, level, message, ...extra } = info;
+export function getLogger(name: string): winston.Logger {
+  const isLoggerExisted = winston.loggers.has(name);
+  if (!isLoggerExisted) {
+    createLogger(name);
+  }
 
-            return `${timestamp} [${level}]: ${message} ${Object.keys(extra).length ? util.inspect(extra) : ''}`;
-          })
-        ),
-        stderrLevels: ['error'],
+  return winston.loggers.get(name);
+}
+
+function createLogger(name: string) {
+  const transports: Transport[] = [];
+
+  // Console is default logger
+  const consoleTransport = _createConsoleTransport();
+  transports.push(consoleTransport);
+
+  // If CloudWatch log is enabled, add them to transports list
+  if (process.env.CWL_ENABLED === 'true') {
+    const cwlTransport = _createCwlTransport();
+    transports.push(cwlTransport);
+  }
+
+  winston.loggers.add(name, {
+    level: process.env.LOG_LEVEL || 'info',
+    format: winston.format.combine(enumerateErrorFormat()),
+    transports,
+  });
+}
+
+function _createConsoleTransport(): Transport {
+  return new winston.transports.Console({
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+      winston.format.printf(info => {
+        const { timestamp, level, message, ...extra } = info;
+
+        return `${timestamp} [${level}]: ${message} ${Object.keys(extra).length ? util.inspect(extra) : ''}`;
       })
-    );
-
-    winston.loggers.add(name, {
-      level: process.env.LOG_LEVEL || 'debug',
-      format: winston.format.combine(enumerateErrorFormat()),
-      transports,
-    });
-  }
-
-  // return winston.loggers.get(name);
-  return {
-    debug(msg: any) {
-      return winston.loggers.get(name).debug(msg);
-    },
-    info(msg: any) {
-      return winston.loggers.get(name).info(msg);
-    },
-    warn(msg: any) {
-      return winston.loggers.get(name).warn(msg);
-    },
-    error(msg: any) {
-      ERROR_STASHES.push(`[ERROR] ${msg}`);
-      return winston.loggers.get(name).error(msg);
-    },
-    fatal(msg: any) {
-      // Setup error
-      ERROR_STASHES.push(`[ERROR] ${msg}`);
-      return winston.loggers.get(name).error(msg);
-    },
-    async notifyErrorsImmediately() {
-      try {
-        await notifyErrors();
-      } catch (err) {
-        console.error(`======= UNCAUGHT ERROR NOTIFYING BEGIN =======`);
-        console.error(err);
-        console.error(`======= UNCAUGHT ERROR NOTIFYING END =======`);
-      }
-    },
-  };
+    ),
+    stderrLevels: ['error'],
+  });
 }
 
-export function registerMailEventCallback(callback: (messages: any) => Promise<void>) {
-  _mailCallback = callback;
-  getLogger('Logger').info(`MailService::A callback has just been registered`);
-}
+function _createCwlTransport(): Transport {
+  const logGroupName = process.env.CWL_LOG_GROUP_NAME || 'sotatek-scc-common';
+  const logStreamPrefix = process.env.CWL_LOG_STREAM_PREFIX || 'sotatek-scc-common';
+  const createdDate = new Date().toISOString().split('T')[0];
+  const randomSuffix = Math.random().toString(36).substr(2, 5);
+  const logStreamName = `${logStreamPrefix}:${createdDate}-${randomSuffix}`;
+  const uploadRate = process.env.CWL_UPLOAD_RATE ? parseInt(process.env.CWL_UPLOAD_RATE, 10) : undefined;
 
-async function notifyErrors() {
-  if (!ERROR_STASHES.length) {
-    return;
-  }
-
-  const messages = _.uniq(ERROR_STASHES);
-  ERROR_STASHES = [];
-  let mailReceiver = EnvConfigRegistry.getCustomEnvConfig('MAIL_RECEIVER');
-  // Fallback to old env config
-  if (!mailReceiver) {
-    mailReceiver = EnvConfigRegistry.getCustomEnvConfig('MAILER_RECEIVER');
-  }
-
-  const appName: string = process.env.APP_NAME || 'Exchange Wallet';
-  const env: string = process.env.NODE_ENV || 'development';
-  const subject = `[${appName}][${env}] Error Notifier`;
-  if (_mailCallback) {
-    await _mailCallback(messages);
-    return;
-  }
-
-  Utils.sendMail(mailReceiver, subject, `${messages.join('<br />')}`);
+  return new WinstonCloudWatch({
+    level: process.env.CWL_LOG_LEVEL || process.env.LOG_LEVEL || 'info',
+    logGroupName,
+    logStreamName,
+    jsonMessage: true,
+    uploadRate,
+    awsAccessKeyId: process.env.CWL_AWS_ACCESS_KEY_ID,
+    awsSecretKey: process.env.CWL_AWS_ACCESS_KEY_SECRET,
+    awsRegion: process.env.CWL_AWS_REGION_ID,
+  });
 }

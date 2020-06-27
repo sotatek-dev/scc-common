@@ -1,5 +1,5 @@
-import { BlockHeader, IMultiEntriesTxEntry } from '../..';
-import { MultiEntriesTransaction, IMultiEntriesTxProps } from './MultiEntriesTransaction';
+import { BlockHeader } from './BlockHeader';
+import { MultiEntriesTransaction, IMultiEntriesTxEntry, IMultiEntriesTxProps } from './MultiEntriesTransaction';
 import BigNumber from 'bignumber.js';
 
 export const TypeTx = {

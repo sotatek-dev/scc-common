@@ -1,0 +1,12 @@
+export declare function nowInMillis(): number;
+export declare function now(): number;
+export declare function nowInSeconds(): number;
+export declare function isValidURL(urlString: string): boolean;
+export declare function reflect(promise: any): any;
+export declare function timeout(ms: number): Promise<void>;
+export declare function PromiseAll(values: any[]): Promise<any[]>;
+export declare function override(container: any, key: any): void;
+export declare function implement(container: any, key: any): void;
+export declare function sendMail(mailReceiver: string, subject: string, text: string): Promise<void>;
+export declare function sendNormalMail(mailerAccount: string, mailerPassword: string, mailerReceiver: string, subject: string, text: string, service?: string): Promise<void>;
+export declare function isValidEmail(email: string): boolean;
