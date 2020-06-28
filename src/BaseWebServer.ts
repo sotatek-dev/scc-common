@@ -5,7 +5,7 @@ import BaseGateway from './BaseGateway';
 import * as URL from 'url';
 import { Transaction } from './types';
 import BigNumber from 'bignumber.js';
-import { BlockchainPlatform } from './enums';
+import { BlockchainPlatform, WebServiceStatus } from './enums';
 import { getLogger } from './Logger';
 import { ICurrency } from './interfaces';
 import { CurrencyRegistry, GatewayRegistry } from './registries';
@@ -135,8 +135,8 @@ export abstract class BaseWebServer {
     return res.json(address);
   }
 
-  protected async _healthChecker() {
-    return { webService: { isOK: true } };
+  protected async checkHealth() {
+    return { webService: { status: WebServiceStatus.OK } };
   }
 
   protected async estimateFee(req: any, res: any) {
@@ -224,7 +224,7 @@ export abstract class BaseWebServer {
     });
 
     this.app.get('/api/health', async (req, res) => {
-      res.status(200).json(await this._healthChecker());
+      res.status(200).json(await this.checkHealth());
     });
 
     this.app.get('/api/:currency/address/hd_wallet', async (req, res) => {
