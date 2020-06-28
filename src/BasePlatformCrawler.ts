@@ -27,11 +27,8 @@ export class BasePlatformCrawler extends BaseCrawler {
           // Use callback to process all crawled transactions
           await this._options.onCrawlingTxs(this, allTxs);
 
-          logger.info(
-            `${this.constructor.name}::processBlocks FINISH: currency=${c.networkSymbol}` +
-              `\tblock=${fromBlock}→${toBlock} / ${latestNetworkBlock}` +
-              `\ttxs=${allTxs.length}`
-          );
+          const extraInfo = { networkSymbol: c.networkSymbol, fullSymbol: c.symbol, fromBlock, toBlock, latestNetworkBlock, txs: allTxs.length };
+          logger.info(`${this.constructor.name}::processBlocks finished`, extraInfo);
         });
       })
     );

@@ -11,7 +11,7 @@ export abstract class BaseWorker {
    */
   public start(): void {
     if (this._isStarted) {
-      logger.warn(`Trying to start processor twice: ${this.constructor.name}`);
+      logger.warn(`${this.constructor.name} Trying to start processor twice...`);
       return;
     }
 
@@ -29,10 +29,7 @@ export abstract class BaseWorker {
 
   protected onTick(): void {
     this.doProcess().catch(err => {
-      logger.error(`======================================================================================`);
-      logger.error(err);
-      logger.error(`${this.constructor.name} something went wrong. The worker will be restarted shortly...`);
-      logger.error(`======================================================================================`);
+      logger.error(`${this.constructor.name} is restarted due to error: `, err);
       setTimeout(() => {
         this.onTick();
       }, 30000);

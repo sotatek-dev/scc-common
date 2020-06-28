@@ -111,9 +111,7 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
      * Then try crawl again (hopefully new block will be available then)
      */
     if (fromBlockNumber > latestNetworkBlock) {
-      logger.info(
-        `Block <${fromBlockNumber}> is the newest block can be processed (on network: ${latestNetworkBlock}). Wait for the next tick...`
-      );
+      logger.info(`The newest block has been processed. Wait for the next tick...`, { fromBlockNumber, latestNetworkBlock });
       return;
     }
 
@@ -125,7 +123,7 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
       toBlockNumber = latestNetworkBlock;
     }
 
-    logger.info(`BaseCrawler::doProcess fromBlock=${fromBlockNumber} toBlock=${toBlockNumber}`);
+    logger.info(`Crawler is starting for [${this.getNativeCurrency().symbol}]`, { fromBlockNumber, toBlockNumber });
 
     /**
      * Actual crawl and process blocks
@@ -153,7 +151,7 @@ export abstract class BaseCrawler extends BaseIntervalWorker {
 
     if (toBlockNumber >= latestNetworkBlock) {
       // If the newest block is processed already, will check the next tick after 1 block time duration
-      logger.info(`Have processed newest block already. Will wait for a while until next check...`);
+      logger.info(`Have processed newest block already. Will wait for a while until next check...`, { toBlockNumber, latestNetworkBlock });
       this.setNextTickTimer(this.getAverageBlockTime());
     } else {
       // Otherwise try to continue processing immediately

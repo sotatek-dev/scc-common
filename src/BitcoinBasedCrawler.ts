@@ -30,11 +30,8 @@ export class BitcoinBasedCrawler extends BaseCrawler {
           await this._options.onCrawlingTxs(this, allTxsInRound);
         }
 
-        logger.info(
-          `${this.constructor.name}::processBlocks FINISH: currency=${c.networkSymbol}` +
-            `\tblock=${fromBlock}→${toBlock} / ${latestNetworkBlock}` +
-            `\ttxs=${allTxs.length}`
-        );
+        const extraData = { fromBlock, toBlock, latestNetworkBlock, txs: allTxs.length };
+        logger.info(`${this.constructor.name}::processBlocks finished`, extraData);
       })
     );
   }

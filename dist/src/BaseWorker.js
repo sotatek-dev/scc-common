@@ -9,7 +9,7 @@ var BaseWorker = (function () {
     BaseWorker.prototype.start = function () {
         var _this = this;
         if (this._isStarted) {
-            logger.warn("Trying to start processor twice: " + this.constructor.name);
+            logger.warn(this.constructor.name + " Trying to start processor twice...");
             return;
         }
         this._isStarted = true;
@@ -25,10 +25,7 @@ var BaseWorker = (function () {
     BaseWorker.prototype.onTick = function () {
         var _this = this;
         this.doProcess().catch(function (err) {
-            logger.error("======================================================================================");
-            logger.error(err);
-            logger.error(_this.constructor.name + " something went wrong. The worker will be restarted shortly...");
-            logger.error("======================================================================================");
+            logger.error(_this.constructor.name + " is restarted due to error: ", err);
             setTimeout(function () {
                 _this.onTick();
             }, 30000);

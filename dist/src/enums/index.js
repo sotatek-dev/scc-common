@@ -8,4 +8,5 @@ __export(require("./HotWalletType"));
 __export(require("./TokenType"));
 __export(require("./TransactionStatus"));
 __export(require("./NetworkType"));
+__export(require("./WebServiceStatus"));
 //# sourceMappingURL=index.js.map

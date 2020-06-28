@@ -57,7 +57,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var lodash_1 = __importDefault(require("lodash"));
 var lru_cache_1 = __importDefault(require("lru-cache"));
-var util_1 = __importDefault(require("util"));
 var bignumber_js_1 = __importDefault(require("bignumber.js"));
 var Utils = __importStar(require("./Utils"));
 var Utils_1 = require("./Utils");
@@ -104,7 +103,7 @@ var BaseGateway = (function () {
                 this._rpcClient = new RPCClient_1.default(rpcConfig);
             }
             catch (e) {
-                logger.error("BaseGateway::constructor could not contruct RPC Client due to error: " + util_1.default.inspect(e));
+                logger.error("BaseGateway::constructor could not contruct RPC Client due to error: ", e);
             }
         }
     };

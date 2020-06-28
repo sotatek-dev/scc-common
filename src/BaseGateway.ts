@@ -75,7 +75,7 @@ export abstract class BaseGateway {
         const rpcConfig = JSON.parse(rpcRawConfig);
         this._rpcClient = new RPCClient(rpcConfig);
       } catch (e) {
-        logger.error(`BaseGateway::constructor could not contruct RPC Client due to error: ${util.inspect(e)}`);
+        logger.error(`BaseGateway::constructor could not contruct RPC Client due to error: `, e);
       }
     }
   }

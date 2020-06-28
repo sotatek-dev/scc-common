@@ -18,16 +18,46 @@ var winston_1 = __importDefault(require("winston"));
 var util_1 = __importDefault(require("util"));
 var os_1 = __importDefault(require("os"));
 var winston_cloudwatch_1 = __importDefault(require("winston-cloudwatch"));
+var _a = winston_1.default.format, combine = _a.combine, timestamp = _a.timestamp, colorize = _a.colorize, printf = _a.printf;
 var randomSuffix = Math.random().toString(36).substr(2, 5);
 var enumerateErrorFormat = winston_1.default.format(function (info) {
     if (info instanceof Error) {
-        return Object.assign({
+        var output = Object.assign({
             message: info.message,
             stack: info.stack,
         }, info);
+        return output;
     }
     return info;
 });
+function safeToString(json) {
+    if (isEmpty(json)) {
+        return null;
+    }
+    try {
+        return JSON.stringify(json);
+    }
+    catch (ex) {
+        return util_1.default.inspect(json);
+    }
+}
+exports.safeToString = safeToString;
+function isEmpty(obj) {
+    if (obj == null)
+        return true;
+    if (obj.length > 0)
+        return false;
+    if (obj.length === 0)
+        return true;
+    if (typeof obj !== 'object')
+        return true;
+    for (var key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key))
+            return false;
+    }
+    return true;
+}
+exports.isEmpty = isEmpty;
 function getLogger(name) {
     var isLoggerExisted = winston_1.default.loggers.has(name);
     if (!isLoggerExisted) {
@@ -46,15 +76,15 @@ function createLogger(name) {
     }
     winston_1.default.loggers.add(name, {
         level: process.env.LOG_LEVEL || 'info',
-        format: winston_1.default.format.combine(enumerateErrorFormat()),
+        format: winston_1.default.format.combine(timestamp(), enumerateErrorFormat()),
         transports: transports,
     });
 }
 function _createConsoleTransport() {
     return new winston_1.default.transports.Console({
-        format: winston_1.default.format.combine(winston_1.default.format.colorize(), winston_1.default.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), winston_1.default.format.printf(function (info) {
+        format: combine(colorize({ all: true }), printf(function (info) {
             var timestamp = info.timestamp, level = info.level, message = info.message, extra = __rest(info, ["timestamp", "level", "message"]);
-            return timestamp + " [" + level + "]: " + message + " " + (Object.keys(extra).length ? util_1.default.inspect(extra) : '');
+            return timestamp + " [" + level + "]: " + message + (isEmpty(extra) ? '' : " | " + safeToString(extra));
         })),
         stderrLevels: ['error'],
     });
@@ -69,11 +99,15 @@ function _createCwlTransport() {
         level: process.env.CWL_LOG_LEVEL || process.env.LOG_LEVEL || 'info',
         logGroupName: logGroupName,
         logStreamName: logStreamName,
-        jsonMessage: true,
+        jsonMessage: false,
         uploadRate: uploadRate,
         awsAccessKeyId: process.env.CWL_AWS_ACCESS_KEY_ID,
         awsSecretKey: process.env.CWL_AWS_ACCESS_KEY_SECRET,
         awsRegion: process.env.CWL_AWS_REGION_ID,
+        messageFormatter: function (log) {
+            var timestamp = log.timestamp, level = log.level, message = log.message, meta = __rest(log, ["timestamp", "level", "message"]);
+            return safeToString({ timestamp: timestamp, level: level, message: message, meta: meta });
+        },
     });
 }
 //# sourceMappingURL=Logger.js.map

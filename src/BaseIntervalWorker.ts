@@ -68,10 +68,7 @@ export abstract class BaseIntervalWorker {
       })
       .catch(err => {
         clearTimeout(timer);
-        logger.error(`======================================================================================`);
-        logger.error(err);
-        logger.error(`${classname} something went wrong. The worker will be restarted shortly...`);
-        logger.error(`======================================================================================`);
+        logger.error(`${classname}: The worker will be restarted shortly due to error: `, err);
         setTimeout(() => {
           this.onTick();
         }, this.getNextTickTimer());
