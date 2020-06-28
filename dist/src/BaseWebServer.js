@@ -61,6 +61,7 @@ var express_1 = __importDefault(require("express"));
 var morgan_1 = __importDefault(require("morgan"));
 var util_1 = __importDefault(require("util"));
 var URL = __importStar(require("url"));
+var enums_1 = require("./enums");
 var Logger_1 = require("./Logger");
 var registries_1 = require("./registries");
 var logger = Logger_1.getLogger('BaseWebServer');
@@ -236,10 +237,23 @@ var BaseWebServer = (function () {
             });
         });
     };
-    BaseWebServer.prototype._healthChecker = function () {
+    BaseWebServer.prototype.checkHealth = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = {};
+                        return [4, this._getHealthStatus()];
+                    case 1: return [2, (_a.status = _b.sent(), _a)];
+                }
+            });
+        });
+    };
+    BaseWebServer.prototype._getHealthStatus = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2, { webService: { isOK: true } }];
+                return [2, enums_1.WebServiceStatus.OK];
             });
         });
     };
@@ -411,7 +425,7 @@ var BaseWebServer = (function () {
                 switch (_c.label) {
                     case 0:
                         _b = (_a = res.status(200)).json;
-                        return [4, this._healthChecker()];
+                        return [4, this.checkHealth()];
                     case 1:
                         _b.apply(_a, [_c.sent()]);
                         return [2];

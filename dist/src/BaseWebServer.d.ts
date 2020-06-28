@@ -1,6 +1,6 @@
 import express from 'express';
 import BaseGateway from './BaseGateway';
-import { BlockchainPlatform } from './enums';
+import { BlockchainPlatform, WebServiceStatus } from './enums';
 import { ICurrency } from './interfaces';
 export declare abstract class BaseWebServer {
     protected protocol: string;
@@ -20,11 +20,10 @@ export declare abstract class BaseWebServer {
     protected normalizeAddress(req: any, res: any): Promise<any>;
     protected generateSeed(req: any, res: any): any;
     protected createNewHdWalletAddress(req: any, res: any): Promise<any>;
-    protected _healthChecker(): Promise<{
-        webService: {
-            isOK: boolean;
-        };
+    protected checkHealth(): Promise<{
+        status: WebServiceStatus;
     }>;
+    protected _getHealthStatus(): Promise<WebServiceStatus>;
     protected estimateFee(req: any, res: any): Promise<any>;
     protected setup(): void;
     getProtocol(): string;

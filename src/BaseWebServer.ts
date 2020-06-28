@@ -3,7 +3,6 @@ import morgan from 'morgan';
 import util from 'util';
 import BaseGateway from './BaseGateway';
 import * as URL from 'url';
-import { Transaction } from './types';
 import BigNumber from 'bignumber.js';
 import { BlockchainPlatform, WebServiceStatus } from './enums';
 import { getLogger } from './Logger';
@@ -136,7 +135,11 @@ export abstract class BaseWebServer {
   }
 
   protected async checkHealth() {
-    return { webService: { status: WebServiceStatus.OK } };
+    return { status: await this._getHealthStatus() };
+  }
+
+  protected async _getHealthStatus(): Promise<WebServiceStatus> {
+    return WebServiceStatus.OK;
   }
 
   protected async estimateFee(req: any, res: any) {
