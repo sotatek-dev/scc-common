@@ -58,7 +58,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     try {
       return bitcore.Address.isValid(address, network);
     } catch (e) {
-      logger.error(`Could not validate address ${address} due to error: ${inspect(e)}`);
+      logger.error(`Could not validate address ${address} due to error: `, e);
     }
 
     return false;
@@ -179,8 +179,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         tx.sign(privateKey);
       });
     } catch (e) {
-      logger.error(`Something went wrong while signing btc-based tx`);
-      logger.error(e);
+      logger.error(`Could not sign btc-based tx due to error: `, e);
       throw new Error(`Couldn't sign raw tx because of wrong privateKey`);
     }
 
@@ -282,7 +281,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     try {
       response = await Axios.get<IInsightUtxoInfo[]>(`${apiEndpoint}/addr/${address}/utxo`);
     } catch (e) {
-      logger.error(e);
+      logger.error(`Could not got get utxos of address=${address} due to error: `, e);
       throw new Error(`Could got get utxos of address=${address}...`);
     }
 
@@ -311,8 +310,6 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     try {
       response = await Axios.get<IUtxoTxInfo>(`${apiEndpoint}/tx/${txid}`);
     } catch (e) {
-      // logger.error(e);
-      // throw new Error(`TODO: Handle me please...`);
       throw e;
     }
 
@@ -358,7 +355,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         if (e.response) {
           errMsg += ` response=${JSON.stringify(e.response.data)} status=${e.response.status} retryCount=${retryCount}`;
         }
-        logger.error(errMsg);
+        logger.error(errMsg, e);
 
         if (++retryCount === INSIGHT_REQUEST_MAX_RETRIES) {
           throw new Error(`Could not get txs of block=${blockNumber} endpoint=${endpoint}`);
@@ -448,10 +445,10 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         }
 
         if (++retryCount === INSIGHT_REQUEST_MAX_RETRIES) {
-          logger.error(`Too many fails: ${errMsg}`);
+          logger.error(`Too many fails: ${errMsg} `, e);
           throw new Error(errMsg);
         } else {
-          logger.error(errMsg);
+          logger.error(errMsg, e);
         }
       }
     }
@@ -510,8 +507,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         tx.change(pickedUtxos[0].address); // left money for address or first from address
       }
     } catch (e) {
-      logger.error(`BitcoinBasedGateway::constructRawTransaction failed due to error:`);
-      logger.error(e);
+      logger.error(`BitcoinBasedGateway::constructRawTransaction failed due to error: `, e);
       throw new Error(`Could not construct raw tx error=${e.toString()}`);
     }
 
@@ -521,7 +517,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
       txid = tx.hash;
       unsignedRaw = JSON.stringify(tx.toObject());
     } catch (err) {
-      logger.error(`Could not serialize tx due to error: ${err}`);
+      logger.error(`Could not serialize tx due to error: `, err);
       return null;
     }
 
@@ -536,7 +532,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
         throw new Error(`Revived transaction has different raw data`);
       }
     } catch (err) {
-      logger.error(`Could not construct tx due to error: ${err}`);
+      logger.error(`Could not construct tx due to error: `, err);
       return null;
     }
 
@@ -580,9 +576,7 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     try {
       response = await Axios.get<IUtxoTxInfo>(`${apiEndpoint}/tx/${txid}`);
     } catch (e) {
-      // logger.error(e);
       throw e;
-      // throw new Error(`TODO: Handle me please...`);
     }
 
     const txInfo: IUtxoTxInfo = response.data;

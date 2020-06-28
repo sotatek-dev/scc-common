@@ -83,7 +83,7 @@ var BasePlatformCrawler = (function (_super) {
                                 var _this = this;
                                 return __generator(this, function (_a) {
                                     return [2, limit(function () { return __awaiter(_this, void 0, void 0, function () {
-                                            var gateway, allTxs;
+                                            var gateway, allTxs, extraInfo;
                                             return __generator(this, function (_a) {
                                                 switch (_a.label) {
                                                     case 0:
@@ -94,9 +94,8 @@ var BasePlatformCrawler = (function (_super) {
                                                         return [4, this._options.onCrawlingTxs(this, allTxs)];
                                                     case 2:
                                                         _a.sent();
-                                                        logger.info(this.constructor.name + "::processBlocks FINISH: currency=" + c.networkSymbol +
-                                                            ("\tblock=" + fromBlock + "\u2192" + toBlock + " / " + latestNetworkBlock) +
-                                                            ("\ttxs=" + allTxs.length));
+                                                        extraInfo = { networkSymbol: c.networkSymbol, fullSymbol: c.symbol, fromBlock: fromBlock, toBlock: toBlock, latestNetworkBlock: latestNetworkBlock, txs: allTxs.length };
+                                                        logger.info(this.constructor.name + "::processBlocks finished", extraInfo);
                                                         return [2];
                                                 }
                                             });

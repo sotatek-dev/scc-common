@@ -18,7 +18,7 @@ var winston_1 = __importDefault(require("winston"));
 var util_1 = __importDefault(require("util"));
 var os_1 = __importDefault(require("os"));
 var winston_cloudwatch_1 = __importDefault(require("winston-cloudwatch"));
-var _a = winston_1.default.format, combine = _a.combine, timestamp = _a.timestamp, colorize = _a.colorize, json = _a.json, printf = _a.printf;
+var _a = winston_1.default.format, combine = _a.combine, timestamp = _a.timestamp, colorize = _a.colorize, printf = _a.printf;
 var randomSuffix = Math.random().toString(36).substr(2, 5);
 var enumerateErrorFormat = winston_1.default.format(function (info) {
     if (info instanceof Error) {
@@ -84,7 +84,7 @@ function _createConsoleTransport() {
     return new winston_1.default.transports.Console({
         format: combine(colorize({ all: true }), printf(function (info) {
             var timestamp = info.timestamp, level = info.level, message = info.message, extra = __rest(info, ["timestamp", "level", "message"]);
-            return timestamp + " [" + level + "]: " + message + " | " + safeToString(extra);
+            return timestamp + " [" + level + "]: " + message + (isEmpty(extra) ? '' : " | " + safeToString(extra));
         })),
         stderrLevels: ['error'],
     });

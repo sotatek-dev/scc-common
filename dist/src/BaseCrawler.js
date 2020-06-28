@@ -132,14 +132,14 @@ var BaseCrawler = (function (_super) {
                         }
                         fromBlockNumber = latestProcessedBlock + 1;
                         if (fromBlockNumber > latestNetworkBlock) {
-                            logger.info("Block <" + fromBlockNumber + "> is the newest block can be processed (on network: " + latestNetworkBlock + "). Wait for the next tick...");
+                            logger.info("The newest block has been processed. Wait for the next tick...", { fromBlockNumber: fromBlockNumber, latestNetworkBlock: latestNetworkBlock });
                             return [2];
                         }
                         toBlockNumber = latestProcessedBlock + this.getBlockNumInOneGo();
                         if (toBlockNumber > latestNetworkBlock) {
                             toBlockNumber = latestNetworkBlock;
                         }
-                        logger.info("BaseCrawler::doProcess fromBlock=" + fromBlockNumber + " toBlock=" + toBlockNumber);
+                        logger.info("Crawler is starting for [" + this.getNativeCurrency().symbol + "]", { fromBlockNumber: fromBlockNumber, toBlockNumber: toBlockNumber });
                         return [4, this.processBlocks(fromBlockNumber, toBlockNumber, latestNetworkBlock)];
                     case 4:
                         _a.sent();
@@ -158,7 +158,7 @@ var BaseCrawler = (function (_super) {
                     case 7:
                         LATEST_PROCESSED_BLOCK.set(this._id, safeBlockNumber);
                         if (toBlockNumber >= latestNetworkBlock) {
-                            logger.info("Have processed newest block already. Will wait for a while until next check...");
+                            logger.info("Have processed newest block already. Will wait for a while until next check...", { toBlockNumber: toBlockNumber, latestNetworkBlock: latestNetworkBlock });
                             this.setNextTickTimer(this.getAverageBlockTime());
                         }
                         else {

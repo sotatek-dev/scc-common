@@ -61,7 +61,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var util_1 = require("util");
 var lodash_1 = __importDefault(require("lodash"));
 var axios_1 = __importDefault(require("axios"));
 var bignumber_js_1 = __importDefault(require("bignumber.js"));
@@ -107,7 +106,7 @@ var BitcoinBasedGateway = (function (_super) {
                     return [2, bitcore.Address.isValid(address, network)];
                 }
                 catch (e) {
-                    logger.error("Could not validate address " + address + " due to error: " + util_1.inspect(e));
+                    logger.error("Could not validate address " + address + " due to error: ", e);
                 }
                 return [2, false];
             });
@@ -239,8 +238,7 @@ var BitcoinBasedGateway = (function (_super) {
                     });
                 }
                 catch (e) {
-                    logger.error("Something went wrong while signing btc-based tx");
-                    logger.error(e);
+                    logger.error("Could not sign btc-based tx due to error: ", e);
                     throw new Error("Couldn't sign raw tx because of wrong privateKey");
                 }
                 txid = tx.hash;
@@ -354,7 +352,7 @@ var BitcoinBasedGateway = (function (_super) {
                         return [3, 4];
                     case 3:
                         e_2 = _a.sent();
-                        logger.error(e_2);
+                        logger.error("Could not got get utxos of address=" + address + " due to error: ", e_2);
                         throw new Error("Could got get utxos of address=" + address + "...");
                     case 4:
                         utxos = response.data;
@@ -479,7 +477,7 @@ var BitcoinBasedGateway = (function (_super) {
                         if (e_4.response) {
                             errMsg += " response=" + JSON.stringify(e_4.response.data) + " status=" + e_4.response.status + " retryCount=" + retryCount;
                         }
-                        logger.error(errMsg);
+                        logger.error(errMsg, e_4);
                         if (++retryCount === INSIGHT_REQUEST_MAX_RETRIES) {
                             throw new Error("Could not get txs of block=" + blockNumber + " endpoint=" + endpoint);
                         }
@@ -599,11 +597,11 @@ var BitcoinBasedGateway = (function (_super) {
                             errMsg += " response=" + JSON.stringify(e_5.response.data) + " status=" + e_5.response.status + " retryCount=" + retryCount;
                         }
                         if (++retryCount === INSIGHT_REQUEST_MAX_RETRIES) {
-                            logger.error("Too many fails: " + errMsg);
+                            logger.error("Too many fails: " + errMsg + " ", e_5);
                             throw new Error(errMsg);
                         }
                         else {
-                            logger.error(errMsg);
+                            logger.error(errMsg, e_5);
                         }
                         return [3, 8];
                     case 8: return [3, 1];
@@ -649,8 +647,7 @@ var BitcoinBasedGateway = (function (_super) {
             }
         }
         catch (e) {
-            logger.error("BitcoinBasedGateway::constructRawTransaction failed due to error:");
-            logger.error(e);
+            logger.error("BitcoinBasedGateway::constructRawTransaction failed due to error: ", e);
             throw new Error("Could not construct raw tx error=" + e.toString());
         }
         var txid;
@@ -660,7 +657,7 @@ var BitcoinBasedGateway = (function (_super) {
             unsignedRaw = JSON.stringify(tx.toObject());
         }
         catch (err) {
-            logger.error("Could not serialize tx due to error: " + err);
+            logger.error("Could not serialize tx due to error: ", err);
             return null;
         }
         try {
@@ -673,7 +670,7 @@ var BitcoinBasedGateway = (function (_super) {
             }
         }
         catch (err) {
-            logger.error("Could not construct tx due to error: " + err);
+            logger.error("Could not construct tx due to error: ", err);
             return null;
         }
         return { txid: txid, unsignedRaw: unsignedRaw };

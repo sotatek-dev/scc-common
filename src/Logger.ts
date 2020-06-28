@@ -5,7 +5,7 @@ import util from 'util';
 import os from 'os';
 import WinstonCloudWatch from 'winston-cloudwatch';
 
-const { combine, timestamp, colorize, json, printf } = winston.format;
+const { combine, timestamp, colorize, printf } = winston.format;
 const randomSuffix = Math.random().toString(36).substr(2, 5);
 
 const enumerateErrorFormat = winston.format(info => {
@@ -98,7 +98,7 @@ function _createConsoleTransport(): Transport {
       colorize({all: true}),
       printf(info => {
         const { timestamp, level, message, ...extra } = info;
-        return `${timestamp} [${level}]: ${message} | ${safeToString(extra)}`;
+        return `${timestamp} [${level}]: ${message}` + (isEmpty(extra) ? '' : ` | ${safeToString(extra)}`);
       })
     ),
     stderrLevels: ['error'],

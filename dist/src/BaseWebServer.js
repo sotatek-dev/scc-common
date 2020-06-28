@@ -59,7 +59,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var morgan_1 = __importDefault(require("morgan"));
-var util_1 = __importDefault(require("util"));
+var body_parser_1 = __importDefault(require("body-parser"));
 var URL = __importStar(require("url"));
 var enums_1 = require("./enums");
 var Logger_1 = require("./Logger");
@@ -79,7 +79,7 @@ var BaseWebServer = (function () {
         }
         var internalEndpoint = URL.parse("" + config.internalEndpoint);
         if (!internalEndpoint.protocol || !internalEndpoint.hostname || !internalEndpoint.port) {
-            logger.info("Set api endpoint: " + config.internalEndpoint + ". Need corrected format: {host}:{port}");
+            logger.error("Api endpoint for " + this._currency.symbol + " have incorrect format", { url: config.internalEndpoint });
             throw new Error("Api endpoint for " + this._currency.symbol + " have incorrect format");
         }
         this.protocol = internalEndpoint.protocol;
@@ -89,7 +89,7 @@ var BaseWebServer = (function () {
     BaseWebServer.prototype.start = function () {
         var _this = this;
         this.app.listen(this.port, this.host, function () {
-            console.log("server started at " + _this.protocol + "://" + _this.host + ":" + _this.port);
+            logger.info("Server started at " + _this.protocol + "://" + _this.host + ":" + _this.port);
         });
     };
     BaseWebServer.prototype.getGateway = function (symbol) {
@@ -215,7 +215,6 @@ var BaseWebServer = (function () {
     };
     BaseWebServer.prototype.generateSeed = function (req, res) {
         var mnemonic = this.getGateway(this._currency.symbol).generateSeed();
-        logger.info("WebService::generateSeed");
         return res.json(mnemonic);
     };
     BaseWebServer.prototype.createNewHdWalletAddress = function (req, res) {
@@ -286,6 +285,41 @@ var BaseWebServer = (function () {
     BaseWebServer.prototype.setup = function () {
         var _this = this;
         this.app.use(morgan_1.default('dev'));
+        this.app.use(body_parser_1.default.urlencoded({ extended: true }));
+        this.app.use(body_parser_1.default.json());
+        this.app.use(function (req, res, next) {
+            var timestamp = new Date().toISOString();
+            var originalEnd = res.end;
+            var originalWrite = res.write;
+            var originalJson = res.json;
+            var responseBodyString = null;
+            var responseBodyJson = null;
+            var chunks = [];
+            res.write = function (chunk) {
+                chunks.push(new Buffer(chunk));
+                return originalWrite.apply(res, arguments);
+            };
+            res.json = function (bodyJson) {
+                responseBodyJson = bodyJson;
+                return originalJson.apply(res, arguments);
+            };
+            res.end = function (chunk) {
+                if (chunk) {
+                    chunks.push(Buffer.from(chunk));
+                }
+                responseBodyString = Buffer.concat(chunks).toString('utf8');
+                originalEnd.apply(res, arguments);
+                logRequest(req, res, timestamp, responseBodyString, responseBodyJson);
+            };
+            next();
+        });
+        this.app.use(function (err, req, res, next) {
+            if (res.headersSent) {
+                return next(err);
+            }
+            res.status(500);
+            res.render('error', { error: err });
+        });
         this.app.get('/api/:currency/address', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
             var e_1;
             return __generator(this, function (_a) {
@@ -298,7 +332,7 @@ var BaseWebServer = (function () {
                         return [3, 3];
                     case 2:
                         e_1 = _a.sent();
-                        logger.error("createNewAddress err=" + util_1.default.inspect(e_1));
+                        logger.error(this.constructor.name + "::createNewAddress error: ", e_1);
                         res.status(500).json({ error: e_1.message || e_1.toString() });
                         return [3, 3];
                     case 3: return [2];
@@ -317,7 +351,7 @@ var BaseWebServer = (function () {
                         return [3, 3];
                     case 2:
                         e_2 = _a.sent();
-                        logger.error("getAddressBalance err=" + util_1.default.inspect(e_2));
+                        logger.error(this.constructor.name + "::getAddressBalance error: ", e_2);
                         res.status(500).json({ error: e_2.message || e_2.toString() });
                         return [3, 3];
                     case 3: return [2];
@@ -336,7 +370,7 @@ var BaseWebServer = (function () {
                         return [3, 3];
                     case 2:
                         e_3 = _a.sent();
-                        logger.error("validateAddress err=" + util_1.default.inspect(e_3));
+                        logger.error(this.constructor.name + "::validateAddress error: ", e_3);
                         res.status(500).json({ error: e_3.message || e_3.toString() });
                         return [3, 3];
                     case 3: return [2];
@@ -355,7 +389,7 @@ var BaseWebServer = (function () {
                         return [3, 3];
                     case 2:
                         e_4 = _a.sent();
-                        logger.error("validateAddress err=" + util_1.default.inspect(e_4));
+                        logger.error(this.constructor.name + "::isNeedTag error: ", e_4);
                         res.status(500).json({ error: e_4.message || e_4.toString() });
                         return [3, 3];
                     case 3: return [2];
@@ -374,7 +408,7 @@ var BaseWebServer = (function () {
                         return [3, 3];
                     case 2:
                         e_5 = _a.sent();
-                        logger.error("getTransactionDetails err=" + util_1.default.inspect(e_5));
+                        logger.error(this.constructor.name + "::getTransactionDetails error: ", e_5);
                         res.status(500).json({ error: e_5.message || e_5.toString() });
                         return [3, 3];
                     case 3: return [2];
@@ -393,7 +427,7 @@ var BaseWebServer = (function () {
                         return [3, 3];
                     case 2:
                         e_6 = _a.sent();
-                        logger.error("convertChecksumAddress err=" + util_1.default.inspect(e_6));
+                        logger.error(this.constructor.name + "::normalizeAddress error: ", e_6);
                         res.status(500).json({ error: e_6.toString() });
                         return [3, 3];
                     case 3: return [2];
@@ -412,7 +446,7 @@ var BaseWebServer = (function () {
                         return [3, 3];
                     case 2:
                         e_7 = _a.sent();
-                        logger.error("generateSeed err=" + util_1.default.inspect(e_7));
+                        logger.error(this.constructor.name + "::generateSeed error: ", e_7);
                         res.status(500).json({ error: e_7.toString() });
                         return [3, 3];
                     case 3: return [2];
@@ -444,7 +478,7 @@ var BaseWebServer = (function () {
                         return [3, 3];
                     case 2:
                         e_8 = _a.sent();
-                        logger.error("createNewHdWalletAddress err=" + util_1.default.inspect(e_8));
+                        logger.error(this.constructor.name + "::createNewHdWalletAddress error: ", e_8);
                         res.status(500).json({ error: e_8.toString() });
                         return [3, 3];
                     case 3: return [2];
@@ -463,13 +497,16 @@ var BaseWebServer = (function () {
                         return [3, 3];
                     case 2:
                         e_9 = _a.sent();
-                        logger.error("estimate fee err=" + util_1.default.inspect(e_9));
+                        logger.error(this.constructor.name + "::estimateFee error: ", e_9);
                         res.status(500).json({ error: e_9.toString() });
                         return [3, 3];
                     case 3: return [2];
                 }
             });
         }); });
+        this.app.use(function (req, res) {
+            res.status(404).json({ error: 'API Not Found' });
+        });
     };
     BaseWebServer.prototype.getProtocol = function () {
         return this.protocol;
@@ -483,4 +520,26 @@ var BaseWebServer = (function () {
     return BaseWebServer;
 }());
 exports.BaseWebServer = BaseWebServer;
+function logRequest(req, res, requestTimestamp, responseBodyString, responseBodyJson) {
+    var request = {
+        timestamp: requestTimestamp,
+        method: req.method,
+        path: req.path,
+        url: req.url,
+        originalUrl: req.originalUrl,
+        hostname: req.hostname,
+        ip: req.ip,
+        query: req.query,
+        params: req.params,
+        body: req.body,
+        headers: req.headers,
+    };
+    var response = {
+        statusCode: res.statusCode,
+        statusMessage: res.statusMessage,
+        responseBodyString: responseBodyString,
+        responseBodyJson: responseBodyJson,
+    };
+    logger.info(req.method + " " + req.originalUrl, { request: request, response: response });
+}
 //# sourceMappingURL=BaseWebServer.js.map

@@ -78,7 +78,7 @@ var BitcoinBasedCrawler = (function (_super) {
                     case 0:
                         allCurrencies = registries_1.CurrencyRegistry.getCurrenciesOfPlatform(this._nativeCurrency.platform);
                         return [4, Utils.PromiseAll(allCurrencies.map(function (c) { return __awaiter(_this, void 0, void 0, function () {
-                                var gateway, allTxs, roundCounter, round, _i, round_1, r, allTxsInRound;
+                                var gateway, allTxs, roundCounter, round, _i, round_1, r, allTxsInRound, extraData;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
@@ -102,9 +102,8 @@ var BitcoinBasedCrawler = (function (_super) {
                                             _i++;
                                             return [3, 2];
                                         case 5:
-                                            logger.info(this.constructor.name + "::processBlocks FINISH: currency=" + c.networkSymbol +
-                                                ("\tblock=" + fromBlock + "\u2192" + toBlock + " / " + latestNetworkBlock) +
-                                                ("\ttxs=" + allTxs.length));
+                                            extraData = { fromBlock: fromBlock, toBlock: toBlock, latestNetworkBlock: latestNetworkBlock, txs: allTxs.length };
+                                            logger.info(this.constructor.name + "::processBlocks finished", extraData);
                                             return [2];
                                     }
                                 });

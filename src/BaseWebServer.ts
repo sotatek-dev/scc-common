@@ -1,6 +1,6 @@
 import express from 'express';
 import morgan from 'morgan';
-import util from 'util';
+import bodyParser from 'body-parser';
 import BaseGateway from './BaseGateway';
 import * as URL from 'url';
 import BigNumber from 'bignumber.js';
@@ -32,7 +32,7 @@ export abstract class BaseWebServer {
 
     const internalEndpoint = URL.parse(`${config.internalEndpoint}`);
     if (!internalEndpoint.protocol || !internalEndpoint.hostname || !internalEndpoint.port) {
-      logger.info(`Set api endpoint: ${config.internalEndpoint}. Need corrected format: {host}:{port}`);
+      logger.error(`Api endpoint for ${this._currency.symbol} have incorrect format`, { url: config.internalEndpoint });
       throw new Error(`Api endpoint for ${this._currency.symbol} have incorrect format`);
     }
 
@@ -43,7 +43,7 @@ export abstract class BaseWebServer {
 
   public start() {
     this.app.listen(this.port, this.host, () => {
-      console.log(`server started at ${this.protocol}://${this.host}:${this.port}`);
+      logger.info(`Server started at ${this.protocol}://${this.host}:${this.port}`);
     });
   }
 
@@ -120,7 +120,6 @@ export abstract class BaseWebServer {
 
   protected generateSeed(req: any, res: any) {
     const mnemonic = this.getGateway(this._currency.symbol).generateSeed();
-    logger.info(`WebService::generateSeed`);
     return res.json(mnemonic);
   }
 
@@ -162,12 +161,56 @@ export abstract class BaseWebServer {
 
   protected setup() {
     this.app.use(morgan('dev'));
+    this.app.use(bodyParser.urlencoded({ extended: true }))
+    this.app.use(bodyParser.json())
+
+    // Log request and response
+    this.app.use((req, res, next) => {
+      const timestamp = new Date().toISOString();
+      const originalEnd = res.end;
+      const originalWrite = res.write;
+      const originalJson = res.json;
+      let responseBodyString: string = null;
+      let responseBodyJson = null;
+      const chunks = [];
+
+      res.write = function (chunk): boolean {
+        chunks.push(new Buffer(chunk));
+        return originalWrite.apply(res, arguments);
+      };
+
+      res.json = function (bodyJson) {
+        responseBodyJson = bodyJson;
+        return originalJson.apply(res, arguments);
+      };
+
+      res.end = function (chunk) {
+        if (chunk) {
+          chunks.push(Buffer.from(chunk));
+        }
+
+        responseBodyString = Buffer.concat(chunks).toString('utf8');
+        originalEnd.apply(res, arguments);
+        logRequest(req, res, timestamp, responseBodyString, responseBodyJson);
+      };
+
+      next();
+    });
+
+    this.app.use((err, req, res, next) => {
+      if (res.headersSent) {
+        return next(err)
+      }
+
+      res.status(500)
+      res.render('error', { error: err })
+    })
 
     this.app.get('/api/:currency/address', async (req, res) => {
       try {
         await this.createNewAddress(req, res);
       } catch (e) {
-        logger.error(`createNewAddress err=${util.inspect(e)}`);
+        logger.error(`${this.constructor.name}::createNewAddress error: `, e);
         res.status(500).json({ error: e.message || e.toString() });
       }
     });
@@ -176,7 +219,7 @@ export abstract class BaseWebServer {
       try {
         await this.getAddressBalance(req, res);
       } catch (e) {
-        logger.error(`getAddressBalance err=${util.inspect(e)}`);
+        logger.error(`${this.constructor.name}::getAddressBalance error: `, e);
         res.status(500).json({ error: e.message || e.toString() });
       }
     });
@@ -185,7 +228,7 @@ export abstract class BaseWebServer {
       try {
         await this.validateAddress(req, res);
       } catch (e) {
-        logger.error(`validateAddress err=${util.inspect(e)}`);
+        logger.error(`${this.constructor.name}::validateAddress error: `, e);
         res.status(500).json({ error: e.message || e.toString() });
       }
     });
@@ -194,7 +237,7 @@ export abstract class BaseWebServer {
       try {
         await this.isNeedTag(req, res);
       } catch (e) {
-        logger.error(`validateAddress err=${util.inspect(e)}`);
+        logger.error(`${this.constructor.name}::isNeedTag error: `, e);
         res.status(500).json({ error: e.message || e.toString() });
       }
     });
@@ -203,7 +246,7 @@ export abstract class BaseWebServer {
       try {
         await this.getTransactionDetails(req, res);
       } catch (e) {
-        logger.error(`getTransactionDetails err=${util.inspect(e)}`);
+        logger.error(`${this.constructor.name}::getTransactionDetails error: `, e);
         res.status(500).json({ error: e.message || e.toString() });
       }
     });
@@ -212,7 +255,7 @@ export abstract class BaseWebServer {
       try {
         await this.normalizeAddress(req, res);
       } catch (e) {
-        logger.error(`convertChecksumAddress err=${util.inspect(e)}`);
+        logger.error(`${this.constructor.name}::normalizeAddress error: `, e);
         res.status(500).json({ error: e.toString() });
       }
     });
@@ -221,7 +264,7 @@ export abstract class BaseWebServer {
       try {
         await this.generateSeed(req, res);
       } catch (e) {
-        logger.error(`generateSeed err=${util.inspect(e)}`);
+        logger.error(`${this.constructor.name}::generateSeed error: `, e);
         res.status(500).json({ error: e.toString() });
       }
     });
@@ -234,7 +277,7 @@ export abstract class BaseWebServer {
       try {
         await this.createNewHdWalletAddress(req, res);
       } catch (e) {
-        logger.error(`createNewHdWalletAddress err=${util.inspect(e)}`);
+        logger.error(`${this.constructor.name}::createNewHdWalletAddress error: `, e);
         res.status(500).json({ error: e.toString() });
       }
     });
@@ -245,11 +288,15 @@ export abstract class BaseWebServer {
         try {
           await this.estimateFee(req, res);
         } catch (e) {
-          logger.error(`estimate fee err=${util.inspect(e)}`);
+          logger.error(`${this.constructor.name}::estimateFee error: `, e);
           res.status(500).json({ error: e.toString() });
         }
       }
     );
+
+    this.app.use(function(req, res){
+      res.status(404).json({ error: 'API Not Found' });
+    });
   }
 
   public getProtocol(): string {
@@ -263,4 +310,27 @@ export abstract class BaseWebServer {
   public getPort(): number {
     return this.port;
   }
+}
+
+function logRequest(req: express.Request, res: express.Response, requestTimestamp: string, responseBodyString: string, responseBodyJson: any) {
+  const request = {
+    timestamp: requestTimestamp,
+    method: req.method,
+    path: req.path,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    hostname: req.hostname,
+    ip: req.ip,
+    query: req.query,
+    params: req.params,
+    body: req.body,
+    headers: req.headers,
+  };
+  const response = {
+    statusCode: res.statusCode,
+    statusMessage: res.statusMessage,
+    responseBodyString,
+    responseBodyJson,
+  };
+  logger.info(`${req.method} ${req.originalUrl}`, { request, response });
 }
