@@ -20,7 +20,6 @@ export declare abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     getAddressBalance(address: string): Promise<BigNumber>;
     getTransactionStatus(txid: string): Promise<TransactionStatus>;
     getOneAddressUtxos(address: string): Promise<IInsightUtxoInfo[]>;
-    getMultiAddressesUtxos(addresses: string[]): Promise<IInsightUtxoInfo[]>;
     getOneTxVouts(txid: string, address?: string): Promise<IBoiledVOut[]>;
     getMultiTxsVouts(txids: string[], address?: string): Promise<IBoiledVOut[]>;
     getBlockTransactions(blockNumber: string | number): Promise<BitcoinBasedTransactions>;

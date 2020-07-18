@@ -1,11 +1,12 @@
 import { BlockHeader } from './BlockHeader';
-import { MultiEntriesTransaction, IMultiEntriesTxEntry } from './MultiEntriesTransaction';
+import { IMultiEntriesTransactionProps, MultiEntriesTransaction, IMultiEntriesTxEntry } from './MultiEntriesTransaction';
 import BigNumber from 'bignumber.js';
 export declare const TypeTx: {
     StdTx: string;
 };
 export declare const TypeMsg: {
     MsgSend: string;
+    MsgMultiSend: string;
 };
 export interface ICosmosRawTransaction {
     readonly height: number;
@@ -18,12 +19,10 @@ export interface ICosmosRawTransaction {
     readonly inEntries: IMultiEntriesTxEntry[];
     readonly gas: number;
 }
-export interface ICosmosTransactionProps {
+export interface ICosmosTransactionProps extends IMultiEntriesTransactionProps {
     readonly memo: string;
     readonly gas: number;
     readonly txType: string;
-    readonly txid: string;
-    readonly fee: BigNumber;
 }
 export declare class CosmosTransaction extends MultiEntriesTransaction {
     readonly memo: string;

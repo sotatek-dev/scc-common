@@ -3,6 +3,22 @@ import { IToken, ISubmittedTransaction } from './interfaces';
 import { TransactionStatus } from './enums';
 import { Transaction, Block, BlockHeader, CosmosTransaction, GenericTransactions, ICosmosRawTransaction } from './types';
 import BaseGateway from './BaseGateway';
+import { ICurrency, IRawTransaction } from './interfaces';
+import { Address } from './types';
+export interface ICurrencyParamsConstructTx {
+    currency: ICurrency;
+    amount: BigNumber;
+}
+export interface IMultiCurrenciesParamsConstructTx {
+    fromAddress: Address;
+    toAddress: Address;
+    entries: ICurrencyParamsConstructTx[];
+}
+export interface IMultiEntriesParamsConstructTx {
+    fromAddress: Address;
+    toAddress: Address;
+    entry: ICurrencyParamsConstructTx;
+}
 export declare abstract class CosmosBasedGateway extends BaseGateway {
     protected _currency: IToken;
     protected _appClient: any;
@@ -17,6 +33,11 @@ export declare abstract class CosmosBasedGateway extends BaseGateway {
     getTransactionStatus(txid: string): Promise<TransactionStatus>;
     getAverageSeedingFee(): Promise<BigNumber>;
     abstract _convertRawToCosmosTransactions(rawTx: ICosmosRawTransaction, blockHeader: BlockHeader, latestBlock: number, fee?: BigNumber): CosmosTransaction;
+    abstract constructRawTransaction(param: IMultiCurrenciesParamsConstructTx, options: {
+        isConsolidate?: boolean;
+        destinationTag?: string;
+        feeCoin?: ICurrency;
+    }): Promise<IRawTransaction>;
     abstract getCosmosRawTx(tx: any): ICosmosRawTransaction;
     abstract getFeeTx(rawTx: any): BigNumber;
     abstract getCode(): string;

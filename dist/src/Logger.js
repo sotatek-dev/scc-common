@@ -82,7 +82,7 @@ function createLogger(name) {
 }
 function _createConsoleTransport() {
     return new winston_1.default.transports.Console({
-        format: combine(colorize({ all: true }), printf(function (info) {
+        format: combine(colorize(), printf(function (info) {
             var timestamp = info.timestamp, level = info.level, message = info.message, extra = __rest(info, ["timestamp", "level", "message"]);
             return timestamp + " [" + level + "]: " + message + (isEmpty(extra) ? '' : " | " + safeToString(extra));
         })),

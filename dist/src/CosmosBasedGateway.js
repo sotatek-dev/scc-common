@@ -214,6 +214,9 @@ var CosmosBasedGateway = (function (_super) {
                     case 2:
                         res = _a.sent();
                         receipt = res.data;
+                        if (receipt.height === '0') {
+                            throw new Error(receipt.raw_log);
+                        }
                         return [2, { txid: receipt.txhash }];
                     case 3:
                         err_3 = _a.sent();
@@ -221,7 +224,7 @@ var CosmosBasedGateway = (function (_super) {
                             logger.error("Too many fails sending tx");
                             throw err_3;
                         }
-                        throw err_3;
+                        return [2, this.sendRawTransaction(rawTx, retryCount + 1)];
                     case 4: return [2];
                 }
             });

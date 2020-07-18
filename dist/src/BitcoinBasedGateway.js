@@ -366,32 +366,6 @@ var BitcoinBasedGateway = (function (_super) {
             });
         });
     };
-    BitcoinBasedGateway.prototype.getMultiAddressesUtxos = function (addresses) {
-        return __awaiter(this, void 0, void 0, function () {
-            var result, _i, addresses_1, address, _a, _b, _c;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
-                    case 0:
-                        result = [];
-                        _i = 0, addresses_1 = addresses;
-                        _d.label = 1;
-                    case 1:
-                        if (!(_i < addresses_1.length)) return [3, 4];
-                        address = addresses_1[_i];
-                        _b = (_a = result.push).apply;
-                        _c = [result];
-                        return [4, this.getOneAddressUtxos(address)];
-                    case 2:
-                        _b.apply(_a, _c.concat([(_d.sent())]));
-                        _d.label = 3;
-                    case 3:
-                        _i++;
-                        return [3, 1];
-                    case 4: return [2, result];
-                }
-            });
-        });
-    };
     BitcoinBasedGateway.prototype.getOneTxVouts = function (txid, address) {
         return __awaiter(this, void 0, void 0, function () {
             var apiEndpoint, response, e_3;
@@ -774,12 +748,6 @@ var BitcoinBasedGateway = (function (_super) {
         __metadata("design:paramtypes", [String]),
         __metadata("design:returntype", Promise)
     ], BitcoinBasedGateway.prototype, "getOneAddressUtxos", null);
-    __decorate([
-        Utils_1.implement,
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [Array]),
-        __metadata("design:returntype", Promise)
-    ], BitcoinBasedGateway.prototype, "getMultiAddressesUtxos", null);
     __decorate([
         Utils_1.override,
         __metadata("design:type", Function),

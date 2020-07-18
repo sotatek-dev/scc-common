@@ -9,4 +9,5 @@ __export(require("./TokenType"));
 __export(require("./TransactionStatus"));
 __export(require("./NetworkType"));
 __export(require("./WebServiceStatus"));
+__export(require("./TransactionBaseType"));
 //# sourceMappingURL=index.js.map

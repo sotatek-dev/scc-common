@@ -2,6 +2,11 @@ import { Transaction } from './Transaction';
 import { ICurrency } from '../interfaces';
 import { BlockHeader } from './BlockHeader';
 import TransferEntry from './TransferEntry';
+import { BigNumber } from 'bignumber.js';
+export interface IMultiEntriesTransactionProps {
+    readonly txid: string;
+    readonly fee: BigNumber;
+}
 export interface IMultiEntriesTxEntry {
     readonly address: string;
     readonly currency: ICurrency;

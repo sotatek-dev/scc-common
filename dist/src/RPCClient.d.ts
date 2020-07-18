@@ -10,7 +10,7 @@ export declare class RPCClient {
     protected _config: IRpcConfig;
     constructor(config: IRpcConfig);
     call<T>(method: string, params?: any[], id?: number | string): Promise<T>;
-    protected _getEndpoint(): string;
+    _getEndpoint(): string;
     protected _getRequestConfig(): AxiosRequestConfig;
 }
 export default RPCClient;
