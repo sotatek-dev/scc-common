@@ -1,7 +1,7 @@
 import { getLogger } from '../Logger';
 import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
-import { BlockchainPlatform, TokenType } from '../enums';
+import { BlockchainPlatform, TokenType, TransactionBaseType } from '../enums';
 
 /**
  * Environment data is usually loaded from database at runtime
@@ -246,6 +246,7 @@ const Terra = {
   isNative: true,
   isUTXOBased: false,
   humanReadableScale: 8,
+  type: TransactionBaseType.COSMOS,
   nativeScale: 0,
   hdPath: `m/44'/330'/0'/0/`,
   hasMemo: true,
@@ -479,6 +480,7 @@ export class CurrencyRegistry {
       isNative: false,
       isUTXOBased: false,
       humanReadableScale: scale,
+      type: TransactionBaseType.COSMOS,
       nativeScale: 0,
       code,
       hdPath: CurrencyRegistry.getOneCurrency(BlockchainPlatform.Terra).hdPath,
@@ -517,10 +519,6 @@ export class CurrencyRegistry {
     return allTrc20Tokens;
   }
 
-  public static getAllTerraTokens(): ITerraToken[] {
-    return allTerraTokens;
-  }
-
   public static getOneEosToken(contractAddress: string): IEosToken {
     const symbol = [TokenType.EOS, contractAddress].join('.');
     return CurrencyRegistry.getOneCurrency(symbol) as IEosToken;
@@ -543,6 +541,10 @@ export class CurrencyRegistry {
 
   public static hasOneNativeCurrency(symbol: string): boolean {
     return nativeCurrencies.map(c => c.symbol).indexOf(symbol) > -1;
+  }
+
+  public static getAllTerraTokens(): ITerraToken[] {
+    return allTerraTokens;
   }
 
   /**
@@ -632,6 +634,10 @@ export class CurrencyRegistry {
 
       case BlockchainPlatform.Terra:
         result.push(...CurrencyRegistry.getAllTerraTokens());
+        break;
+
+      case BlockchainPlatform.NEO:
+        result.push(CurrencyRegistry.NEO);
         break;
 
       default:

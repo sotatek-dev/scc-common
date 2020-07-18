@@ -1,5 +1,10 @@
 import { BlockHeader } from './BlockHeader';
-import { MultiEntriesTransaction, IMultiEntriesTxEntry, IMultiEntriesTxProps } from './MultiEntriesTransaction';
+import {
+  IMultiEntriesTransactionProps,
+  MultiEntriesTransaction,
+  IMultiEntriesTxEntry,
+  IMultiEntriesTxProps,
+} from './MultiEntriesTransaction';
 import BigNumber from 'bignumber.js';
 
 export const TypeTx = {
@@ -8,6 +13,7 @@ export const TypeTx = {
 
 export const TypeMsg = {
   MsgSend: 'bank/MsgSend',
+  MsgMultiSend: 'bank/MsgMultiSend',
 };
 
 export interface ICosmosRawTransaction {
@@ -22,12 +28,10 @@ export interface ICosmosRawTransaction {
   readonly gas: number;
 }
 
-export interface ICosmosTransactionProps {
+export interface ICosmosTransactionProps extends IMultiEntriesTransactionProps {
   readonly memo: string;
   readonly gas: number;
   readonly txType: string;
-  readonly txid: string;
-  readonly fee: BigNumber;
 }
 
 export class CosmosTransaction extends MultiEntriesTransaction {

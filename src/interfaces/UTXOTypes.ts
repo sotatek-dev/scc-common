@@ -34,7 +34,7 @@ export interface IBoiledVIn {
 export interface IBoiledVOut {
   readonly value: number;
   readonly n: number;
-  readonly scriptPubKey: {
+  readonly scriptPubKey?: {
     readonly asm: string;
     readonly hex: string;
     readonly reqSigs?: number;
@@ -110,7 +110,7 @@ export interface IInsightUtxoInfo {
   readonly address: string;
   readonly txid: string;
   readonly vout: number;
-  readonly scriptPubKey: string;
+  readonly scriptPubKey?: string; // TODO Create a unique style for bitcoin based
   readonly amount: number;
   readonly satoshis: number;
   readonly height: number;
