@@ -217,6 +217,7 @@ var Terra = {
     isNative: true,
     isUTXOBased: false,
     humanReadableScale: 8,
+    type: enums_1.TransactionBaseType.COSMOS,
     nativeScale: 0,
     hdPath: "m/44'/330'/0'/0/",
     hasMemo: true,
@@ -387,6 +388,7 @@ var CurrencyRegistry = (function () {
             isNative: false,
             isUTXOBased: false,
             humanReadableScale: scale,
+            type: enums_1.TransactionBaseType.COSMOS,
             nativeScale: 0,
             code: code,
             hdPath: CurrencyRegistry.getOneCurrency(enums_1.BlockchainPlatform.Terra).hdPath,
@@ -416,9 +418,6 @@ var CurrencyRegistry = (function () {
     CurrencyRegistry.getAllTrc20Tokens = function () {
         return allTrc20Tokens;
     };
-    CurrencyRegistry.getAllTerraTokens = function () {
-        return allTerraTokens;
-    };
     CurrencyRegistry.getOneEosToken = function (contractAddress) {
         var symbol = [enums_1.TokenType.EOS, contractAddress].join('.');
         return CurrencyRegistry.getOneCurrency(symbol);
@@ -434,6 +433,9 @@ var CurrencyRegistry = (function () {
     };
     CurrencyRegistry.hasOneNativeCurrency = function (symbol) {
         return nativeCurrencies.map(function (c) { return c.symbol; }).indexOf(symbol) > -1;
+    };
+    CurrencyRegistry.getAllTerraTokens = function () {
+        return allTerraTokens;
     };
     CurrencyRegistry.getOneCurrency = function (symbol) {
         symbol = symbol.toLowerCase();
@@ -499,6 +501,9 @@ var CurrencyRegistry = (function () {
                 break;
             case enums_1.BlockchainPlatform.Terra:
                 result.push.apply(result, CurrencyRegistry.getAllTerraTokens());
+                break;
+            case enums_1.BlockchainPlatform.NEO:
+                result.push(CurrencyRegistry.NEO);
                 break;
             default:
                 throw new Error("CurrencyRegistry::getCurrenciesOfPlatform hasn't been implemented for " + platform + " yet.");

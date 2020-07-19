@@ -19,6 +19,7 @@ exports.TypeTx = {
 };
 exports.TypeMsg = {
     MsgSend: 'bank/MsgSend',
+    MsgMultiSend: 'bank/MsgMultiSend',
 };
 var CosmosTransaction = (function (_super) {
     __extends(CosmosTransaction, _super);

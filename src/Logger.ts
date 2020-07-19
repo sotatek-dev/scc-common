@@ -95,7 +95,7 @@ function createLogger(name: string) {
 function _createConsoleTransport(): Transport {
   return new winston.transports.Console({
     format: combine(
-      colorize({all: true}),
+      colorize(),
       printf(info => {
         const { timestamp, level, message, ...extra } = info;
         return `${timestamp} [${level}]: ${message}` + (isEmpty(extra) ? '' : ` | ${safeToString(extra)}`);

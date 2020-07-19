@@ -14,6 +14,8 @@ import {
 import * as Utils from './Utils';
 import { getLogger } from './Logger';
 import BaseGateway from './BaseGateway';
+import { ICurrency, IRawTransaction } from './interfaces';
+import { Address } from './types';
 
 const logger = getLogger('TerraGateway');
 const _cacheBlockNumber = {
@@ -32,6 +34,23 @@ const UrlRestApi = {
   getBalance: '/bank/balances',
   getAccount: '/auth/accounts',
 };
+
+export interface ICurrencyParamsConstructTx {
+  currency: ICurrency;
+  amount: BigNumber;
+}
+
+export interface IMultiCurrenciesParamsConstructTx {
+  fromAddress: Address;
+  toAddress: Address;
+  entries: ICurrencyParamsConstructTx[];
+}
+
+export interface IMultiEntriesParamsConstructTx {
+  fromAddress: Address;
+  toAddress: Address;
+  entry: ICurrencyParamsConstructTx;
+}
 
 export abstract class CosmosBasedGateway extends BaseGateway {
   protected _currency: IToken;
@@ -144,13 +163,17 @@ export abstract class CosmosBasedGateway extends BaseGateway {
     try {
       const res = await axios.post(`${this._appClient}${this._url.postOneTransaction}`, txBroadcast);
       const receipt = res.data;
+      if (receipt.height === '0') {
+        throw new Error(receipt.raw_log);
+      }
       return { txid: receipt.txhash };
     } catch (err) {
       if (retryCount + 1 > 5) {
         logger.error(`Too many fails sending tx`);
         throw err;
       }
-      throw err;
+
+      return this.sendRawTransaction(rawTx, retryCount + 1);
     }
   }
 
@@ -236,6 +259,15 @@ export abstract class CosmosBasedGateway extends BaseGateway {
     latestBlock: number,
     fee?: BigNumber
   ): CosmosTransaction;
+
+  public abstract async constructRawTransaction(
+    param: IMultiCurrenciesParamsConstructTx,
+    options: {
+      isConsolidate?: boolean;
+      destinationTag?: string;
+      feeCoin?: ICurrency;
+    }
+  ): Promise<IRawTransaction>;
 
   public abstract getCosmosRawTx(tx: any): ICosmosRawTransaction;
 

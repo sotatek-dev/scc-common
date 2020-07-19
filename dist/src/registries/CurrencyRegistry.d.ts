@@ -34,12 +34,12 @@ export declare class CurrencyRegistry {
     static getAllBepTokens(): IBepToken[];
     static getAllErc20Tokens(): IErc20Token[];
     static getAllTrc20Tokens(): IErc20Token[];
-    static getAllTerraTokens(): ITerraToken[];
     static getOneEosToken(contractAddress: string): IEosToken;
     static getAllEosTokens(): IEosToken[];
     static getAllCurrencies(): ICurrency[];
     static hasOneCurrency(symbol: string): boolean;
     static hasOneNativeCurrency(symbol: string): boolean;
+    static getAllTerraTokens(): ITerraToken[];
     static getOneCurrency(symbol: string): ICurrency;
     static getOneNativeCurrency(platform: BlockchainPlatform): ICurrency;
     static getCurrenciesOfPlatform(platform: BlockchainPlatform): ICurrency[];

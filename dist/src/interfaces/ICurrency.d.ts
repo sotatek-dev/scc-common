@@ -1,12 +1,13 @@
 import { Address } from '../types';
 import BlockchainPlatform from '../enums/BlockchainPlatform';
-import { TokenType } from '../enums';
+import { TokenType, TransactionBaseType } from '../enums';
 export interface ICurrency {
     readonly symbol: string;
     readonly networkSymbol: string;
     readonly name: string;
     readonly platform: BlockchainPlatform;
     readonly isUTXOBased: boolean;
+    readonly type?: TransactionBaseType;
     readonly isNative: boolean;
     readonly humanReadableScale: number;
     readonly nativeScale: number;

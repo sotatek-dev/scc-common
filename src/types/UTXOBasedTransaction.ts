@@ -20,9 +20,8 @@ export class UTXOBasedTransaction extends Transaction {
 
     // Construct base transaction
     super(txProps, block);
-    // Add currency
-    this.currency = currency;
     // And vin/vout for utxo-based
+    this.currency = currency;
     this.vIns = tx.vin;
     this.vOuts = tx.vout;
   }
