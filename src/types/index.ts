@@ -11,5 +11,7 @@ export * from './GenericTransactions';
 export * from './AccountBasedTransaction';
 export * from './UTXOBasedTransaction';
 export * from './UTXOBasedTransactions';
+export * from './UTXOBCHBasedTransaction';
+export * from './UTXOBCHBasedTransactions';
 export * from './BitcoinBasedTransaction';
 export * from './BitcoinBasedTransactions';

@@ -32,6 +32,7 @@ export * from './src/BaseGateway';
 export * from './src/AccountBasedGateway';
 export * from './src/UTXOBasedGateway';
 export * from './src/BitcoinBasedGateway';
+export * from './src/BitcoinCashBasedGateway';
 export * from './src/BaseMQConsumer';
 export * from './src/BaseMQProducer';
 export * from './src/BaseWebServer';
