@@ -43,3 +43,6 @@ export interface IBepToken extends IToken {
 export interface ITerraToken extends IToken {
     readonly code: string;
 }
+export interface ICosmosToken extends IToken {
+    readonly code: string;
+}

@@ -21,6 +21,7 @@ var BlockchainPlatform;
     BlockchainPlatform["Iota"] = "iota";
     BlockchainPlatform["Binance"] = "bnb";
     BlockchainPlatform["Terra"] = "terra";
+    BlockchainPlatform["Cosmos"] = "cosmos";
 })(BlockchainPlatform = exports.BlockchainPlatform || (exports.BlockchainPlatform = {}));
 exports.default = BlockchainPlatform;
 //# sourceMappingURL=BlockchainPlatform.js.map

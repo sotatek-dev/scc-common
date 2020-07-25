@@ -67,7 +67,7 @@ var types_1 = require("./types");
 var Utils = __importStar(require("./Utils"));
 var Logger_1 = require("./Logger");
 var BaseGateway_1 = __importDefault(require("./BaseGateway"));
-var logger = Logger_1.getLogger('TerraGateway');
+var logger = Logger_1.getLogger('CosmosBasedGateway');
 var _cacheBlockNumber = {
     value: 0,
     updatedAt: 0,
@@ -146,7 +146,7 @@ var CosmosBasedGateway = (function (_super) {
                         _cacheBlockNumber.value = blockHeight;
                         _cacheBlockNumber.updatedAt = newUpdateAt;
                         _cacheBlockNumber.isRequesting = false;
-                        logger.debug("TerraGateway::getBlockCount value=" + blockHeight + " updateAt=" + newUpdateAt);
+                        logger.debug("CosmosBasedGateway::getBlockCount value=" + blockHeight + " updateAt=" + newUpdateAt);
                         return [2, blockHeight];
                 }
             });

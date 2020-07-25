@@ -9,5 +9,6 @@ var TokenType;
     TokenType["EOS"] = "eos";
     TokenType["BEP"] = "bep";
     TokenType["TERRA"] = "terra";
+    TokenType["COSMOS"] = "cosmos";
 })(TokenType = exports.TokenType || (exports.TokenType = {}));
 //# sourceMappingURL=TokenType.js.map

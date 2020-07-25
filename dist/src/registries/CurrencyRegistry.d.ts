@@ -1,4 +1,4 @@
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform } from '../enums';
 export declare class CurrencyRegistry {
@@ -20,6 +20,7 @@ export declare class CurrencyRegistry {
     static readonly Tron: ICurrency;
     static readonly Binance: ICurrency;
     static readonly Terra: ICurrency;
+    static readonly Cosmos: ICurrency;
     static registerCurrency(c: ICurrency): boolean;
     static registerOmniAsset(propertyId: number, networkSymbol: string, name: string, scale: number): boolean;
     static registerErc20Token(contractAddress: string, networkSymbol: string, name: string, decimals: number): boolean;
@@ -28,6 +29,7 @@ export declare class CurrencyRegistry {
     static registerEosToken(code: string, networkSymbol: string, scale: number): boolean;
     static registerBepToken(originSymbol: string, networkSymbol: string, scale: number): boolean;
     static registerTerraToken(code: string, networkSymbol: string, scale: number): boolean;
+    static registerCosmosToken(code: string, networkSymbol: string, scale: number): boolean;
     static getOneOmniAsset(propertyId: number): IOmniAsset;
     static getAllOmniAssets(): IOmniAsset[];
     static getOneErc20Token(contractAddress: string): IErc20Token;
@@ -40,6 +42,7 @@ export declare class CurrencyRegistry {
     static hasOneCurrency(symbol: string): boolean;
     static hasOneNativeCurrency(symbol: string): boolean;
     static getAllTerraTokens(): ITerraToken[];
+    static getAllCosmosTokens(): ICosmosToken[];
     static getOneCurrency(symbol: string): ICurrency;
     static getOneNativeCurrency(platform: BlockchainPlatform): ICurrency;
     static getCurrenciesOfPlatform(platform: BlockchainPlatform): ICurrency[];
@@ -53,6 +56,7 @@ export declare class CurrencyRegistry {
     static onEOSTokenRegistered(callback: (token: IEosToken) => void): void;
     static onBepTokenRegistered(callback: (token: IBepToken) => void): void;
     static onTerraTokenRegistered(callback: (token: ITerraToken) => void): void;
+    static onCosmosTokenRegistered(callback: (token: ICosmosToken) => void): void;
     static onCurrencyConfigSet(callback: (currency: ICurrency, config: ICurrencyConfig) => void): void;
     protected static unregisterCurrency(symbol: string): boolean;
 }

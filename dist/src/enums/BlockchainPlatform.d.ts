@@ -17,6 +17,7 @@ export declare enum BlockchainPlatform {
     Nem = "nem",
     Iota = "iota",
     Binance = "bnb",
-    Terra = "terra"
+    Terra = "terra",
+    Cosmos = "cosmos"
 }
 export default BlockchainPlatform;
