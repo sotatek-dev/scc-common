@@ -11,6 +11,7 @@ var allOmniAssets = [];
 var allEosTokens = [];
 var allBepTokens = [];
 var allTerraTokens = [];
+var allCosmosTokens = [];
 var onCurrencyRegisteredCallbacks = [];
 var onSpecificCurrencyRegisteredCallbacks = new Map();
 var onCurrencyConfigSetCallbacks = [];
@@ -21,6 +22,7 @@ var eventCallbacks = {
     'eos-token-registered': Array(),
     'bep-token-registered': Array(),
     'terra-token-registered': Array(),
+    'cosmos-token-registered': Array(),
 };
 var Bitcoin = {
     symbol: enums_1.BlockchainPlatform.Bitcoin,
@@ -222,6 +224,19 @@ var Terra = {
     hdPath: "m/44'/330'/0'/0/",
     hasMemo: true,
 };
+var Cosmos = {
+    symbol: enums_1.BlockchainPlatform.Cosmos,
+    networkSymbol: enums_1.BlockchainPlatform.Cosmos,
+    name: 'Cosmos',
+    platform: enums_1.BlockchainPlatform.Cosmos,
+    isNative: true,
+    isUTXOBased: false,
+    humanReadableScale: 8,
+    type: enums_1.TransactionBaseType.COSMOS,
+    nativeScale: 0,
+    hdPath: "m/44'/330'/0'/0/",
+    hasMemo: true,
+};
 var nativeCurrencies = [
     Bitcoin,
     Ethereum,
@@ -241,6 +256,7 @@ var nativeCurrencies = [
     Tron,
     Binance,
     Terra,
+    Cosmos,
 ];
 var CurrencyRegistry = (function () {
     function CurrencyRegistry() {
@@ -398,6 +414,28 @@ var CurrencyRegistry = (function () {
         eventCallbacks['terra-token-registered'].forEach(function (callback) { return callback(currency); });
         return CurrencyRegistry.registerCurrency(currency);
     };
+    CurrencyRegistry.registerCosmosToken = function (code, networkSymbol, scale) {
+        var platform = enums_1.BlockchainPlatform.Cosmos;
+        var symbol = [enums_1.TokenType.COSMOS, networkSymbol].join('.');
+        var currency = {
+            symbol: symbol,
+            networkSymbol: networkSymbol,
+            tokenType: enums_1.TokenType.COSMOS,
+            name: code,
+            platform: platform,
+            isNative: false,
+            isUTXOBased: false,
+            humanReadableScale: scale,
+            type: enums_1.TransactionBaseType.COSMOS,
+            nativeScale: 0,
+            code: code,
+            hdPath: CurrencyRegistry.getOneCurrency(enums_1.BlockchainPlatform.Cosmos).hdPath,
+            hasMemo: true,
+        };
+        allCosmosTokens.push(currency);
+        eventCallbacks['cosmos-token-registered'].forEach(function (callback) { return callback(currency); });
+        return CurrencyRegistry.registerCurrency(currency);
+    };
     CurrencyRegistry.getOneOmniAsset = function (propertyId) {
         var symbol = [enums_1.TokenType.OMNI, propertyId].join('.');
         return CurrencyRegistry.getOneCurrency(symbol);
@@ -436,6 +474,9 @@ var CurrencyRegistry = (function () {
     };
     CurrencyRegistry.getAllTerraTokens = function () {
         return allTerraTokens;
+    };
+    CurrencyRegistry.getAllCosmosTokens = function () {
+        return allCosmosTokens;
     };
     CurrencyRegistry.getOneCurrency = function (symbol) {
         symbol = symbol.toLowerCase();
@@ -504,6 +545,9 @@ var CurrencyRegistry = (function () {
                 break;
             case enums_1.BlockchainPlatform.NEO:
                 result.push(CurrencyRegistry.NEO);
+                break;
+            case enums_1.BlockchainPlatform.Cosmos:
+                result.push.apply(result, CurrencyRegistry.getAllCosmosTokens());
                 break;
             default:
                 throw new Error("CurrencyRegistry::getCurrenciesOfPlatform hasn't been implemented for " + platform + " yet.");
@@ -595,6 +639,14 @@ var CurrencyRegistry = (function () {
         }
         eventCallbacks['terra-token-registered'].push(callback);
     };
+    CurrencyRegistry.onCosmosTokenRegistered = function (callback) {
+        if (allCosmosTokens.length) {
+            allCosmosTokens.forEach(function (token) {
+                callback(token);
+            });
+        }
+        eventCallbacks['cosmos-token-registered'].push(callback);
+    };
     CurrencyRegistry.onCurrencyConfigSet = function (callback) {
         onCurrencyConfigSetCallbacks.push(callback);
     };
@@ -623,6 +675,7 @@ var CurrencyRegistry = (function () {
     CurrencyRegistry.Tron = Tron;
     CurrencyRegistry.Binance = Binance;
     CurrencyRegistry.Terra = Terra;
+    CurrencyRegistry.Cosmos = Cosmos;
     return CurrencyRegistry;
 }());
 exports.CurrencyRegistry = CurrencyRegistry;
