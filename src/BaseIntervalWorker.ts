@@ -43,7 +43,7 @@ export abstract class BaseIntervalWorker {
     return this._processingTimeout;
   }
 
-  protected setNextTickTimer(timeout: number): void {
+  public setNextTickTimer(timeout: number): void {
     this._nextTickTimer = timeout;
   }
 
