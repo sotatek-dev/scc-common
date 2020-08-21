@@ -71,6 +71,9 @@ var BaseWebServer = (function () {
         this._currency = registries_1.CurrencyRegistry.getOneNativeCurrency(platform);
         this._parseConfig(platform);
         this.setup();
+        this.app.use(function (req, res) {
+            res.status(404).json({ error: 'API Not Found' });
+        });
     }
     BaseWebServer.prototype._parseConfig = function (platform) {
         var config = registries_1.CurrencyRegistry.getCurrencyConfig(this._currency);
@@ -504,9 +507,6 @@ var BaseWebServer = (function () {
                 }
             });
         }); });
-        this.app.use(function (req, res) {
-            res.status(404).json({ error: 'API Not Found' });
-        });
     };
     BaseWebServer.prototype.getProtocol = function () {
         return this.protocol;
