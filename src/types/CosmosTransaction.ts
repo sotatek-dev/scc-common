@@ -16,6 +16,11 @@ export const TypeMsg = {
   MsgMultiSend: 'bank/MsgMultiSend',
 };
 
+export const TypeMsgSDK= {
+  MsgSend: 'cosmos-sdk/MsgSend',
+  MsgMultiSend: 'cosmos-sdk/MsgMultiSend',
+};
+
 export interface ICosmosRawTransaction {
   readonly height: number;
   readonly txHash: string;
