@@ -4,3 +4,4 @@ export * from './IGlobalEnvConfig';
 export * from './IRawTransaction';
 export * from './IWorkerOptions';
 export * from './UTXOTypes';
+export * from './UTXOBItcoreTypes';

@@ -4,14 +4,14 @@ import Axios from 'axios';
 import {
   Account,
   Block,
-  UTXOBasedGateway,
+  BaseGateway,
   TransactionStatus,
-  BitcoinBasedTransactions,
-  BitcoinBasedTransaction,
+  UTXOBitcoreBasedTransactions,
+  UTXOBitcoreBasedTransaction,
   getLogger,
   override,
   implement,
-  BigNumber,
+  BigNumber, Transaction,
 } from '..';
 import {
   ISignedRawTransaction,
@@ -19,36 +19,31 @@ import {
   IRawVOut,
   IRawTransaction,
   IInsightAddressInfo,
-  IInsightUtxoInfo,
-  IInsightTxsInfo,
-  IUtxoTxInfo,
+  IBitcoreInsightUtxoInfo,
   IUtxoBlockInfo,
-  IBoiledVOut,
-  IBitcoreUtxoInput,
+  IBitcoreUtxoTxInfoDetail,
+  IBitcoreInsightTxsInfo,
+  IBitcoreUtxoTxInfo,
+  IBitcoreBoiledVOut,
+  IBitcoreBaseUtxoInput,
+  IBitcoreBoiledVIn,
+  IBitcoreAddressBalance
 } from './interfaces';
 import LRU from 'lru-cache';
 import { EnvConfigRegistry } from './registries';
 import pLimit from 'p-limit';
 import { getClient } from './RedisChannel';
+
 const limit = pLimit(1);
 const INSIGHT_REQUEST_MAX_RETRIES = 10;
 const logger = getLogger('BitcoreBasedGateway');
-const _cacheRawTxByBlockUrl: LRU<string, IInsightTxsInfo> = new LRU({
+const _cacheRawTxByBlockUrl: LRU<string, IBitcoreUtxoTxInfo[]> = new LRU({
   max: 1024,
   maxAge: 1000 * 60 * 5,
 });
+const bchaddr = require('bchaddrjs');
 
-export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
-  public static convertInsightUtxoToBitcoreUtxo(utxos: IInsightUtxoInfo[]): IBitcoreUtxoInput[] {
-    return utxos.map(utxo => ({
-      address: utxo.address,
-      txId: utxo.txid,
-      outputIndex: utxo.vout,
-      script: utxo.scriptPubKey,
-      satoshis: utxo.satoshis,
-    }));
-  }
-
+export abstract class BitcoreBasedGateway extends BaseGateway {
   /**
    * Validate an address
    * @param address
@@ -56,7 +51,7 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
   @override
   public async isValidAddressAsync(address: string): Promise<boolean> {
     const bitcore = this.getBitCoreLib();
-    const network = EnvConfigRegistry.isMainnet() ? bitcore.Networks.mainnet : bitcore.Networks.testnet;
+    const network = this.getNetwork();
 
     try {
       return bitcore.Address.isValid(address, network);
@@ -70,7 +65,7 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
   @implement
   public async createAccountAsync(): Promise<Account> {
     const bitcore = this.getBitCoreLib();
-    const network = EnvConfigRegistry.isMainnet() ? bitcore.Networks.mainnet : bitcore.Networks.testnet;
+    const network = this.getNetwork();
     const privateKey = new bitcore.PrivateKey(null, network);
     const wif = privateKey.toWIF();
     const address = privateKey.toAddress();
@@ -83,10 +78,21 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
 
   public async getAccountFromPrivateKey(rawPrivateKey: string): Promise<Account> {
     const bitcore = this.getBitCoreLib();
-    const network = EnvConfigRegistry.isMainnet() ? bitcore.Networks.mainnet : bitcore.Networks.testnet;
+    const network = this.getNetwork();
     const privateKey = new bitcore.PrivateKey(rawPrivateKey, network);
     const address = privateKey.toAddress().toString();
     return { address, privateKey: privateKey.toWIF() };
+  }
+
+  public convertUtxoInput(utxo: IBitcoreInsightUtxoInfo): IBitcoreBaseUtxoInput {
+    return {
+      address: utxo.address,
+      txId: utxo.mintTxid,
+      outputIndex: utxo.mintIndex,
+      vout: utxo.mintIndex,
+      scriptPubKey: utxo.script,
+      satoshis: utxo.value,
+    };
   }
 
   /**
@@ -98,13 +104,13 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
    *
    * @returns {IRawTransaction}
    */
-  public async constructRawTransaction(fromAddresses: string | string[], vouts: IRawVOut[]): Promise<IRawTransaction> {
+  public async constructRawTransaction (fromAddresses: string | string[], vouts: IRawVOut[]): Promise<IRawTransaction> {
     if (typeof fromAddresses === 'string') {
       fromAddresses = [fromAddresses];
     }
 
-    const pickedUtxos: IInsightUtxoInfo[] = [];
-    const allUtxos: IInsightUtxoInfo[] = await this.getMultiAddressesUtxos(fromAddresses);
+    const pickedUtxos: IBitcoreBaseUtxoInput[] = [];
+    const allUtxos: IBitcoreBaseUtxoInput[] = await this.getMultiAddressesUtxos(fromAddresses);
     const totalOutputAmount: BigNumber = vouts.reduce((memo, vout) => {
       return memo.plus(vout.amount);
     }, new BigNumber(0));
@@ -139,7 +145,7 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
   }
 
   public async constructRawConsolidateTransaction(
-    pickedUtxos: IInsightUtxoInfo[],
+    pickedUtxos: IBitcoreBaseUtxoInput[],
     toAddress: string
   ): Promise<IRawTransaction> {
     const totalInputAmount: BigNumber = pickedUtxos.reduce((memo, utxo) => {
@@ -206,7 +212,12 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
    * @returns {String}: the transaction hash in hex
    */
   public async sendRawTransaction(signedRawTx: string): Promise<ISubmittedTransaction> {
-    const txid = await this._rpcClient.call<string>('sendrawtransaction', [signedRawTx, false]);
+    const txid = await this._rpcClient.call<string>('sendrawtransaction', [signedRawTx, 0]);
+    return { txid };
+  }
+
+  public async getRawTransaction(signedRawTx: string): Promise<ISubmittedTransaction> {
+    const txid = await this._rpcClient.call<string>('getrawtransaction', [signedRawTx, 1]);
     return { txid };
   }
 
@@ -233,6 +244,10 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
     return await this._rpcClient.call<number>('getblockcount');
   }
 
+  public toCashAddress(address: string): string {
+    return bchaddr.toCashAddress(address).split(':')[1];
+  }
+
   /**
    * getAddressBalance
    * @param address
@@ -240,9 +255,10 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
   @implement
   public async getAddressBalance(address: string): Promise<BigNumber> {
     const apiEndpoint = this.getAPIEndpoint();
+    const toAddress = this.toCashAddress(address);
     let response;
     try {
-      response = await Axios.get<IInsightAddressInfo>(`${apiEndpoint}/addr/${address}/?noTxList=1`);
+      response = await Axios.get<IBitcoreAddressBalance>(`${apiEndpoint}/address/${toAddress}/balance`);
     } catch (e) {
       let errMsg = '';
       if (e.response) {
@@ -251,10 +267,10 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
         errMsg += ` no response was received`;
       }
 
-      throw new Error(`Could not get balance of address=${address} error=${e.toString()} info=${errMsg}`);
+      throw new Error(`Could not get balance of address=${toAddress} error=${e.toString()} info=${errMsg}`);
     }
     const addressInfo = response.data;
-    return new BigNumber(addressInfo.balanceSat);
+    return new BigNumber(addressInfo.confirmed);
   }
 
   /**
@@ -279,52 +295,61 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
   }
 
   @implement
-  public async getOneAddressUtxos(address: string): Promise<IInsightUtxoInfo[]> {
+  public async getOneAddressUtxos(address: string): Promise<IBitcoreBaseUtxoInput[]> {
     const apiEndpoint = this.getAPIEndpoint();
+    const toAddress = this.toCashAddress(address);
     let response;
     try {
-      response = await Axios.get<IInsightUtxoInfo[]>(`${apiEndpoint}/addr/${address}/utxo`);
+      response = await Axios.get<IBitcoreInsightUtxoInfo[]>(`${apiEndpoint}/address/${toAddress}/?unspent=true`);
     } catch (e) {
       logger.error(e);
-      throw new Error(`Could got get utxos of address=${address}...`);
+      throw new Error(`Could got get utxos of address=${toAddress}...`);
     }
 
-    const utxos: IInsightUtxoInfo[] = response.data;
+    const utxos: IBitcoreInsightUtxoInfo[] = response.data.filter(utxo => utxo.spentTxid === '');
     return utxos
       .sort((a, b) => b.confirmations - a.confirmations)
       .map(utxo => {
-        // Omni protocol requires `value` field instead of amount and satoshis...
-        utxo.value = utxo.amount;
-        return utxo;
+        return this.convertUtxoInput(utxo);
       });
   }
 
-  public async getOneTxVouts(txid: string, address?: string): Promise<IBoiledVOut[]> {
-    const apiEndpoint = this.getAPIEndpoint();
-    let response;
+  @implement
+  public async getMultiAddressesUtxos(addresses: string[]): Promise<IBitcoreBaseUtxoInput[]> {
+    const result: IBitcoreBaseUtxoInput[] = [];
+    for (const address of addresses) {
+      result.push(...(await this.getOneAddressUtxos(address)));
+    }
+    return result;
+  }
+
+  public async getOneTxVouts(txid: string, address?: string): Promise<IBitcoreBoiledVOut[]> {
+    let tx;
     try {
-      response = await Axios.get<IUtxoTxInfo>(`${apiEndpoint}/tx/${txid}`);
+      tx = await this.getOneTransaction(txid);
     } catch (e) {
       // logger.error(e);
       // throw new Error(`TODO: Handle me please...`);
       throw e;
     }
 
-    return response.data.vout.filter(vout => {
+    // @ts-ignore
+    const result = tx.outputs;
+    return result.filter((output: IBitcoreBoiledVIn) => {
       if (!address) {
         return true;
       }
 
-      if (!vout.scriptPubKey || !vout.scriptPubKey.addresses || !vout.scriptPubKey.addresses.length) {
+      if (!output.address || output.address === 'false') {
         return false;
       }
 
-      return vout.scriptPubKey.addresses.indexOf(address) > -1;
+      return bchaddr.toLegacyAddress(output.address) === address;
     });
   }
 
-  public async getMultiTxsVouts(txids: string[], address?: string): Promise<IBoiledVOut[]> {
-    const result: IBoiledVOut[] = [];
+  public async getMultiTxsVouts(txids: string[], address?: string): Promise<IBitcoreBoiledVOut[]> {
+    const result: IBitcoreBoiledVOut[] = [];
     for (const txid of txids) {
       result.push(...(await this.getOneTxVouts(txid, address)));
     }
@@ -336,16 +361,16 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
    * @param blockHash
    */
   @override
-  public async getBlockTransactions(blockNumber: string | number): Promise<BitcoinBasedTransactions> {
+  public async getBlockTransactions(blockNumber: string | number): Promise<UTXOBitcoreBasedTransactions> {
     const block = await this.getOneBlock(blockNumber);
     const endpoint = this.getAPIEndpoint();
-    const listTxs = new BitcoinBasedTransactions();
-    const txsUrl = `${endpoint}/txs?block=${blockNumber}`;
+    const listTxs = new UTXOBitcoreBasedTransactions();
+    const txsUrl = this.getPathBlock(blockNumber);
     let response;
     let retryCount = 0;
     while (true) {
       try {
-        response = await Axios.get<IInsightTxsInfo>(txsUrl);
+        response = await Axios.get<IBitcoreUtxoTxInfo[]>(txsUrl);
         break;
       } catch (e) {
         let errMsg = `Could not get txs of block=${blockNumber} fetching url=${txsUrl} err=${e.toString()}`;
@@ -360,23 +385,33 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
       }
     }
 
-    const pageTotal = response.data.pagesTotal;
-    const networkBlockCount = await this.getBlockCount();
-    const pages = Array.from(new Array(pageTotal), (val, index) => index);
-    await Promise.all(
-      pages.map(async page => {
-        return limit(async () => {
-          const txs = await this._fetchOneBlockTxsInsightPage(block, page, pageTotal, networkBlockCount);
-          listTxs.mutableConcat(txs);
-        });
-      })
-    );
+    const txs: IBitcoreUtxoTxInfo[] = response.data;
+    // tslint:disable-next-line:prefer-for-of
+    for (let index = 0; index < txs.length; index++) {
+      const tx = await this.getOneTransaction(txs[index].txid);
+      // @ts-ignore
+      listTxs.push(tx);
+    }
+
+    // @ts-ignore
     return listTxs;
   }
 
   public async estimateFee(options: { totalInputs: number }): Promise<BigNumber> {
     const estimatedTxSize = options.totalInputs * 181 + 34 + 10;
     return new BigNumber(estimatedTxSize * (await this.getFeeInSatoshisPerByte()));
+  }
+
+  public getPathBlock(
+    blockNumber: string | number,
+    pageNumber?: string | number,
+    rowPerPage: string | number = 100,
+  ): string {
+    const endpoint = this.getAPIEndpoint();
+    if (pageNumber) {
+      return `${endpoint}/tx?blockHeight=${blockNumber}&paging=${pageNumber}&limit=${rowPerPage}`;
+    }
+    return `${endpoint}/tx?blockHeight=${blockNumber}`;
   }
 
   /**
@@ -405,38 +440,33 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
     page: number,
     pageTotal: number,
     networkBlockCount: number
-  ): Promise<BitcoinBasedTransaction[]> {
+  ): Promise<UTXOBitcoreBasedTransaction[]> {
     const endpoint = this.getAPIEndpoint();
     const currency = this.getCurrency();
     const blockNumber = block.number;
     let confirmations = 0;
     let pageResponse;
     let retryCount = 0;
-    let data: IInsightTxsInfo;
+    let data = [];
+    const result: UTXOBitcoreBasedTransaction[] = [];
     while (true) {
       const gwName = this.constructor.name;
-      const url = `${endpoint}/txs?block=${blockNumber}&pageNum=${page}`;
+      const url = this.getPathBlock(blockNumber, page);
       logger.debug(`${gwName}::getBlockTransactions block=${blockNumber} pageNum=${page + 1}/${pageTotal}`);
       try {
         const key = this.getCurrency().symbol + url;
-        let redisClient;
-        let cachedData;
-        if (!!EnvConfigRegistry.isUsingRedis()) {
-          redisClient = getClient();
-          cachedData = await redisClient.get(key);
-        } else {
-          cachedData = JSON.stringify(_cacheRawTxByBlockUrl.get(key));
-        }
+        const redisClient = getClient();
+        const cachedData = await redisClient.get(key);
         if (!!cachedData) {
           data = JSON.parse(cachedData);
           confirmations = networkBlockCount - blockNumber + 1;
           break;
         }
 
-        pageResponse = await Axios.get<IInsightTxsInfo>(url);
+        pageResponse = await Axios.get<IBitcoreUtxoTxInfo[]>(url);
         data = pageResponse.data;
         if (redisClient) {
-          redisClient.setex(key, 300, JSON.stringify(pageResponse.data));
+          redisClient.setex(key, 7200000, JSON.stringify(pageResponse.data));
         } else {
           _cacheRawTxByBlockUrl.set(key, data);
         }
@@ -455,32 +485,17 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
         }
       }
     }
-
-    const txs: IUtxoTxInfo[] = data.txs;
-    const result = txs.map(tx => {
-      // Check whether a transaction is Omni
-      const isOmniTx: boolean = tx.vout.some(vout => {
-        // Any vout has Omni OP_RETURN?
-        return vout.scriptPubKey.asm.startsWith('OP_RETURN 6f6d6e69');
-      });
-
-      // If the transaction is Omni, we don't count it as an ordinary bitcoin tx anymore
-      if (isOmniTx) {
-        return null;
-      }
-
-      if (confirmations > 0) {
-        tx.confirmations = confirmations;
-      }
-
-      return new BitcoinBasedTransaction(currency, tx, block);
-    });
+    // tslint:disable-next-line:prefer-for-of
+    for (let index = 0; index < data.length; index++) {
+      const txRaw: UTXOBitcoreBasedTransaction = await this._getOneTransaction(data[index].txid);
+      result.push(txRaw);
+    }
 
     return _.compact(result);
   }
 
   protected _constructRawTransaction(
-    pickedUtxos: IInsightUtxoInfo[],
+    pickedUtxos: IBitcoreBaseUtxoInput[],
     vouts: IRawVOut[],
     esitmatedFee: BigNumber
   ): IRawTransaction {
@@ -574,27 +589,36 @@ export abstract class BitcoreBasedGateway extends UTXOBasedGateway {
    * @returns {Transaction}: the transaction details
    */
   @implement
-  protected async _getOneTransaction(txid: string): Promise<BitcoinBasedTransaction> {
+  protected async _getOneTransaction(txid: string): Promise<UTXOBitcoreBasedTransaction> {
     const apiEndpoint = this.getAPIEndpoint();
     let response;
+    let responseTxDetail;
     try {
-      response = await Axios.get<IUtxoTxInfo>(`${apiEndpoint}/tx/${txid}`);
+      response = await Axios.get<IBitcoreUtxoTxInfo>(`${apiEndpoint}/tx/${txid}`);
+      responseTxDetail = await Axios.get<IBitcoreUtxoTxInfoDetail>(`${apiEndpoint}/tx/${txid}/coins`);
     } catch (e) {
       // logger.error(e);
       throw e;
       // throw new Error(`TODO: Handle me please...`);
     }
 
-    const txInfo: IUtxoTxInfo = response.data;
+    const txInfo: IBitcoreUtxoTxInfo = response.data;
+    txInfo.inputs = responseTxDetail.data.inputs;
+    txInfo.outputs = responseTxDetail.data.outputs;
 
     // transaction was sent, but it is being not included in any block
     // We just don't count it
-    if (!txInfo.blockhash) {
+    if (!txInfo.blockHash) {
       return null;
     }
 
-    const block = await this.getOneBlock(txInfo.blockhash);
-    return new BitcoinBasedTransaction(this.getCurrency(), txInfo, block);
+    const block = await this.getOneBlock(txInfo.blockHash);
+    return new UTXOBitcoreBasedTransaction(this.getCurrency(), txInfo, block);
+  }
+
+  protected getNetwork(){
+    const bitcore = this.getBitCoreLib();
+    return EnvConfigRegistry.isMainnet() ? bitcore.Networks.mainnet : bitcore.Networks.testnet;
   }
 
   protected abstract getBitCoreLib(): any;
