@@ -19,7 +19,7 @@ import BaseGateway from './BaseGateway';
 import { ICurrency, IRawTransaction } from './interfaces';
 import { Address } from './types';
 
-const logger = getLogger('TerraGateway');
+const logger = getLogger('CosmosBasedGateway');
 const _cacheBlockNumber = {
   value: 0,
   updatedAt: 0,
@@ -110,14 +110,14 @@ export abstract class CosmosBasedGateway extends BaseGateway {
     _cacheBlockNumber.value = blockHeight;
     _cacheBlockNumber.updatedAt = newUpdateAt;
     _cacheBlockNumber.isRequesting = false;
-    logger.debug(`TerraGateway::getBlockCount value=${blockHeight} updateAt=${newUpdateAt}`);
+    logger.debug(`CosmosBasedGateway::getBlockCount value=${blockHeight} updateAt=${newUpdateAt}`);
     return blockHeight;
   }
 
   /**
    * Returns all transaction in given block
    *
-   * @param {string|number} blockHash: header hash or height of the block
+   * @param {number} blockHeight: header hash or height of the block
    * @return {Transactions}: an array of transactions
    */
   public async getBlockTransactions(blockHeight: number): Promise<GenericTransactions<Transaction>> {
@@ -289,7 +289,7 @@ export abstract class CosmosBasedGateway extends BaseGateway {
    * Get one transaction object
    *
    * @param {string} txid: the transaction hash
-   * @returns {BnbTransaction}: the transaction details
+   * @returns {CosmosTransaction}: the transaction details
    */
   protected async _getOneTransaction(txid: string): Promise<CosmosTransaction> {
     try {

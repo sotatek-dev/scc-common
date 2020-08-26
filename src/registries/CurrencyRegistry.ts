@@ -1,5 +1,5 @@
 import { getLogger } from '../Logger';
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType, TransactionBaseType } from '../enums';
 
@@ -17,6 +17,7 @@ const allOmniAssets: IOmniAsset[] = [];
 const allEosTokens: IEosToken[] = [];
 const allBepTokens: IBepToken[] = [];
 const allTerraTokens: ITerraToken[] = [];
+const allCosmosTokens: ICosmosToken[] = [];
 
 const onCurrencyRegisteredCallbacks: Array<(currency: ICurrency) => void> = [];
 const onSpecificCurrencyRegisteredCallbacks = new Map<string, Array<() => void>>();
@@ -29,6 +30,7 @@ const eventCallbacks = {
   'eos-token-registered': Array<(asset: IEosToken) => void>(),
   'bep-token-registered': Array<(asset: IBepToken) => void>(),
   'terra-token-registered': Array<(asset: ITerraToken) => void>(),
+  'cosmos-token-registered': Array<(asset: ICosmosToken) => void>(),
 };
 
 /**
@@ -252,6 +254,20 @@ const Terra = {
   hasMemo: true,
 };
 
+const Cosmos = {
+  symbol: BlockchainPlatform.Cosmos,
+  networkSymbol: BlockchainPlatform.Cosmos,
+  name: 'Cosmos',
+  platform: BlockchainPlatform.Cosmos,
+  isNative: true,
+  isUTXOBased: false,
+  humanReadableScale: 8,
+  type: TransactionBaseType.COSMOS,
+  nativeScale: 0,
+  hdPath: `m/44'/330'/0'/0/`,
+  hasMemo: true,
+};
+
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
@@ -271,6 +287,7 @@ const nativeCurrencies: ICurrency[] = [
   Tron,
   Binance,
   Terra,
+  Cosmos,
 ];
 
 export class CurrencyRegistry {
@@ -292,6 +309,7 @@ export class CurrencyRegistry {
   public static readonly Tron: ICurrency = Tron;
   public static readonly Binance: ICurrency = Binance;
   public static readonly Terra: ICurrency = Terra;
+  public static readonly Cosmos: ICurrency = Cosmos;
 
   /**
    * Register a currency on environment data
@@ -493,6 +511,31 @@ export class CurrencyRegistry {
     return CurrencyRegistry.registerCurrency(currency);
   }
 
+  public static registerCosmosToken(code: string, networkSymbol: string, scale: number): boolean {
+    const platform = BlockchainPlatform.Cosmos;
+    const symbol = [TokenType.COSMOS, networkSymbol].join('.');
+    const currency: ICosmosToken = {
+      symbol,
+      networkSymbol,
+      tokenType: TokenType.COSMOS,
+      name: code,
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      humanReadableScale: scale,
+      type: TransactionBaseType.COSMOS,
+      nativeScale: 0,
+      code,
+      hdPath: CurrencyRegistry.getOneCurrency(BlockchainPlatform.Cosmos).hdPath,
+      hasMemo: true,
+    };
+
+    allCosmosTokens.push(currency);
+    eventCallbacks['cosmos-token-registered'].forEach(callback => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
   public static getOneOmniAsset(propertyId: number): IOmniAsset {
     const symbol = [TokenType.OMNI, propertyId].join('.');
     return CurrencyRegistry.getOneCurrency(symbol) as IOmniAsset;
@@ -545,6 +588,10 @@ export class CurrencyRegistry {
 
   public static getAllTerraTokens(): ITerraToken[] {
     return allTerraTokens;
+  }
+
+  public static getAllCosmosTokens(): ICosmosToken[] {
+    return allCosmosTokens;
   }
 
   /**
@@ -638,6 +685,10 @@ export class CurrencyRegistry {
 
       case BlockchainPlatform.NEO:
         result.push(CurrencyRegistry.NEO);
+        break;
+
+      case BlockchainPlatform.Cosmos:
+        result.push(...CurrencyRegistry.getAllCosmosTokens());
         break;
 
       default:
@@ -802,6 +853,16 @@ export class CurrencyRegistry {
     }
 
     eventCallbacks['terra-token-registered'].push(callback);
+  }
+
+  public static onCosmosTokenRegistered(callback: (token: ICosmosToken) => void) {
+    if (allCosmosTokens.length) {
+      allCosmosTokens.forEach(token => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['cosmos-token-registered'].push(callback);
   }
 
   /**
