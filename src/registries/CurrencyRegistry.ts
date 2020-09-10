@@ -1,5 +1,13 @@
 import { getLogger } from '../Logger';
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken } from '../interfaces/ICurrency';
+import {
+  ICurrency,
+  IEosToken,
+  IErc20TokenTomo,
+  IBepToken,
+  ITerraToken,
+  ICosmosToken,
+  IToken
+} from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType, TransactionBaseType } from '../enums';
 
@@ -18,6 +26,7 @@ const allEosTokens: IEosToken[] = [];
 const allBepTokens: IBepToken[] = [];
 const allTerraTokens: ITerraToken[] = [];
 const allCosmosTokens: ICosmosToken[] = [];
+const allOntTokens: IToken[] = [];
 
 const onCurrencyRegisteredCallbacks: Array<(currency: ICurrency) => void> = [];
 const onSpecificCurrencyRegisteredCallbacks = new Map<string, Array<() => void>>();
@@ -31,6 +40,7 @@ const eventCallbacks = {
   'bep-token-registered': Array<(asset: IBepToken) => void>(),
   'terra-token-registered': Array<(asset: ITerraToken) => void>(),
   'cosmos-token-registered': Array<(asset: ICosmosToken) => void>(),
+  'ont-token-registered': Array<(asset: IToken) => void>(),
 };
 
 /**
@@ -268,6 +278,21 @@ const Cosmos = {
   hasMemo: true,
 };
 
+// const ONT_BIP44_PATH = "m/44'/1024'/0'/0/0";
+const Ont = {
+  symbol: BlockchainPlatform.Ont,
+  networkSymbol: BlockchainPlatform.Ont,
+  name: 'Ont',
+  platform: BlockchainPlatform.Ont,
+  isNative: true,
+  isUTXOBased: false,
+  humanReadableScale: 8,
+  type: TransactionBaseType.ONT,
+  nativeScale: 0,
+  // hdPath: ONT_BIP44_PATH,
+  hasMemo: false,
+};
+
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
@@ -288,6 +313,7 @@ const nativeCurrencies: ICurrency[] = [
   Binance,
   Terra,
   Cosmos,
+  Ont,
 ];
 
 export class CurrencyRegistry {
@@ -310,6 +336,7 @@ export class CurrencyRegistry {
   public static readonly Binance: ICurrency = Binance;
   public static readonly Terra: ICurrency = Terra;
   public static readonly Cosmos: ICurrency = Cosmos;
+  public static readonly Ont: ICurrency = Ont;
 
   /**
    * Register a currency on environment data
@@ -536,6 +563,30 @@ export class CurrencyRegistry {
     return CurrencyRegistry.registerCurrency(currency);
   }
 
+  public static registerOntToken(networkSymbol: string, scale: number): boolean {
+    const platform = BlockchainPlatform.Ont;
+    const symbol = [TokenType.ONT, networkSymbol].join('.');
+    const currency: IToken = {
+      symbol,
+      networkSymbol,
+      tokenType: TokenType.ONT,
+      name: symbol.toUpperCase(),
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      humanReadableScale: scale,
+      type: TransactionBaseType.ONT,
+      nativeScale: 0,
+      // hdPath: CurrencyRegistry.getOneCurrency(BlockchainPlatform.Ont).hdPath,
+      hasMemo: false,
+    };
+
+    allOntTokens.push(currency);
+    eventCallbacks['ont-token-registered'].forEach(callback => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
   public static getOneOmniAsset(propertyId: number): IOmniAsset {
     const symbol = [TokenType.OMNI, propertyId].join('.');
     return CurrencyRegistry.getOneCurrency(symbol) as IOmniAsset;
@@ -592,6 +643,10 @@ export class CurrencyRegistry {
 
   public static getAllCosmosTokens(): ICosmosToken[] {
     return allCosmosTokens;
+  }
+
+  public static getAllOntTokens(): IToken[] {
+    return allOntTokens;
   }
 
   /**
@@ -689,6 +744,10 @@ export class CurrencyRegistry {
 
       case BlockchainPlatform.Cosmos:
         result.push(...CurrencyRegistry.getAllCosmosTokens());
+        break;
+
+      case BlockchainPlatform.Ont:
+        result.push(...CurrencyRegistry.getAllOntTokens());
         break;
 
       default:
@@ -863,6 +922,16 @@ export class CurrencyRegistry {
     }
 
     eventCallbacks['cosmos-token-registered'].push(callback);
+  }
+
+  public static onOntTokenRegistered(callback: (token: IToken) => void) {
+    if (allOntTokens.length) {
+      allOntTokens.forEach(token => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['ont-token-registered'].push(callback);
   }
 
   /**
