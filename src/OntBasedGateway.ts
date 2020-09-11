@@ -205,8 +205,6 @@ export abstract class OntBasedGateway extends BaseGateway {
    * @return {string}: the tx status
    */
   // TODO: can receive tx status by decoded raw tx?
-  // is it possible if we check by parameter {'log': 'Msg 0: '} ?
-  // check it later
   public async getTransactionStatus(txid: string): Promise<TransactionStatus> {
     let txStatus: TransactionStatus;
 
@@ -260,8 +258,6 @@ export abstract class OntBasedGateway extends BaseGateway {
 
   public abstract async convertBlock(block: any): Promise<Block>;
 
-  public abstract getFeeTx(rawTx: any): BigNumber;
-
   public abstract getRawTx(tx: any): IOntRawTransaction;
 
   /**
@@ -271,6 +267,7 @@ export abstract class OntBasedGateway extends BaseGateway {
   // TODO: is it possible if we get tx fee directly from fullnode?
   // we can use https://data-seed-pre-0-s3.binance.org/abci_query?path="/param/fees"
   // but it's amino-encoded, so, need to decode.
+  public abstract getFeeTx(rawTx: any): BigNumber;
 
   /**
    * Get one transaction object
