@@ -15,9 +15,9 @@ import {
   ICurrency,
   IRawVOut,
   ISubmittedTransaction,
-  OntTransaction
+  OntTransaction,
+  AccountBasedGateway
 } from '..';
-import BaseGateway from './BaseGateway';
 import {IRawTransaction} from './interfaces';
 
 const logger = getLogger('OntBasedGateway');
@@ -42,16 +42,16 @@ const pathUrlRestApi = {
   getBalance: '/api/v1/balance/',
   sendRawTx: '/api/v1/transaction',
   // getMerkleProof: '/api/v1/merkleproof', // end with /txHash
-}
+};
 
 const pathUrlExplorerApi = {
   getLatestBlock: '/v2/latest-blocks?count=1',
   getLatestBlocks: '/v2/latest-blocks?count=',
   getBlockDetail: '/v2/blocks/', //block height or block hash
   getTxDetail: '/v2/transactions/', //tx_hash
-}
+};
 
-export abstract class OntBasedGateway extends BaseGateway {
+export abstract class OntBasedGateway extends AccountBasedGateway {
   protected _currency: IToken;
   protected _explorerEndpoint: any;
   protected _explorerApi: any;
@@ -121,16 +121,16 @@ export abstract class OntBasedGateway extends BaseGateway {
     try {
       const res = await axios.get(`${this._explorerEndpoint}${this._explorerApi.getBlockDetail}${blockHeight}`);
       const transactions = new GenericTransactions();
-      const data = res.data;
-      if (!data) {
+      if (!res.data) {
         throw new Error(`Request fail`);
       }
+      const result = res.data.result;
 
-      if (!data.txs || !data.txs.length) {
+      if (!result.txs || !result.txs.length) {
         return transactions;
       }
 
-      const txs = await Promise.all(_.map(data.txs, async tx => await this.getOneTransaction(tx.tx_hash)));
+      const txs = await Promise.all(_.map(result.txs, async tx => await this.getOneTransaction(tx.tx_hash)));
       if (!txs || !txs.length) {
         return transactions;
       }
@@ -149,6 +149,7 @@ export abstract class OntBasedGateway extends BaseGateway {
    * Validate a transaction and broadcast it to the blockchain network
    *
    * @param {string} rawTx: the hex-endcoded transaction data
+   * @param {number} retryCount?
    * @returns {string}: the transaction hash is hex
    */
   public async sendRawTransaction(rawTx: string, retryCount?: number): Promise<ISubmittedTransaction> {
@@ -156,9 +157,9 @@ export abstract class OntBasedGateway extends BaseGateway {
       retryCount = 0;
     }
     const body = {
-      Action  : 'sendrawtransaction',
-      Version : '1.0.0',
-      Data    : rawTx
+      Action: 'sendrawtransaction',
+      Version: 'v1.0.0',
+      Data: rawTx
     };
     try {
       const res = await axios.post(`${this._restEndpoint}${this._restApi.sendRawTx}`, body);
@@ -166,7 +167,7 @@ export abstract class OntBasedGateway extends BaseGateway {
       if (receipt.Error !== 0) {
         throw new Error(`OntBasedGateway::sendRawTransaction(): Send transaction failed`);
       }
-      return { txid: receipt.Result };
+      return {txid: receipt.Result};
     } catch (err) {
       if (retryCount + 1 > 5) {
         logger.fatal(`Too many fails sending tx`);
@@ -241,7 +242,7 @@ export abstract class OntBasedGateway extends BaseGateway {
    * @param {fee} fee
    * @returns {Transactions} transactions: the bnb transactions detail
    */
-  public abstract _convertRawToTransactions (
+  public abstract _convertRawToTransactions(
     rawTx: IOntRawTransaction,
     blockHeader: BlockHeader,
     latestBlock: number,
@@ -252,7 +253,9 @@ export abstract class OntBasedGateway extends BaseGateway {
    * constructRawTransaction construct raw transaction data without signature
    */
   public abstract async constructRawTransaction(
-    param: IRawVOut | IRawVOut[],
+    from: string,
+    to: string,
+    amount: BigNumber,
     options?: any
   ): Promise<IRawTransaction>;
 
@@ -273,7 +276,7 @@ export abstract class OntBasedGateway extends BaseGateway {
    * Get one transaction object
    *
    * @param {string} txid: the transaction hash
-   * @returns {CosmosTransaction}: the transaction details
+   * @returns {OntTransaction}: the transaction details
    */
   protected async _getOneTransaction(txid: string): Promise<OntTransaction> {
     try {
