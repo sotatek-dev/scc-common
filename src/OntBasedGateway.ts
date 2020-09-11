@@ -230,7 +230,7 @@ export abstract class OntBasedGateway extends AccountBasedGateway {
    * minimum fee for seeding in almost case
    */
   public async getAverageSeedingFee(): Promise<BigNumber> {
-    throw new Error('TODO: Implement me');
+    return new BigNumber(1);
   }
 
   /**

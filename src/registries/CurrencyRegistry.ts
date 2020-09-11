@@ -570,7 +570,7 @@ export class CurrencyRegistry {
       symbol,
       networkSymbol,
       tokenType: TokenType.ONT,
-      name: symbol.toUpperCase(),
+      name: networkSymbol.toUpperCase(),
       platform,
       isNative: false,
       isUTXOBased: false,
