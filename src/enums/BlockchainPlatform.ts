@@ -19,7 +19,8 @@ export enum BlockchainPlatform {
   Binance = 'bnb',
   Terra = 'terra',
   Cosmos = 'cosmos',
-  Ont = 'ont',
+  ONT = 'ont',
+  ONG = 'ong',
 }
 
 export default BlockchainPlatform;

@@ -35,13 +35,9 @@ const pathUrlRestApi = {
   getBlockNumber: `/api/v1/block/details/height/`,
   getOneTransaction: '/api/v1/transaction/',
   getAllBlockTransactions: '/api/v1/block/details/height/',
-  // postOneTransaction: '/api/v1/transaction',
-  // getFeeAndGas: '/txs/estimate_fee',
-  // getAccount: '/auth/accounts',
-
+  getGasPrice: '/api/v1/gasprice',
   getBalance: '/api/v1/balance/',
   sendRawTx: '/api/v1/transaction',
-  // getMerkleProof: '/api/v1/merkleproof', // end with /txHash
 };
 
 const pathUrlExplorerApi = {
@@ -50,6 +46,9 @@ const pathUrlExplorerApi = {
   getBlockDetail: '/v2/blocks/', //block height or block hash
   getTxDetail: '/v2/transactions/', //tx_hash
 };
+
+const GasLimit = 20000;
+const GasPrice = 2500;
 
 export abstract class OntBasedGateway extends AccountBasedGateway {
   protected _currency: IToken;
@@ -165,6 +164,7 @@ export abstract class OntBasedGateway extends AccountBasedGateway {
       const res = await axios.post(`${this._restEndpoint}${this._restApi.sendRawTx}`, body);
       const receipt = res.data;
       if (receipt.Error !== 0) {
+        console.log(receipt);
         throw new Error(`OntBasedGateway::sendRawTransaction(): Send transaction failed`);
       }
       return {txid: receipt.Result};
@@ -181,14 +181,20 @@ export abstract class OntBasedGateway extends AccountBasedGateway {
    * Get balance of an address
    *
    * @param {string} address: address that want to query balance
+   * @param {string} currency: address that want to query balance
    * @returns {string}: the current balance of address
    */
-  public async getAddressBalance(address: string): Promise<BigNumber> {
+  public async getAddressBalance(address: string, currency:any = null): Promise<BigNumber> {
     try {
       const res = await axios.get(`${this._restEndpoint}${this._restApi.getBalance}${this.toBase58(address)}`);
       if (res.data.Error === 0) {
         const balances = res.data.Result;
-        const currencyBalance = balances[this._currency.networkSymbol];
+        let currencyBalance;
+        if (currency){
+          currencyBalance = balances[currency];
+        }else{
+          currencyBalance = balances[this._currency.networkSymbol];
+        }
         if (currencyBalance) {
           return new BigNumber(currencyBalance);
         }
@@ -197,6 +203,42 @@ export abstract class OntBasedGateway extends AccountBasedGateway {
     } catch (err) {
       throw err;
     }
+  }
+
+  public async estimateGasPrice(): Promise<number> {
+    try {
+      const res = await axios.get(`${this._restEndpoint}${this._restApi.getGasPrice}`);
+      if (res.data.Error === 0) {
+        const rs = res.data.Result;
+        const gas = rs.gasprice;
+        if (gas) {
+          return new BigNumber(gas).toNumber();
+        }
+      }
+      return GasPrice;
+    } catch (err) {
+      return GasPrice;
+      // throw err;
+    }
+  }
+
+  public async estimateFee(): Promise<BigNumber> {
+    const price = await this.estimateGasPrice();
+    if (price) {
+      const gas = price * this.getGasLimit();
+      if (gas) {
+        return new BigNumber(gas);
+      }
+    }
+    return new BigNumber(this.getGasPrice() * this.getGasLimit());
+  }
+
+  public getGasPrice(): number {
+    return GasPrice;
+  }
+
+  public getGasLimit(): number {
+    return GasLimit;
   }
 
   /**
@@ -230,7 +272,7 @@ export abstract class OntBasedGateway extends AccountBasedGateway {
    * minimum fee for seeding in almost case
    */
   public async getAverageSeedingFee(): Promise<BigNumber> {
-    return new BigNumber(1);
+    return this.estimateFee();
   }
 
   /**
