@@ -1,7 +1,16 @@
 import { getLogger } from '../Logger';
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken } from '../interfaces/ICurrency';
+import {
+  ICurrency,
+  IEosToken,
+  IErc20TokenTomo,
+  IBepToken,
+  ITerraToken,
+  ICosmosToken,
+  IToken
+} from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType, TransactionBaseType } from '../enums';
+import * as CurrencyConfig from './CurrencyConfigs'
 
 /**
  * Environment data is usually loaded from database at runtime
@@ -18,6 +27,7 @@ const allEosTokens: IEosToken[] = [];
 const allBepTokens: IBepToken[] = [];
 const allTerraTokens: ITerraToken[] = [];
 const allCosmosTokens: ICosmosToken[] = [];
+const allOntTokens: IToken[] = [];
 
 const onCurrencyRegisteredCallbacks: Array<(currency: ICurrency) => void> = [];
 const onSpecificCurrencyRegisteredCallbacks = new Map<string, Array<() => void>>();
@@ -31,285 +41,55 @@ const eventCallbacks = {
   'bep-token-registered': Array<(asset: IBepToken) => void>(),
   'terra-token-registered': Array<(asset: ITerraToken) => void>(),
   'cosmos-token-registered': Array<(asset: ICosmosToken) => void>(),
-};
-
-/**
- * Built-in currencies
- */
-const Bitcoin = {
-  symbol: BlockchainPlatform.Bitcoin,
-  networkSymbol: BlockchainPlatform.Bitcoin,
-  name: 'Bitcoin',
-  platform: BlockchainPlatform.Bitcoin,
-  isNative: true,
-  isUTXOBased: true,
-  humanReadableScale: 8,
-  nativeScale: 0,
-  hasMemo: false,
-};
-
-const Ethereum = {
-  symbol: BlockchainPlatform.Ethereum,
-  networkSymbol: BlockchainPlatform.Ethereum,
-  name: 'Ethereum',
-  platform: BlockchainPlatform.Ethereum,
-  isNative: true,
-  isUTXOBased: false,
-  humanReadableScale: 18,
-  nativeScale: 0,
-  hasMemo: false,
-};
-
-const Cardano = {
-  symbol: BlockchainPlatform.Cardano,
-  networkSymbol: BlockchainPlatform.Cardano,
-  name: 'Cardano',
-  platform: BlockchainPlatform.Cardano,
-  isNative: true,
-  isUTXOBased: true,
-  humanReadableScale: 6,
-  nativeScale: 0,
-  hasMemo: false,
-};
-
-const BitcoinCash = {
-  symbol: BlockchainPlatform.BitcoinCash,
-  networkSymbol: BlockchainPlatform.BitcoinCash,
-  name: 'BitcoinCash',
-  platform: BlockchainPlatform.BitcoinCash,
-  isNative: true,
-  isUTXOBased: true,
-  humanReadableScale: 8,
-  nativeScale: 0,
-  hasMemo: false,
-};
-
-const BitcoinSV = {
-  symbol: BlockchainPlatform.BitcoinSV,
-  networkSymbol: BlockchainPlatform.BitcoinSV,
-  name: 'BitcoinSV',
-  platform: BlockchainPlatform.BitcoinSV,
-  isNative: true,
-  isUTXOBased: true,
-  humanReadableScale: 8,
-  nativeScale: 0,
-  hasMemo: false,
-};
-
-const EOS = {
-  symbol: BlockchainPlatform.EOS,
-  networkSymbol: BlockchainPlatform.EOS,
-  name: 'EOS',
-  platform: BlockchainPlatform.EOS,
-  isNative: true,
-  isUTXOBased: false,
-  humanReadableScale: 0,
-  nativeScale: 4,
-  hasMemo: true,
-};
-
-const Litecoin = {
-  symbol: BlockchainPlatform.Litecoin,
-  networkSymbol: BlockchainPlatform.Litecoin,
-  name: 'Litecoin',
-  platform: BlockchainPlatform.Litecoin,
-  isNative: true,
-  isUTXOBased: true,
-  humanReadableScale: 8,
-  nativeScale: 0,
-  hasMemo: false,
-};
-
-const Dash = {
-  symbol: BlockchainPlatform.Dash,
-  networkSymbol: BlockchainPlatform.Dash,
-  name: 'Dash',
-  platform: BlockchainPlatform.Dash,
-  isNative: true,
-  isUTXOBased: true,
-  humanReadableScale: 8,
-  nativeScale: 0,
-  hasMemo: false,
-};
-
-const EthereumClasssic = {
-  symbol: BlockchainPlatform.EthereumClassic,
-  networkSymbol: BlockchainPlatform.EthereumClassic,
-  name: 'EthereumClassic',
-  platform: BlockchainPlatform.EthereumClassic,
-  isNative: true,
-  isUTXOBased: false,
-  humanReadableScale: 18,
-  nativeScale: 0,
-  hasMemo: false,
-};
-
-const NEO = {
-  symbol: BlockchainPlatform.NEO,
-  networkSymbol: BlockchainPlatform.NEO,
-  name: 'NEO',
-  platform: BlockchainPlatform.NEO,
-  isNative: true,
-  isUTXOBased: true,
-  humanReadableScale: 0,
-  nativeScale: 0,
-  hasMemo: false,
-};
-
-const NEOGAS = {
-  symbol: 'gas',
-  networkSymbol: 'gas',
-  name: 'GAS',
-  platform: BlockchainPlatform.NEO,
-  isNative: true,
-  isUTXOBased: true,
-  humanReadableScale: 0,
-  nativeScale: 8,
-  hasMemo: false,
-};
-
-const Tomo = {
-  symbol: BlockchainPlatform.Tomo,
-  networkSymbol: BlockchainPlatform.Tomo,
-  name: 'Tomo',
-  platform: BlockchainPlatform.Tomo,
-  isNative: true,
-  isUTXOBased: false,
-  humanReadableScale: 18,
-  nativeScale: 0,
-  hasMemo: false,
-};
-
-const Ripple = {
-  symbol: BlockchainPlatform.Ripple,
-  networkSymbol: BlockchainPlatform.Ripple,
-  name: 'Ripple',
-  platform: BlockchainPlatform.Ripple,
-  isNative: true,
-  isUTXOBased: false,
-  humanReadableScale: 0,
-  nativeScale: 6,
-  hasMemo: true,
-};
-
-const Stellar = {
-  symbol: BlockchainPlatform.Stellar,
-  networkSymbol: BlockchainPlatform.Stellar,
-  name: 'Stellar',
-  platform: BlockchainPlatform.Stellar,
-  isNative: true,
-  isUTXOBased: false,
-  humanReadableScale: 0,
-  nativeScale: 6,
-  hasMemo: true,
-};
-
-const Nem = {
-  symbol: BlockchainPlatform.Nem,
-  networkSymbol: BlockchainPlatform.Nem,
-  name: 'XEM',
-  platform: BlockchainPlatform.Nem,
-  isNative: true,
-  isUTXOBased: false,
-  humanReadableScale: 6,
-  nativeScale: 0,
-  hasMemo: true,
-};
-
-const Tron = {
-  symbol: BlockchainPlatform.Tron,
-  networkSymbol: BlockchainPlatform.Tron,
-  name: 'Tron',
-  platform: BlockchainPlatform.Tron,
-  isNative: true,
-  isUTXOBased: true,
-  humanReadableScale: 8,
-  nativeScale: 6,
-  hasMemo: false,
-};
-
-const Binance = {
-  symbol: BlockchainPlatform.Binance,
-  networkSymbol: BlockchainPlatform.Binance,
-  name: 'Binance',
-  platform: BlockchainPlatform.Binance,
-  isNative: true,
-  isUTXOBased: false,
-  humanReadableScale: 8,
-  nativeScale: 0,
-  hasMemo: true,
-};
-
-const Terra = {
-  symbol: BlockchainPlatform.Terra,
-  networkSymbol: BlockchainPlatform.Terra,
-  name: 'Terra',
-  platform: BlockchainPlatform.Terra,
-  isNative: true,
-  isUTXOBased: false,
-  humanReadableScale: 8,
-  type: TransactionBaseType.COSMOS,
-  nativeScale: 0,
-  hdPath: `m/44'/330'/0'/0/`,
-  hasMemo: true,
-};
-
-const Cosmos = {
-  symbol: BlockchainPlatform.Cosmos,
-  networkSymbol: BlockchainPlatform.Cosmos,
-  name: 'Cosmos',
-  platform: BlockchainPlatform.Cosmos,
-  isNative: true,
-  isUTXOBased: false,
-  humanReadableScale: 8,
-  type: TransactionBaseType.COSMOS,
-  nativeScale: 0,
-  hdPath: `m/44'/330'/0'/0/`,
-  hasMemo: true,
+  'ont-token-registered': Array<(asset: IToken) => void>(),
 };
 
 const nativeCurrencies: ICurrency[] = [
-  Bitcoin,
-  Ethereum,
-  Cardano,
-  BitcoinCash,
-  BitcoinSV,
-  EOS,
-  Litecoin,
-  Dash,
-  EthereumClasssic,
-  NEO,
-  NEOGAS,
-  Tomo,
-  Ripple,
-  Stellar,
-  Nem,
-  Tron,
-  Binance,
-  Terra,
-  Cosmos,
+  CurrencyConfig.Bitcoin,
+  CurrencyConfig.Ethereum,
+  CurrencyConfig.Cardano,
+  CurrencyConfig.BitcoinCash,
+  CurrencyConfig.BitcoinSV,
+  CurrencyConfig.EOS,
+  CurrencyConfig.Litecoin,
+  CurrencyConfig.Dash,
+  CurrencyConfig.EthereumClasssic,
+  CurrencyConfig.NEO,
+  CurrencyConfig.NEOGAS,
+  CurrencyConfig.Tomo,
+  CurrencyConfig.Ripple,
+  CurrencyConfig.Stellar,
+  CurrencyConfig.Nem,
+  CurrencyConfig.Tron,
+  CurrencyConfig.Binance,
+  CurrencyConfig.Terra,
+  CurrencyConfig.Cosmos,
+  CurrencyConfig.ONG,
+  CurrencyConfig.ONT,
 ];
 
 export class CurrencyRegistry {
-  public static readonly Bitcoin: ICurrency = Bitcoin;
-  public static readonly Ethereum: ICurrency = Ethereum;
-  public static readonly Cardano: ICurrency = Cardano;
-  public static readonly BitcoinCash: ICurrency = BitcoinCash;
-  public static readonly BitcoinSV: ICurrency = BitcoinSV;
-  public static readonly EOS: ICurrency = EOS;
-  public static readonly Litecoin: ICurrency = Litecoin;
-  public static readonly Dash: ICurrency = Dash;
-  public static readonly EthereumClasssic: ICurrency = EthereumClasssic;
-  public static readonly NEO: ICurrency = NEO;
-  public static readonly NEOGAS: ICurrency = NEOGAS;
-  public static readonly Tomo: ICurrency = Tomo;
-  public static readonly Ripple: ICurrency = Ripple;
-  public static readonly Stellar: ICurrency = Stellar;
-  public static readonly Nem: ICurrency = Nem;
-  public static readonly Tron: ICurrency = Tron;
-  public static readonly Binance: ICurrency = Binance;
-  public static readonly Terra: ICurrency = Terra;
-  public static readonly Cosmos: ICurrency = Cosmos;
+  public static readonly Bitcoin: ICurrency = CurrencyConfig.Bitcoin;
+  public static readonly Ethereum: ICurrency = CurrencyConfig.Ethereum;
+  public static readonly Cardano: ICurrency = CurrencyConfig.Cardano;
+  public static readonly BitcoinCash: ICurrency = CurrencyConfig.BitcoinCash;
+  public static readonly BitcoinSV: ICurrency = CurrencyConfig.BitcoinSV;
+  public static readonly EOS: ICurrency = CurrencyConfig.EOS;
+  public static readonly Litecoin: ICurrency = CurrencyConfig.Litecoin;
+  public static readonly Dash: ICurrency = CurrencyConfig.Dash;
+  public static readonly EthereumClasssic: ICurrency = CurrencyConfig.EthereumClasssic;
+  public static readonly NEO: ICurrency = CurrencyConfig.NEO;
+  public static readonly NEOGAS: ICurrency = CurrencyConfig.NEOGAS;
+  public static readonly Tomo: ICurrency = CurrencyConfig.Tomo;
+  public static readonly Ripple: ICurrency = CurrencyConfig.Ripple;
+  public static readonly Stellar: ICurrency = CurrencyConfig.Stellar;
+  public static readonly Nem: ICurrency = CurrencyConfig.Nem;
+  public static readonly Tron: ICurrency = CurrencyConfig.Tron;
+  public static readonly Binance: ICurrency = CurrencyConfig.Binance;
+  public static readonly Terra: ICurrency = CurrencyConfig.Terra;
+  public static readonly Cosmos: ICurrency = CurrencyConfig.Cosmos;
+  public static readonly ONG: ICurrency = CurrencyConfig.ONG;
+  public static readonly ONT: ICurrency = CurrencyConfig.ONT;
 
   /**
    * Register a currency on environment data
@@ -536,6 +316,29 @@ export class CurrencyRegistry {
     return CurrencyRegistry.registerCurrency(currency);
   }
 
+  public static registerOntToken(networkSymbol: string, scale: number): boolean {
+    const platform = BlockchainPlatform.ONG;
+    const symbol = [TokenType.ONT, networkSymbol].join('.');
+    const currency: IToken = {
+      symbol,
+      networkSymbol,
+      tokenType: TokenType.ONT,
+      name: networkSymbol.toUpperCase(),
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      humanReadableScale: scale,
+      type: TransactionBaseType.ONT,
+      nativeScale: 0,
+      hasMemo: false,
+    };
+
+    allOntTokens.push(currency);
+    eventCallbacks['ont-token-registered'].forEach(callback => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
   public static getOneOmniAsset(propertyId: number): IOmniAsset {
     const symbol = [TokenType.OMNI, propertyId].join('.');
     return CurrencyRegistry.getOneCurrency(symbol) as IOmniAsset;
@@ -594,6 +397,10 @@ export class CurrencyRegistry {
     return allCosmosTokens;
   }
 
+  public static getAllOntTokens(): IToken[] {
+    return allOntTokens;
+  }
+
   /**
    * Get information of one currency by its symbol
    *
@@ -621,17 +428,17 @@ export class CurrencyRegistry {
     const result: ICurrency[] = [];
     switch (platform) {
       case BlockchainPlatform.Bitcoin:
-        result.push(Bitcoin);
+        result.push(CurrencyConfig.Bitcoin);
         result.push(...CurrencyRegistry.getAllOmniAssets());
         break;
 
       case BlockchainPlatform.Ethereum:
-        result.push(Ethereum);
+        result.push(CurrencyConfig.Ethereum);
         result.push(...CurrencyRegistry.getAllErc20Tokens());
         break;
 
       case BlockchainPlatform.Tomo:
-        result.push(Tomo);
+        result.push(CurrencyConfig.Tomo);
         result.push(...CurrencyRegistry.getAllTrc20Tokens());
         break;
 
@@ -691,6 +498,10 @@ export class CurrencyRegistry {
         result.push(...CurrencyRegistry.getAllCosmosTokens());
         break;
 
+      case BlockchainPlatform.ONG:
+        result.push(...CurrencyRegistry.getAllOntTokens());
+        break;
+
       default:
         throw new Error(`CurrencyRegistry::getCurrenciesOfPlatform hasn't been implemented for ${platform} yet.`);
     }
@@ -731,6 +542,11 @@ export class CurrencyRegistry {
   public static getCurrencyConfig(c: ICurrency): ICurrencyConfig {
     const symbol = c.symbol.toLowerCase();
     let config = allCurrencyConfigs.get(symbol);
+
+    // If config for particular currency is not available, try the network symbol one
+    // if (!config) {
+    //   config = allCurrencyConfigs.get(c.networkSymbol);
+    // }
 
     // If config for particular currency is not available, try the platform's one
     if (!config) {
@@ -863,6 +679,16 @@ export class CurrencyRegistry {
     }
 
     eventCallbacks['cosmos-token-registered'].push(callback);
+  }
+
+  public static onOntTokenRegistered(callback: (token: IToken) => void) {
+    if (allOntTokens.length) {
+      allOntTokens.forEach(token => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['ont-token-registered'].push(callback);
   }
 
   /**

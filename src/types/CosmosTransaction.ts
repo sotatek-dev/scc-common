@@ -15,7 +15,7 @@ export const TypeMsg = {
   MsgMultiSend: 'bank/MsgMultiSend',
 };
 
-export const TypeMsgSDK= {
+export const TypeMsgSDK = {
   MsgSend: 'cosmos-sdk/MsgSend',
   MsgMultiSend: 'cosmos-sdk/MsgMultiSend',
 };

@@ -5,4 +5,5 @@ export enum TransactionBaseType {
   MULTI_FROM_TO = 'multi_from_to',
   MULTI_CURRENCIES = 'multi_currencies',
   COSMOS = 'cosmos',
+  ONT = 'ont',
 }
