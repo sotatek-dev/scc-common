@@ -268,6 +268,18 @@ const Cosmos = {
   hasMemo: true,
 };
 
+const BitcoinValue = {
+  symbol: BlockchainPlatform.BitcoinValue,
+  networkSymbol: BlockchainPlatform.BitcoinValue,
+  name: 'BitcoinValue',
+  platform: BlockchainPlatform.BitcoinValue,
+  isNative: true,
+  isUTXOBased: true,
+  humanReadableScale: 8,
+  nativeScale: 0,
+  hasMemo: false,
+};
+
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
@@ -288,6 +300,7 @@ const nativeCurrencies: ICurrency[] = [
   Binance,
   Terra,
   Cosmos,
+  BitcoinValue,
 ];
 
 export class CurrencyRegistry {
@@ -310,6 +323,7 @@ export class CurrencyRegistry {
   public static readonly Binance: ICurrency = Binance;
   public static readonly Terra: ICurrency = Terra;
   public static readonly Cosmos: ICurrency = Cosmos;
+  public static readonly BitcoinValue: ICurrency = BitcoinValue;
 
   /**
    * Register a currency on environment data
@@ -689,6 +703,10 @@ export class CurrencyRegistry {
 
       case BlockchainPlatform.Cosmos:
         result.push(...CurrencyRegistry.getAllCosmosTokens());
+        break;
+
+      case BlockchainPlatform.BitcoinValue:
+        result.push(CurrencyRegistry.BitcoinValue);
         break;
 
       default:
