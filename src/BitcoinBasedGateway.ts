@@ -543,7 +543,6 @@ export abstract class BitcoinBasedGateway extends UTXOBasedGateway {
     } else {
       blockHash = blockIdentifier;
     }
-
     const block = await this._rpcClient.call<IUtxoBlockInfo>('getblock', [blockHash]);
     const blockProps = {
       hash: block.hash,

@@ -27,6 +27,7 @@ export interface IBoiledVIn {
     readonly asm: string;
     readonly hex: string;
   };
+  readonly txinwitness?: string[];
   readonly value: number;
   readonly sequence: number;
 }
