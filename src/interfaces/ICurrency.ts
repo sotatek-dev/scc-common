@@ -80,6 +80,13 @@ export interface IBepToken extends IToken {
   readonly originSymbol: string;
 }
 
+
+export interface IBep20Token extends IToken {
+  readonly contractAddress: Address;
+  readonly decimals: number;
+}
+
+
 export interface ITerraToken extends IToken {
   readonly code: string;
 }
