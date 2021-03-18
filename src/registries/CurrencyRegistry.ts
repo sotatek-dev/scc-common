@@ -528,8 +528,8 @@ export class CurrencyRegistry {
       hasMemo: false,
     };
 
-    allErc20Tokens.push(currency);
-    eventCallbacks['bep20-registered'].forEach(callback => callback(currency));
+    allBep20Tokens.push(currency);
+    eventCallbacks['bep20-token-registered'].forEach(callback => callback(currency));
 
     return CurrencyRegistry.registerCurrency(currency);
   }
