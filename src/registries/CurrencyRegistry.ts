@@ -243,7 +243,7 @@ const Binance = {
 };
 
 const BinanceCoin = {
-  symbol: `${BlockchainPlatform.BinanceSmartChain}-${BlockchainPlatform.Binance}`,
+  symbol: BlockchainPlatform.BinanceSmartChain,
   networkSymbol: BlockchainPlatform.BinanceSmartChain,
   name: 'BinanceCoin',
   platform: BlockchainPlatform.BinanceSmartChain,
