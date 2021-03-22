@@ -242,19 +242,6 @@ const Binance = {
   hasMemo: true,
 };
 
-const BinanceCoin = {
-  symbol: BlockchainPlatform.BinanceSmartChain,
-  networkSymbol: BlockchainPlatform.BinanceSmartChain,
-  name: 'BinanceCoin',
-  platform: BlockchainPlatform.BinanceSmartChain,
-  isNative: true,
-  isUTXOBased: false,
-  humanReadableScale: 8,
-  nativeScale: 0,
-  hasMemo: false,
-};
-
-
 const Terra = {
   symbol: BlockchainPlatform.Terra,
   networkSymbol: BlockchainPlatform.Terra,
@@ -313,7 +300,6 @@ const nativeCurrencies: ICurrency[] = [
   Nem,
   Tron,
   Binance,
-  BinanceCoin,
   Terra,
   Cosmos,
   BitcoinValue,
@@ -337,7 +323,6 @@ export class CurrencyRegistry {
   public static readonly Nem: ICurrency = Nem;
   public static readonly Tron: ICurrency = Tron;
   public static readonly Binance: ICurrency = Binance;
-  public static readonly BinanceCoin: ICurrency = BinanceCoin;
   public static readonly Terra: ICurrency = Terra;
   public static readonly Cosmos: ICurrency = Cosmos;
   public static readonly BitcoinValue: ICurrency = BitcoinValue;
