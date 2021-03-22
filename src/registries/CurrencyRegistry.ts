@@ -1,5 +1,5 @@
 import { getLogger } from '../Logger';
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType, TransactionBaseType } from '../enums';
 
@@ -16,6 +16,7 @@ const allTrc20Tokens: IErc20TokenTomo[] = [];
 const allOmniAssets: IOmniAsset[] = [];
 const allEosTokens: IEosToken[] = [];
 const allBepTokens: IBepToken[] = [];
+const allBep20Tokens: IBep20Token[] = [];
 const allTerraTokens: ITerraToken[] = [];
 const allCosmosTokens: ICosmosToken[] = [];
 
@@ -29,6 +30,7 @@ const eventCallbacks = {
   'omni-registered': Array<(asset: IOmniAsset) => void>(),
   'eos-token-registered': Array<(asset: IEosToken) => void>(),
   'bep-token-registered': Array<(asset: IBepToken) => void>(),
+  'bep20-token-registered': Array<(asset: IBep20Token) => void>(),
   'terra-token-registered': Array<(asset: ITerraToken) => void>(),
   'cosmos-token-registered': Array<(asset: ICosmosToken) => void>(),
 };
@@ -240,6 +242,18 @@ const Binance = {
   hasMemo: true,
 };
 
+const BinanceCoin = {
+  symbol: BlockchainPlatform.BinanceSmartChain,
+  networkSymbol: BlockchainPlatform.BinanceSmartChain,
+  name: 'BinanceCoin',
+  platform: BlockchainPlatform.BinanceSmartChain,
+  isNative: true,
+  isUTXOBased: false,
+  humanReadableScale: 8,
+  nativeScale: 0,
+  hasMemo: false,
+};
+
 const Terra = {
   symbol: BlockchainPlatform.Terra,
   networkSymbol: BlockchainPlatform.Terra,
@@ -298,6 +312,7 @@ const nativeCurrencies: ICurrency[] = [
   Nem,
   Tron,
   Binance,
+  BinanceCoin,
   Terra,
   Cosmos,
   BitcoinValue,
@@ -321,6 +336,7 @@ export class CurrencyRegistry {
   public static readonly Nem: ICurrency = Nem;
   public static readonly Tron: ICurrency = Tron;
   public static readonly Binance: ICurrency = Binance;
+  public static readonly BinanceCoin: ICurrency = BinanceCoin;
   public static readonly Terra: ICurrency = Terra;
   public static readonly Cosmos: ICurrency = Cosmos;
   public static readonly BitcoinValue: ICurrency = BitcoinValue;
@@ -500,6 +516,53 @@ export class CurrencyRegistry {
     return CurrencyRegistry.registerCurrency(currency);
   }
 
+  public static registerBep20Token(
+    contractAddress: string,
+    networkSymbol: string,
+    name: string,
+    decimals: number
+  ): boolean {
+    logger.info(
+      `register bep20: contract=${contractAddress}, networkSymbol=${networkSymbol}, name=${name}, decimals=${decimals}`
+    );
+    const platform = BlockchainPlatform.BinanceSmartChain;
+    const symbol = [TokenType.BEP20, contractAddress].join('.');
+    const currency: IBep20Token = {
+      symbol,
+      networkSymbol,
+      tokenType: TokenType.BEP20,
+      name,
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      contractAddress,
+      decimals,
+      humanReadableScale: decimals,
+      nativeScale: 0,
+      hasMemo: false,
+    };
+
+    allBep20Tokens.push(currency);
+    eventCallbacks['bep20-token-registered'].forEach(callback => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
+  public static unregisterBep20Token(contractAddress: string) {
+    logger.info(`unregister bep20: contract=${contractAddress}`);
+    const symbol = [TokenType.BEP20, contractAddress].join('.');
+    for (let i = 0; i < allBep20Tokens.length; i++) {
+      const token = allBep20Tokens[i];
+      if (token.contractAddress.toLowerCase() === contractAddress.toLowerCase()) {
+        allBep20Tokens.splice(i, 1);
+        break;
+      }
+    }
+
+    CurrencyRegistry.unregisterCurrency(symbol);
+  }
+
+
   public static registerTerraToken(code: string, networkSymbol: string, scale: number): boolean {
     const platform = BlockchainPlatform.Terra;
     const symbol = [TokenType.TERRA, networkSymbol].join('.');
@@ -566,6 +629,15 @@ export class CurrencyRegistry {
 
   public static getAllBepTokens(): IBepToken[] {
     return allBepTokens;
+  }
+
+  public static getAllBep20Tokens(): IBep20Token[] {
+    return allBep20Tokens;
+  }
+
+  public static getOneBep20Token(contractAddress: string): IBep20Token {
+    const symbol = [TokenType.BEP20, contractAddress].join('.');
+    return CurrencyRegistry.getOneCurrency(symbol) as IBep20Token;
   }
 
   public static getAllErc20Tokens(): IErc20Token[] {
@@ -691,6 +763,10 @@ export class CurrencyRegistry {
 
       case BlockchainPlatform.Binance:
         result.push(...CurrencyRegistry.getAllBepTokens());
+        break;
+
+      case BlockchainPlatform.BinanceSmartChain:
+        result.push(...CurrencyRegistry.getAllBep20Tokens());
         break;
 
       case BlockchainPlatform.Terra:
@@ -861,6 +937,16 @@ export class CurrencyRegistry {
     }
 
     eventCallbacks['bep-token-registered'].push(callback);
+  }
+
+  public static onBep20TokenRegistered(callback: (token: IBep20Token) => void) {
+    if (allBep20Tokens.length) {
+      allBep20Tokens.forEach(token => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['bep20-token-registered'].push(callback);
   }
 
   public static onTerraTokenRegistered(callback: (token: ITerraToken) => void) {
