@@ -8,6 +8,10 @@ export declare const TypeMsg: {
     MsgSend: string;
     MsgMultiSend: string;
 };
+export declare const TypeMsgSDK: {
+    MsgSend: string;
+    MsgMultiSend: string;
+};
 export interface ICosmosRawTransaction {
     readonly height: number;
     readonly txHash: string;
