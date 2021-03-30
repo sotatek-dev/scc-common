@@ -8,6 +8,7 @@ var TokenType;
     TokenType["NEP5"] = "nep5";
     TokenType["EOS"] = "eos";
     TokenType["BEP"] = "bep";
+    TokenType["BEP20"] = "bep20";
     TokenType["TERRA"] = "terra";
     TokenType["COSMOS"] = "cosmos";
 })(TokenType = exports.TokenType || (exports.TokenType = {}));

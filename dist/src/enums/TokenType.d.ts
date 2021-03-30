@@ -5,6 +5,7 @@ export declare enum TokenType {
     NEP5 = "nep5",
     EOS = "eos",
     BEP = "bep",
+    BEP20 = "bep20",
     TERRA = "terra",
     COSMOS = "cosmos"
 }

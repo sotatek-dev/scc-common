@@ -21,6 +21,10 @@ exports.TypeMsg = {
     MsgSend: 'bank/MsgSend',
     MsgMultiSend: 'bank/MsgMultiSend',
 };
+exports.TypeMsgSDK = {
+    MsgSend: 'cosmos-sdk/MsgSend',
+    MsgMultiSend: 'cosmos-sdk/MsgMultiSend',
+};
 var CosmosTransaction = (function (_super) {
     __extends(CosmosTransaction, _super);
     function CosmosTransaction(tx, outputs, inputs, block, lastNetworkBlockNumber) {
