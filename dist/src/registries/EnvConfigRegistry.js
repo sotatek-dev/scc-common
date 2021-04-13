@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.EnvConfigRegistry = void 0;
 var enums_1 = require("../enums");
 var Logger_1 = require("../Logger");
 var envConfig = new Map();

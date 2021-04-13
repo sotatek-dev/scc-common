@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.TransactionBaseType = void 0;
 var TransactionBaseType;
 (function (TransactionBaseType) {
     TransactionBaseType["UTXO"] = "basic_utxo";

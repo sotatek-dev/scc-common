@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CurrencyRegistry = void 0;
 var Logger_1 = require("../Logger");
 var enums_1 = require("../enums");
 var logger = Logger_1.getLogger('CurrencyRegistry');
