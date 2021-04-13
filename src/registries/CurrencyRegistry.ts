@@ -1,5 +1,5 @@
 import { getLogger } from '../Logger';
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token, ITrc20Token } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType, TransactionBaseType } from '../enums';
 
@@ -19,6 +19,7 @@ const allBepTokens: IBepToken[] = [];
 const allBep20Tokens: IBep20Token[] = [];
 const allTerraTokens: ITerraToken[] = [];
 const allCosmosTokens: ICosmosToken[] = [];
+const allTronTrc20Tokens: ITrc20Token[] = [];
 
 const onCurrencyRegisteredCallbacks: Array<(currency: ICurrency) => void> = [];
 const onSpecificCurrencyRegisteredCallbacks = new Map<string, Array<() => void>>();
@@ -33,6 +34,7 @@ const eventCallbacks = {
   'bep20-token-registered': Array<(asset: IBep20Token) => void>(),
   'terra-token-registered': Array<(asset: ITerraToken) => void>(),
   'cosmos-token-registered': Array<(asset: ICosmosToken) => void>(),
+  'tronTrc20-registered': Array<(asset: ITrc20Token) => void>(),
 };
 
 /**
@@ -224,7 +226,7 @@ const Tron = {
   name: 'Tron',
   platform: BlockchainPlatform.Tron,
   isNative: true,
-  isUTXOBased: true,
+  isUTXOBased: false,
   humanReadableScale: 8,
   nativeScale: 6,
   hasMemo: false,
@@ -613,6 +615,52 @@ export class CurrencyRegistry {
     return CurrencyRegistry.registerCurrency(currency);
   }
 
+  public static registerTronTrc20Token(
+    contractAddress: string,
+    networkSymbol: string,
+    name: string,
+    decimals: number
+  ): boolean {
+    logger.info(
+      `register tronTrc20: contract=${contractAddress}, networkSymbol=${networkSymbol}, name=${name}, decimals=${decimals}`
+    );
+    const platform = BlockchainPlatform.Tron;
+    const symbol = [TokenType.TRC20, contractAddress].join('.');
+    const currency: ITrc20Token = {
+      symbol,
+      networkSymbol,
+      tokenType: TokenType.TRC20,
+      name,
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      contractAddress,
+      decimals,
+      humanReadableScale: decimals,
+      nativeScale: 0,
+      hasMemo: false,
+    };
+
+    allTronTrc20Tokens.push(currency);
+    eventCallbacks['tronTrc20-registered'].forEach(callback => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
+  public static unregisterTronTrc20Token(contractAddress: string) {
+    logger.info(`unregister tronTrc20: contract=${contractAddress}`);
+    const symbol = [TokenType.TRC20, contractAddress].join('.');
+    for (let i = 0; i < allTronTrc20Tokens.length; i++) {
+      const token = allTronTrc20Tokens[i];
+      if (token.contractAddress.toLowerCase() === contractAddress.toLowerCase()) {
+        allTronTrc20Tokens.splice(i, 1);
+        break;
+      }
+    }
+
+    CurrencyRegistry.unregisterCurrency(symbol);
+  }
+
   public static getOneOmniAsset(propertyId: number): IOmniAsset {
     const symbol = [TokenType.OMNI, propertyId].join('.');
     return CurrencyRegistry.getOneCurrency(symbol) as IOmniAsset;
@@ -678,6 +726,15 @@ export class CurrencyRegistry {
 
   public static getAllCosmosTokens(): ICosmosToken[] {
     return allCosmosTokens;
+  }
+
+  public static getOneTronTrc20Token(contractAddress: string): ITrc20Token {
+    const symbol = [TokenType.TRC20, contractAddress].join('.');
+    return CurrencyRegistry.getOneCurrency(symbol) as ITrc20Token;
+  }
+
+  public static getAllTronTrc20Tokens() : ITrc20Token[] {
+    return allTronTrc20Tokens;
   }
 
   /**
@@ -783,6 +840,11 @@ export class CurrencyRegistry {
 
       case BlockchainPlatform.BitcoinValue:
         result.push(CurrencyRegistry.BitcoinValue);
+        break;
+
+      case BlockchainPlatform.Tron:
+        result.push(Tron);
+        result.push(...CurrencyRegistry.getAllTronTrc20Tokens());
         break;
 
       default:
@@ -968,6 +1030,21 @@ export class CurrencyRegistry {
 
     eventCallbacks['cosmos-token-registered'].push(callback);
   }
+
+    /**
+   * Add listener that is triggerred when an TRC20 token (Tron blockchain) is registered
+   *
+   * @param callback
+   */
+     public static onTronTrc20TokenRegistered(callback: (token: ITrc20Token) => void) {
+      if (allTronTrc20Tokens.length > 0) {
+        allTronTrc20Tokens.forEach(token => {
+          callback(token);
+        });
+      }
+  
+      eventCallbacks['tronTrc20-registered'].push(callback);
+    }
 
   /**
    * Add listener that is triggerred when a currency config is setup
