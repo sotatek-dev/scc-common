@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getRedisClient = exports.getRedisSubscriber = void 0;
 var redis_1 = require("redis");
 var util_1 = __importDefault(require("util"));
 var registries_1 = require("./registries");

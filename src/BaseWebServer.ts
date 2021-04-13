@@ -22,6 +22,7 @@ export abstract class BaseWebServer {
     this._currency = CurrencyRegistry.getOneNativeCurrency(platform);
     this._parseConfig(platform)
     this.setup();
+    this.finishSetup();
   }
 
   protected _parseConfig(platform: BlockchainPlatform) {
@@ -293,7 +294,9 @@ export abstract class BaseWebServer {
         }
       }
     );
-
+  }
+  
+  private finishSetup() {
     this.app.use(function(req, res){
       res.status(404).json({ error: 'API Not Found' });
     });

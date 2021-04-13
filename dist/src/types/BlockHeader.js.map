@@ -1,1 +1,1 @@
-{"version":3,"file":"BlockHeader.js","sourceRoot":"","sources":["../../../src/types/BlockHeader.ts"],"names":[],"mappings":";;AAMA;IAKE,qBAAY,KAAkB;QAC5B,MAAM,CAAC,MAAM,CAAC,IAAI,EAAE,KAAK,CAAC,CAAC;IAC7B,CAAC;IACH,kBAAC;AAAD,CAAC,AARD,IAQC;AARY,kCAAW;AAUxB,kBAAe,WAAW,CAAC"}
+{"version":3,"file":"BlockHeader.js","sourceRoot":"","sources":["../../../src/types/BlockHeader.ts"],"names":[],"mappings":";;;AAMA;IAKE,qBAAY,KAAkB;QAC5B,MAAM,CAAC,MAAM,CAAC,IAAI,EAAE,KAAK,CAAC,CAAC;IAC7B,CAAC;IACH,kBAAC;AAAD,CAAC,AARD,IAQC;AARY,kCAAW;AAUxB,kBAAe,WAAW,CAAC"}

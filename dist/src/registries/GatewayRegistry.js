@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.GatewayRegistry = void 0;
 var Logger_1 = require("../Logger");
 var logger = Logger_1.getLogger('GatewayRegistry');
 var _factory = new Map();

@@ -26,6 +26,7 @@ export declare abstract class BaseWebServer {
     protected _getHealthStatus(): Promise<WebServiceStatus>;
     protected estimateFee(req: any, res: any): Promise<any>;
     protected setup(): void;
+    private finishSetup;
     getProtocol(): string;
     getHost(): string;
     getPort(): number;
