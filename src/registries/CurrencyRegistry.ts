@@ -224,7 +224,7 @@ const Tron = {
   name: 'Tron',
   platform: BlockchainPlatform.Tron,
   isNative: true,
-  isUTXOBased: true,
+  isUTXOBased: false,
   humanReadableScale: 8,
   nativeScale: 6,
   hasMemo: false,
