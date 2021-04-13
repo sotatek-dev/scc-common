@@ -92,3 +92,8 @@ export interface ITerraToken extends IToken {
 export interface ICosmosToken extends IToken {
   readonly code: string;
 }
+
+export interface ITrc20Token extends IToken {
+  readonly contractAddress: Address;
+  readonly decimals: number;
+}
