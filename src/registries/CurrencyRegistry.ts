@@ -247,11 +247,11 @@ const Binance = {
 const BinanceCoin = {
   symbol: BlockchainPlatform.BinanceSmartChain,
   networkSymbol: BlockchainPlatform.BinanceSmartChain,
-  name: 'BinanceCoin',
+  name: 'Binance Chain Native Token',
   platform: BlockchainPlatform.BinanceSmartChain,
   isNative: true,
   isUTXOBased: false,
-  humanReadableScale: 8,
+  humanReadableScale: 18,
   nativeScale: 0,
   hasMemo: false,
 };
