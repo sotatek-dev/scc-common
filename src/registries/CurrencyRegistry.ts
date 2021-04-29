@@ -823,6 +823,7 @@ export class CurrencyRegistry {
         break;
 
       case BlockchainPlatform.BinanceSmartChain:
+        result.push(CurrencyRegistry.BinanceCoin);
         result.push(...CurrencyRegistry.getAllBep20Tokens());
         break;
 
