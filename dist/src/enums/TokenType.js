@@ -12,5 +12,6 @@ var TokenType;
     TokenType["BEP20"] = "bep20";
     TokenType["TERRA"] = "terra";
     TokenType["COSMOS"] = "cosmos";
+    TokenType["TRC20"] = "tronTrc20";
 })(TokenType = exports.TokenType || (exports.TokenType = {}));
 //# sourceMappingURL=TokenType.js.map

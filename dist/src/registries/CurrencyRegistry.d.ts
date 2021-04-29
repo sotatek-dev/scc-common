@@ -1,4 +1,4 @@
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token, ITrc20Token } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform } from '../enums';
 export declare class CurrencyRegistry {
@@ -34,6 +34,8 @@ export declare class CurrencyRegistry {
     static unregisterBep20Token(contractAddress: string): void;
     static registerTerraToken(code: string, networkSymbol: string, scale: number): boolean;
     static registerCosmosToken(code: string, networkSymbol: string, scale: number): boolean;
+    static registerTronTrc20Token(contractAddress: string, networkSymbol: string, name: string, decimals: number): boolean;
+    static unregisterTronTrc20Token(contractAddress: string): void;
     static getOneOmniAsset(propertyId: number): IOmniAsset;
     static getAllOmniAssets(): IOmniAsset[];
     static getOneErc20Token(contractAddress: string): IErc20Token;
@@ -49,6 +51,8 @@ export declare class CurrencyRegistry {
     static hasOneNativeCurrency(symbol: string): boolean;
     static getAllTerraTokens(): ITerraToken[];
     static getAllCosmosTokens(): ICosmosToken[];
+    static getOneTronTrc20Token(contractAddress: string): ITrc20Token;
+    static getAllTronTrc20Tokens(): ITrc20Token[];
     static getOneCurrency(symbol: string): ICurrency;
     static getOneNativeCurrency(platform: BlockchainPlatform): ICurrency;
     static getCurrenciesOfPlatform(platform: BlockchainPlatform): ICurrency[];
@@ -64,6 +68,7 @@ export declare class CurrencyRegistry {
     static onBep20TokenRegistered(callback: (token: IBep20Token) => void): void;
     static onTerraTokenRegistered(callback: (token: ITerraToken) => void): void;
     static onCosmosTokenRegistered(callback: (token: ICosmosToken) => void): void;
+    static onTronTrc20TokenRegistered(callback: (token: ITrc20Token) => void): void;
     static onCurrencyConfigSet(callback: (currency: ICurrency, config: ICurrencyConfig) => void): void;
     protected static unregisterCurrency(symbol: string): boolean;
 }

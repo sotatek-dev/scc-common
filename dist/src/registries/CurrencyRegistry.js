@@ -14,6 +14,7 @@ var allBepTokens = [];
 var allBep20Tokens = [];
 var allTerraTokens = [];
 var allCosmosTokens = [];
+var allTronTrc20Tokens = [];
 var onCurrencyRegisteredCallbacks = [];
 var onSpecificCurrencyRegisteredCallbacks = new Map();
 var onCurrencyConfigSetCallbacks = [];
@@ -26,6 +27,7 @@ var eventCallbacks = {
     'bep20-token-registered': Array(),
     'terra-token-registered': Array(),
     'cosmos-token-registered': Array(),
+    'tronTrc20-registered': Array(),
 };
 var Bitcoin = {
     symbol: enums_1.BlockchainPlatform.Bitcoin,
@@ -198,7 +200,7 @@ var Tron = {
     name: 'Tron',
     platform: enums_1.BlockchainPlatform.Tron,
     isNative: true,
-    isUTXOBased: true,
+    isUTXOBased: false,
     humanReadableScale: 8,
     nativeScale: 6,
     hasMemo: false,
@@ -217,11 +219,11 @@ var Binance = {
 var BinanceCoin = {
     symbol: enums_1.BlockchainPlatform.BinanceSmartChain,
     networkSymbol: enums_1.BlockchainPlatform.BinanceSmartChain,
-    name: 'BinanceCoin',
+    name: 'Binance Chain Native Token',
     platform: enums_1.BlockchainPlatform.BinanceSmartChain,
     isNative: true,
     isUTXOBased: false,
-    humanReadableScale: 8,
+    humanReadableScale: 18,
     nativeScale: 0,
     hasMemo: false,
 };
@@ -497,6 +499,40 @@ var CurrencyRegistry = (function () {
         eventCallbacks['cosmos-token-registered'].forEach(function (callback) { return callback(currency); });
         return CurrencyRegistry.registerCurrency(currency);
     };
+    CurrencyRegistry.registerTronTrc20Token = function (contractAddress, networkSymbol, name, decimals) {
+        logger.info("register tronTrc20: contract=" + contractAddress + ", networkSymbol=" + networkSymbol + ", name=" + name + ", decimals=" + decimals);
+        var platform = enums_1.BlockchainPlatform.Tron;
+        var symbol = [enums_1.TokenType.TRC20, contractAddress].join('.');
+        var currency = {
+            symbol: symbol,
+            networkSymbol: networkSymbol,
+            tokenType: enums_1.TokenType.TRC20,
+            name: name,
+            platform: platform,
+            isNative: false,
+            isUTXOBased: false,
+            contractAddress: contractAddress,
+            decimals: decimals,
+            humanReadableScale: decimals,
+            nativeScale: 0,
+            hasMemo: false,
+        };
+        allTronTrc20Tokens.push(currency);
+        eventCallbacks['tronTrc20-registered'].forEach(function (callback) { return callback(currency); });
+        return CurrencyRegistry.registerCurrency(currency);
+    };
+    CurrencyRegistry.unregisterTronTrc20Token = function (contractAddress) {
+        logger.info("unregister tronTrc20: contract=" + contractAddress);
+        var symbol = [enums_1.TokenType.TRC20, contractAddress].join('.');
+        for (var i = 0; i < allTronTrc20Tokens.length; i++) {
+            var token = allTronTrc20Tokens[i];
+            if (token.contractAddress.toLowerCase() === contractAddress.toLowerCase()) {
+                allTronTrc20Tokens.splice(i, 1);
+                break;
+            }
+        }
+        CurrencyRegistry.unregisterCurrency(symbol);
+    };
     CurrencyRegistry.getOneOmniAsset = function (propertyId) {
         var symbol = [enums_1.TokenType.OMNI, propertyId].join('.');
         return CurrencyRegistry.getOneCurrency(symbol);
@@ -545,6 +581,13 @@ var CurrencyRegistry = (function () {
     };
     CurrencyRegistry.getAllCosmosTokens = function () {
         return allCosmosTokens;
+    };
+    CurrencyRegistry.getOneTronTrc20Token = function (contractAddress) {
+        var symbol = [enums_1.TokenType.TRC20, contractAddress].join('.');
+        return CurrencyRegistry.getOneCurrency(symbol);
+    };
+    CurrencyRegistry.getAllTronTrc20Tokens = function () {
+        return allTronTrc20Tokens;
     };
     CurrencyRegistry.getOneCurrency = function (symbol) {
         symbol = symbol.toLowerCase();
@@ -609,6 +652,7 @@ var CurrencyRegistry = (function () {
                 result.push.apply(result, CurrencyRegistry.getAllBepTokens());
                 break;
             case enums_1.BlockchainPlatform.BinanceSmartChain:
+                result.push(CurrencyRegistry.BinanceCoin);
                 result.push.apply(result, CurrencyRegistry.getAllBep20Tokens());
                 break;
             case enums_1.BlockchainPlatform.Terra:
@@ -622,6 +666,10 @@ var CurrencyRegistry = (function () {
                 break;
             case enums_1.BlockchainPlatform.BitcoinValue:
                 result.push(CurrencyRegistry.BitcoinValue);
+                break;
+            case enums_1.BlockchainPlatform.Tron:
+                result.push(Tron);
+                result.push.apply(result, CurrencyRegistry.getAllTronTrc20Tokens());
                 break;
             default:
                 throw new Error("CurrencyRegistry::getCurrenciesOfPlatform hasn't been implemented for " + platform + " yet.");
@@ -728,6 +776,14 @@ var CurrencyRegistry = (function () {
             });
         }
         eventCallbacks['cosmos-token-registered'].push(callback);
+    };
+    CurrencyRegistry.onTronTrc20TokenRegistered = function (callback) {
+        if (allTronTrc20Tokens.length > 0) {
+            allTronTrc20Tokens.forEach(function (token) {
+                callback(token);
+            });
+        }
+        eventCallbacks['tronTrc20-registered'].push(callback);
     };
     CurrencyRegistry.onCurrencyConfigSet = function (callback) {
         onCurrencyConfigSetCallbacks.push(callback);
