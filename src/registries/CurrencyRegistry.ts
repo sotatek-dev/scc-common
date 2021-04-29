@@ -252,7 +252,7 @@ const BinanceCoin = {
   isNative: true,
   isUTXOBased: false,
   humanReadableScale: 18,
-  nativeScale: 0,
+    nativeScale: 0,
   hasMemo: false,
 };
 
