@@ -1,6 +1,6 @@
 import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token, ITrc20Token } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
-import { BlockchainPlatform } from '../enums';
+import { BlockchainPlatform, TokenType } from '../enums';
 export declare class CurrencyRegistry {
     static readonly Bitcoin: ICurrency;
     static readonly Ethereum: ICurrency;
@@ -56,6 +56,7 @@ export declare class CurrencyRegistry {
     static getOneCurrency(symbol: string): ICurrency;
     static getOneNativeCurrency(platform: BlockchainPlatform): ICurrency;
     static getCurrenciesOfPlatform(platform: BlockchainPlatform): ICurrency[];
+    static getTypeTokensOfPlatform(platform: BlockchainPlatform): TokenType[];
     static setCurrencyConfig(c: ICurrency, config: ICurrencyConfig): void;
     static getCurrencyConfig(c: ICurrency): ICurrencyConfig;
     static onCurrencyRegistered(callback: (currency: ICurrency) => void): void;

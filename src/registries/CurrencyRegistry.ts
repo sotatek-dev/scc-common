@@ -855,6 +855,86 @@ export class CurrencyRegistry {
     return result;
   }
 
+  public static getTypeTokensOfPlatform(
+    platform: BlockchainPlatform
+  ): TokenType[] {
+    const result: TokenType[] = [];
+    switch (platform) {
+      case BlockchainPlatform.Bitcoin:
+        result.push(TokenType.OMNI);
+        break;
+  
+      case BlockchainPlatform.Ethereum:
+        result.push(TokenType.ERC20);
+        break;
+  
+      case BlockchainPlatform.Tomo:
+        result.push(TokenType.ERC20Tomo);
+        break;
+  
+      case BlockchainPlatform.EOS:
+        result.push(TokenType.EOS);
+        break;
+  
+      case BlockchainPlatform.BitcoinCash:
+        break;
+  
+      case BlockchainPlatform.Litecoin:
+        break;
+  
+      case BlockchainPlatform.Dash:
+        break;
+  
+      case BlockchainPlatform.EthereumClassic:
+        break;
+  
+      case BlockchainPlatform.Cardano:
+        break;
+  
+      case BlockchainPlatform.Ripple:
+        break;
+  
+      case BlockchainPlatform.Stellar:
+        break;
+  
+      case BlockchainPlatform.Nem:
+        break;
+  
+      case BlockchainPlatform.Binance:
+        result.push(TokenType.BEP);
+        break;
+  
+      case BlockchainPlatform.BinanceSmartChain:
+        result.push(TokenType.BEP20);
+        break;
+  
+      case BlockchainPlatform.Terra:
+        result.push(TokenType.TERRA)
+        break;
+  
+      case BlockchainPlatform.NEO:
+        break;
+  
+      case BlockchainPlatform.Cosmos:
+        result.push(TokenType.COSMOS)
+        break;
+  
+      case BlockchainPlatform.BitcoinValue:
+        break;
+  
+      case BlockchainPlatform.Tron:
+        result.push(TokenType.TRC20);
+        break;
+  
+      default:
+        throw new Error(
+          `CurrencyRegistry::getTypeTokenOfPlatform hasn't been implemented for ${platform} yet.`
+        );
+    }
+  
+    return result;
+  }
+
   /**
    * Update config for a currency
    *

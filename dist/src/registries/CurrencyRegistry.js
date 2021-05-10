@@ -1,4 +1,25 @@
 "use strict";
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CurrencyRegistry = void 0;
 var Logger_1 = require("../Logger");
@@ -608,18 +629,18 @@ var CurrencyRegistry = (function () {
         switch (platform) {
             case enums_1.BlockchainPlatform.Bitcoin:
                 result.push(Bitcoin);
-                result.push.apply(result, CurrencyRegistry.getAllOmniAssets());
+                result.push.apply(result, __spreadArray([], __read(CurrencyRegistry.getAllOmniAssets())));
                 break;
             case enums_1.BlockchainPlatform.Ethereum:
                 result.push(Ethereum);
-                result.push.apply(result, CurrencyRegistry.getAllErc20Tokens());
+                result.push.apply(result, __spreadArray([], __read(CurrencyRegistry.getAllErc20Tokens())));
                 break;
             case enums_1.BlockchainPlatform.Tomo:
                 result.push(Tomo);
-                result.push.apply(result, CurrencyRegistry.getAllTrc20Tokens());
+                result.push.apply(result, __spreadArray([], __read(CurrencyRegistry.getAllTrc20Tokens())));
                 break;
             case enums_1.BlockchainPlatform.EOS:
-                result.push.apply(result, CurrencyRegistry.getAllEosTokens());
+                result.push.apply(result, __spreadArray([], __read(CurrencyRegistry.getAllEosTokens())));
                 break;
             case enums_1.BlockchainPlatform.BitcoinCash:
                 result.push(CurrencyRegistry.BitcoinCash);
@@ -649,30 +670,85 @@ var CurrencyRegistry = (function () {
                 result.push(CurrencyRegistry.Nem);
                 break;
             case enums_1.BlockchainPlatform.Binance:
-                result.push.apply(result, CurrencyRegistry.getAllBepTokens());
+                result.push.apply(result, __spreadArray([], __read(CurrencyRegistry.getAllBepTokens())));
                 break;
             case enums_1.BlockchainPlatform.BinanceSmartChain:
                 result.push(CurrencyRegistry.BinanceCoin);
-                result.push.apply(result, CurrencyRegistry.getAllBep20Tokens());
+                result.push.apply(result, __spreadArray([], __read(CurrencyRegistry.getAllBep20Tokens())));
                 break;
             case enums_1.BlockchainPlatform.Terra:
-                result.push.apply(result, CurrencyRegistry.getAllTerraTokens());
+                result.push.apply(result, __spreadArray([], __read(CurrencyRegistry.getAllTerraTokens())));
                 break;
             case enums_1.BlockchainPlatform.NEO:
                 result.push(CurrencyRegistry.NEO);
                 break;
             case enums_1.BlockchainPlatform.Cosmos:
-                result.push.apply(result, CurrencyRegistry.getAllCosmosTokens());
+                result.push.apply(result, __spreadArray([], __read(CurrencyRegistry.getAllCosmosTokens())));
                 break;
             case enums_1.BlockchainPlatform.BitcoinValue:
                 result.push(CurrencyRegistry.BitcoinValue);
                 break;
             case enums_1.BlockchainPlatform.Tron:
                 result.push(Tron);
-                result.push.apply(result, CurrencyRegistry.getAllTronTrc20Tokens());
+                result.push.apply(result, __spreadArray([], __read(CurrencyRegistry.getAllTronTrc20Tokens())));
                 break;
             default:
                 throw new Error("CurrencyRegistry::getCurrenciesOfPlatform hasn't been implemented for " + platform + " yet.");
+        }
+        return result;
+    };
+    CurrencyRegistry.getTypeTokensOfPlatform = function (platform) {
+        var result = [];
+        switch (platform) {
+            case enums_1.BlockchainPlatform.Bitcoin:
+                result.push(enums_1.TokenType.OMNI);
+                break;
+            case enums_1.BlockchainPlatform.Ethereum:
+                result.push(enums_1.TokenType.ERC20);
+                break;
+            case enums_1.BlockchainPlatform.Tomo:
+                result.push(enums_1.TokenType.ERC20Tomo);
+                break;
+            case enums_1.BlockchainPlatform.EOS:
+                result.push(enums_1.TokenType.EOS);
+                break;
+            case enums_1.BlockchainPlatform.BitcoinCash:
+                break;
+            case enums_1.BlockchainPlatform.Litecoin:
+                break;
+            case enums_1.BlockchainPlatform.Dash:
+                break;
+            case enums_1.BlockchainPlatform.EthereumClassic:
+                break;
+            case enums_1.BlockchainPlatform.Cardano:
+                break;
+            case enums_1.BlockchainPlatform.Ripple:
+                break;
+            case enums_1.BlockchainPlatform.Stellar:
+                break;
+            case enums_1.BlockchainPlatform.Nem:
+                break;
+            case enums_1.BlockchainPlatform.Binance:
+                result.push(enums_1.TokenType.BEP);
+                break;
+            case enums_1.BlockchainPlatform.BinanceSmartChain:
+                result.push(enums_1.TokenType.BEP20);
+                break;
+            case enums_1.BlockchainPlatform.Terra:
+                result.push(enums_1.TokenType.TERRA);
+                break;
+            case enums_1.BlockchainPlatform.NEO:
+                break;
+            case enums_1.BlockchainPlatform.Cosmos:
+                result.push(enums_1.TokenType.COSMOS);
+                break;
+            case enums_1.BlockchainPlatform.BitcoinValue:
+                break;
+            case enums_1.BlockchainPlatform.Tron:
+                result.push(enums_1.TokenType.TRC20);
+                break;
+            default:
+                throw new Error("CurrencyRegistry::getTypeTokenOfPlatform hasn't been implemented for " + platform + " yet.");
         }
         return result;
     };
