@@ -67,6 +67,7 @@ __exportStar(require("./src/Logger"), exports);
 __exportStar(require("./src/RedisChannel"), exports);
 __exportStar(require("./src/registries"), exports);
 __exportStar(require("./src/Mailer"), exports);
+__exportStar(require("./src/BasePlatformCrawler2"), exports);
 var bignumber_js_1 = __importDefault(require("bignumber.js"));
 exports.BigNumber = bignumber_js_1.default;
 //# sourceMappingURL=index.js.map
