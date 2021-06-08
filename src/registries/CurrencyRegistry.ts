@@ -254,6 +254,7 @@ const BinanceCoin = {
   humanReadableScale: 18,
   nativeScale: 0,
   hasMemo: false,
+  family: BlockchainPlatform.Ethereum,
 };
 
 const Terra = {
@@ -542,6 +543,7 @@ export class CurrencyRegistry {
       humanReadableScale: decimals,
       nativeScale: 0,
       hasMemo: false,
+      family: BlockchainPlatform.Ethereum,
     };
 
     allBep20Tokens.push(currency);

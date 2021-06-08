@@ -44,6 +44,10 @@ export interface ICurrency {
   // There're no memo/tag for transactions in old platforms
   // This option is availble on only some modern platform like EOS/Ripple/Stellar
   readonly hasMemo: boolean;
+
+  // The blockchain platform family that currency is based on
+  // Maybe there're various currencies in the same family
+  readonly family?: BlockchainPlatform;
 }
 
 export default ICurrency;

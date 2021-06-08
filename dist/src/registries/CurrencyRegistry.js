@@ -226,6 +226,7 @@ var BinanceCoin = {
     humanReadableScale: 18,
     nativeScale: 0,
     hasMemo: false,
+    family: enums_1.BlockchainPlatform.Ethereum,
 };
 var Terra = {
     symbol: enums_1.BlockchainPlatform.Terra,
@@ -438,6 +439,7 @@ var CurrencyRegistry = (function () {
             humanReadableScale: decimals,
             nativeScale: 0,
             hasMemo: false,
+            family: enums_1.BlockchainPlatform.Ethereum,
         };
         allBep20Tokens.push(currency);
         eventCallbacks['bep20-token-registered'].forEach(function (callback) { return callback(currency); });
