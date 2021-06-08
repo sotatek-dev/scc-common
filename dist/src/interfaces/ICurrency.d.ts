@@ -13,6 +13,7 @@ export interface ICurrency {
     readonly nativeScale: number;
     readonly hdPath?: string;
     readonly hasMemo: boolean;
+    readonly family?: BlockchainPlatform;
 }
 export default ICurrency;
 export interface IToken extends ICurrency {
