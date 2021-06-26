@@ -21,6 +21,7 @@ export enum BlockchainPlatform {
   Terra = 'terra',
   Cosmos = 'cosmos',
   BitcoinValue = 'biv',
+  Solana = "sol",
 }
 
 export default BlockchainPlatform;

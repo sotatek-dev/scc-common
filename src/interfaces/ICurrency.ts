@@ -101,3 +101,8 @@ export interface ITrc20Token extends IToken {
   readonly contractAddress: Address;
   readonly decimals: number;
 }
+
+export interface ISplToken extends IToken {
+  readonly programId: string;
+  readonly decimals: number;
+}

@@ -28,4 +28,5 @@ __exportStar(require("./BitcoinBasedTransactions"), exports);
 __exportStar(require("./MultiEntriesTransaction"), exports);
 __exportStar(require("./EndpointStatus"), exports);
 __exportStar(require("./CosmosTransaction"), exports);
+__exportStar(require("./SolanaTransaction"), exports);
 //# sourceMappingURL=index.js.map
