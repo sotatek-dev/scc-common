@@ -300,6 +300,7 @@ var nativeCurrencies = [
     Terra,
     Cosmos,
     BitcoinValue,
+    Solana,
 ];
 var CurrencyRegistry = (function () {
     function CurrencyRegistry() {
