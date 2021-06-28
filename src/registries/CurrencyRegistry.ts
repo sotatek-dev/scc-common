@@ -333,6 +333,7 @@ const nativeCurrencies: ICurrency[] = [
   Terra,
   Cosmos,
   BitcoinValue,
+  Solana,
 ];
 
 export class CurrencyRegistry {
