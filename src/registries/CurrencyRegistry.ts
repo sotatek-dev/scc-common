@@ -736,6 +736,12 @@ export class CurrencyRegistry {
     const symbol = [TokenType.ERC20, contractAddress].join('.');
     return CurrencyRegistry.getOneCurrency(symbol) as IErc20Token;
   }
+  
+  public static getOnePolErc20Token(contractAddress: string): IErc20Token {
+    const symbol = [TokenType.ERC20, contractAddress].join('.');
+    return CurrencyRegistry.getOneCurrency(symbol) as IErc20Token;
+  }
+
 
   public static getAllBepTokens(): IBepToken[] {
     return allBepTokens;
@@ -752,6 +758,10 @@ export class CurrencyRegistry {
 
   public static getAllErc20Tokens(): IErc20Token[] {
     return allErc20Tokens;
+  }
+
+  public static getAllPolErc20Tokens(): IErc20Token[] {
+    return allPolErc20Tokens;
   }
 
   public static getAllTrc20Tokens(): IErc20Token[] {
@@ -834,6 +844,10 @@ export class CurrencyRegistry {
         result.push(Ethereum);
         result.push(...CurrencyRegistry.getAllErc20Tokens());
         break;
+
+      case BlockchainPlatform.Polygon:
+        result.push(Polygon);
+        result.push(...CurrencyRegistry.getAllPolErc20Tokens());
 
       case BlockchainPlatform.Tomo:
         result.push(Tomo);
