@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WebServiceStatus = void 0;
 var WebServiceStatus;
 (function (WebServiceStatus) {
     WebServiceStatus["OK"] = "ok";

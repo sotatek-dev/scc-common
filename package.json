@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "LOG_LEVEL=warn jest",
-    "coverage": "LOG_LEVEL=warn jest --coverage"
+    "coverage": "LOG_LEVEL=warn jest --coverage",
+    "build": "tsc"
   },
   "author": "an.nguyen@sotatek.com",
   "license": "ISC",

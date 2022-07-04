@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BaseWorker = void 0;
 var Logger_1 = require("./Logger");
 var logger = Logger_1.getLogger('BaseWorker');
 var BaseWorker = (function () {
