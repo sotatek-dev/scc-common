@@ -64,6 +64,18 @@ const Ethereum = {
   hasMemo: false,
 };
 
+const Polygon = {
+  symbol: BlockchainPlatform.Polygon,
+  networkSymbol: BlockchainPlatform.Polygon,
+  name: 'Polygon',
+  platform: BlockchainPlatform.Polygon,
+  isNative: true,
+  isUTXOBased: false,
+  humanReadableScale: 18,
+  nativeScale: 0,
+  hasMemo: false,
+}
+
 const Cardano = {
   symbol: BlockchainPlatform.Cardano,
   networkSymbol: BlockchainPlatform.Cardano,
@@ -299,6 +311,7 @@ const BitcoinValue = {
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
+  Polygon,
   Cardano,
   BitcoinCash,
   BitcoinSV,
