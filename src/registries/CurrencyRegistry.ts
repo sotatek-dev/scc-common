@@ -1024,6 +1024,21 @@ export class CurrencyRegistry {
   }
 
   /**
+   * Add listener that is triggerred when an PolERC20 token is registered
+   *
+   * @param callback
+   */
+  public static onPolERC20TokenRegistered(callback: (token: IErc20Token) => void) {
+    if (allPolErc20Tokens.length > 0) {
+      allPolErc20Tokens.forEach(token => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['polErc20-registered'].push(callback);
+  }
+
+  /**
    * Add listener that is triggerred when an TRC20 token is registered
    *
    * @param callback
