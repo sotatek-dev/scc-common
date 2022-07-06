@@ -8,5 +8,6 @@ export declare enum TokenType {
     BEP20 = "bep20",
     TERRA = "terra",
     COSMOS = "cosmos",
-    TRC20 = "tronTrc20"
+    TRC20 = "tronTrc20",
+    SPLTOKEN = "spl"
 }

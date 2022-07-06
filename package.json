@@ -1,11 +1,12 @@
 {
   "name": "@sotatek/crypto-currency-common",
-  "version": "0.3.7",
+  "version": "0.3.10",
   "description": "SotaTek cryptocurrency common lib",
   "main": "dist/index.js",
   "scripts": {
     "test": "LOG_LEVEL=warn jest",
-    "coverage": "LOG_LEVEL=warn jest --coverage"
+    "coverage": "LOG_LEVEL=warn jest --coverage",
+    "build": "tsc"
   },
   "author": "an.nguyen@sotatek.com",
   "license": "ISC",

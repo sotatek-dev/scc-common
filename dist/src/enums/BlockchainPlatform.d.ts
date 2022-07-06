@@ -1,6 +1,7 @@
 export declare enum BlockchainPlatform {
     Bitcoin = "btc",
     Ethereum = "eth",
+    Polygon = "matic",
     Ripple = "xrp",
     BitcoinCash = "bch",
     BitcoinSV = "bsv",
@@ -20,6 +21,7 @@ export declare enum BlockchainPlatform {
     BinanceSmartChain = "bsc",
     Terra = "terra",
     Cosmos = "cosmos",
-    BitcoinValue = "biv"
+    BitcoinValue = "biv",
+    Solana = "sol"
 }
 export default BlockchainPlatform;

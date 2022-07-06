@@ -16,14 +16,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var GenericTransactions_1 = __importDefault(require("./GenericTransactions"));
-var Transactions = (function (_super) {
-    __extends(Transactions, _super);
-    function Transactions() {
-        return _super !== null && _super.apply(this, arguments) || this;
+var BaseGateway_1 = __importDefault(require("./BaseGateway"));
+var SolanaBasedGateway = (function (_super) {
+    __extends(SolanaBasedGateway, _super);
+    function SolanaBasedGateway(currency) {
+        return _super.call(this, currency) || this;
     }
-    return Transactions;
-}(GenericTransactions_1.default));
-exports.Transactions = Transactions;
-exports.default = Transactions;
-//# sourceMappingURL=Transactions.js.map
+    return SolanaBasedGateway;
+}(BaseGateway_1.default));
+exports.SolanaBasedGateway = SolanaBasedGateway;
+//# sourceMappingURL=SolanaBasedGateway.js.map

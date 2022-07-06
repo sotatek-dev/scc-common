@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CurrencyRegistry = void 0;
 var Logger_1 = require("../Logger");
 var enums_1 = require("../enums");
 var logger = Logger_1.getLogger('CurrencyRegistry');
 var allCurrencies = new Map();
 var allCurrencyConfigs = new Map();
 var allErc20Tokens = [];
+var allPolErc20Tokens = [];
 var allTrc20Tokens = [];
 var allOmniAssets = [];
 var allEosTokens = [];
@@ -15,11 +15,13 @@ var allBep20Tokens = [];
 var allTerraTokens = [];
 var allCosmosTokens = [];
 var allTronTrc20Tokens = [];
+var allSplToken = [];
 var onCurrencyRegisteredCallbacks = [];
 var onSpecificCurrencyRegisteredCallbacks = new Map();
 var onCurrencyConfigSetCallbacks = [];
 var eventCallbacks = {
     'erc20-registered': Array(),
+    'polErc20-registered': Array(),
     'trc20-registered': Array(),
     'omni-registered': Array(),
     'eos-token-registered': Array(),
@@ -28,6 +30,7 @@ var eventCallbacks = {
     'terra-token-registered': Array(),
     'cosmos-token-registered': Array(),
     'tronTrc20-registered': Array(),
+    'spl-token-registered': Array(),
 };
 var Bitcoin = {
     symbol: enums_1.BlockchainPlatform.Bitcoin,
@@ -45,6 +48,17 @@ var Ethereum = {
     networkSymbol: enums_1.BlockchainPlatform.Ethereum,
     name: 'Ethereum',
     platform: enums_1.BlockchainPlatform.Ethereum,
+    isNative: true,
+    isUTXOBased: false,
+    humanReadableScale: 18,
+    nativeScale: 0,
+    hasMemo: false,
+};
+var Polygon = {
+    symbol: enums_1.BlockchainPlatform.Polygon,
+    networkSymbol: enums_1.BlockchainPlatform.Polygon,
+    name: 'Polygon',
+    platform: enums_1.BlockchainPlatform.Polygon,
     isNative: true,
     isUTXOBased: false,
     humanReadableScale: 18,
@@ -226,6 +240,7 @@ var BinanceCoin = {
     humanReadableScale: 18,
     nativeScale: 0,
     hasMemo: false,
+    family: enums_1.BlockchainPlatform.Ethereum,
 };
 var Terra = {
     symbol: enums_1.BlockchainPlatform.Terra,
@@ -264,9 +279,21 @@ var BitcoinValue = {
     nativeScale: 0,
     hasMemo: false,
 };
+var Solana = {
+    symbol: enums_1.BlockchainPlatform.Solana,
+    networkSymbol: enums_1.BlockchainPlatform.Solana,
+    name: 'Solana',
+    platform: enums_1.BlockchainPlatform.Solana,
+    isNative: true,
+    isUTXOBased: false,
+    humanReadableScale: 9,
+    nativeScale: 0,
+    hasMemo: false,
+};
 var nativeCurrencies = [
     Bitcoin,
     Ethereum,
+    Polygon,
     Cardano,
     BitcoinCash,
     BitcoinSV,
@@ -286,6 +313,7 @@ var nativeCurrencies = [
     Terra,
     Cosmos,
     BitcoinValue,
+    Solana,
 ];
 var CurrencyRegistry = (function () {
     function CurrencyRegistry() {
@@ -354,6 +382,40 @@ var CurrencyRegistry = (function () {
             var token = allErc20Tokens[i];
             if (token.contractAddress.toLowerCase() === contractAddress.toLowerCase()) {
                 allErc20Tokens.splice(i, 1);
+                break;
+            }
+        }
+        CurrencyRegistry.unregisterCurrency(symbol);
+    };
+    CurrencyRegistry.registerPolErc20Token = function (contractAddress, networkSymbol, name, decimals) {
+        logger.info("register polErc20: contract=" + contractAddress + ", networkSymbol=" + networkSymbol + ", name=" + name + ", decimals=" + decimals);
+        var platform = enums_1.BlockchainPlatform.Polygon;
+        var symbol = [enums_1.TokenType.ERC20, contractAddress].join('.');
+        var currency = {
+            symbol: symbol,
+            networkSymbol: networkSymbol,
+            tokenType: enums_1.TokenType.ERC20,
+            name: name,
+            platform: platform,
+            isNative: false,
+            isUTXOBased: false,
+            contractAddress: contractAddress,
+            decimals: decimals,
+            humanReadableScale: decimals,
+            nativeScale: 0,
+            hasMemo: false,
+        };
+        allPolErc20Tokens.push(currency);
+        eventCallbacks['polErc20-registered'].forEach(function (callback) { return callback(currency); });
+        return CurrencyRegistry.registerCurrency(currency);
+    };
+    CurrencyRegistry.unregisterPolErc20Token = function (contractAddress) {
+        logger.info("unregister polErc20: contract=" + contractAddress);
+        var symbol = [enums_1.TokenType.ERC20, contractAddress].join('.');
+        for (var i = 0; i < allPolErc20Tokens.length; i++) {
+            var token = allErc20Tokens[i];
+            if (token.contractAddress.toLowerCase() === contractAddress.toLowerCase()) {
+                allPolErc20Tokens.splice(i, 1);
                 break;
             }
         }
@@ -438,6 +500,7 @@ var CurrencyRegistry = (function () {
             humanReadableScale: decimals,
             nativeScale: 0,
             hasMemo: false,
+            family: enums_1.BlockchainPlatform.Ethereum,
         };
         allBep20Tokens.push(currency);
         eventCallbacks['bep20-token-registered'].forEach(function (callback) { return callback(currency); });
@@ -533,6 +596,40 @@ var CurrencyRegistry = (function () {
         }
         CurrencyRegistry.unregisterCurrency(symbol);
     };
+    CurrencyRegistry.registerSplToken = function (programId, networkSymbol, name, decimals) {
+        logger.info("register spltoken: programId=" + programId + ", networkSymbol=" + networkSymbol + ", name=" + name + ", decimals=" + decimals);
+        var platform = enums_1.BlockchainPlatform.Solana;
+        var symbol = [enums_1.TokenType.SPLTOKEN, programId].join('.');
+        var currency = {
+            symbol: symbol,
+            networkSymbol: networkSymbol,
+            tokenType: enums_1.TokenType.SPLTOKEN,
+            name: name,
+            platform: platform,
+            isNative: false,
+            isUTXOBased: false,
+            programId: programId,
+            decimals: decimals,
+            humanReadableScale: decimals,
+            nativeScale: 0,
+            hasMemo: false,
+        };
+        allSplToken.push(currency);
+        eventCallbacks['spl-token-registered'].forEach(function (callback) { return callback(currency); });
+        return CurrencyRegistry.registerCurrency(currency);
+    };
+    CurrencyRegistry.unregisterSplToken = function (programId) {
+        logger.info("unregister Spltoken: programId=" + programId);
+        var symbol = [enums_1.TokenType.SPLTOKEN, programId].join('.');
+        for (var i = 0; i < allSplToken.length; i++) {
+            var token = allSplToken[i];
+            if (token.programId.toLowerCase() === programId.toLowerCase()) {
+                allSplToken.splice(i, 1);
+                break;
+            }
+        }
+        CurrencyRegistry.unregisterCurrency(symbol);
+    };
     CurrencyRegistry.getOneOmniAsset = function (propertyId) {
         var symbol = [enums_1.TokenType.OMNI, propertyId].join('.');
         return CurrencyRegistry.getOneCurrency(symbol);
@@ -541,6 +638,10 @@ var CurrencyRegistry = (function () {
         return allOmniAssets;
     };
     CurrencyRegistry.getOneErc20Token = function (contractAddress) {
+        var symbol = [enums_1.TokenType.ERC20, contractAddress].join('.');
+        return CurrencyRegistry.getOneCurrency(symbol);
+    };
+    CurrencyRegistry.getOnePolErc20Token = function (contractAddress) {
         var symbol = [enums_1.TokenType.ERC20, contractAddress].join('.');
         return CurrencyRegistry.getOneCurrency(symbol);
     };
@@ -556,6 +657,9 @@ var CurrencyRegistry = (function () {
     };
     CurrencyRegistry.getAllErc20Tokens = function () {
         return allErc20Tokens;
+    };
+    CurrencyRegistry.getAllPolErc20Tokens = function () {
+        return allPolErc20Tokens;
     };
     CurrencyRegistry.getAllTrc20Tokens = function () {
         return allTrc20Tokens;
@@ -589,6 +693,9 @@ var CurrencyRegistry = (function () {
     CurrencyRegistry.getAllTronTrc20Tokens = function () {
         return allTronTrc20Tokens;
     };
+    CurrencyRegistry.getAllSplTokens = function () {
+        return allSplToken;
+    };
     CurrencyRegistry.getOneCurrency = function (symbol) {
         symbol = symbol.toLowerCase();
         if (!allCurrencies.has(symbol)) {
@@ -614,6 +721,9 @@ var CurrencyRegistry = (function () {
                 result.push(Ethereum);
                 result.push.apply(result, CurrencyRegistry.getAllErc20Tokens());
                 break;
+            case enums_1.BlockchainPlatform.Polygon:
+                result.push(Polygon);
+                result.push.apply(result, CurrencyRegistry.getAllPolErc20Tokens());
             case enums_1.BlockchainPlatform.Tomo:
                 result.push(Tomo);
                 result.push.apply(result, CurrencyRegistry.getAllTrc20Tokens());
@@ -671,6 +781,10 @@ var CurrencyRegistry = (function () {
                 result.push(Tron);
                 result.push.apply(result, CurrencyRegistry.getAllTronTrc20Tokens());
                 break;
+            case enums_1.BlockchainPlatform.Solana:
+                result.push(Solana);
+                result.push.apply(result, CurrencyRegistry.getAllSplTokens());
+                break;
             default:
                 throw new Error("CurrencyRegistry::getCurrenciesOfPlatform hasn't been implemented for " + platform + " yet.");
         }
@@ -720,6 +834,14 @@ var CurrencyRegistry = (function () {
             });
         }
         eventCallbacks['erc20-registered'].push(callback);
+    };
+    CurrencyRegistry.onPolERC20TokenRegistered = function (callback) {
+        if (allPolErc20Tokens.length > 0) {
+            allPolErc20Tokens.forEach(function (token) {
+                callback(token);
+            });
+        }
+        eventCallbacks['polErc20-registered'].push(callback);
     };
     CurrencyRegistry.onTRC20TokenRegistered = function (callback) {
         if (allTrc20Tokens.length > 0) {
@@ -785,6 +907,14 @@ var CurrencyRegistry = (function () {
         }
         eventCallbacks['tronTrc20-registered'].push(callback);
     };
+    CurrencyRegistry.onSplTokenRegistered = function (callback) {
+        if (allSplToken.length > 0) {
+            allSplToken.forEach(function (token) {
+                callback(token);
+            });
+        }
+        eventCallbacks['spl-token-registered'].push(callback);
+    };
     CurrencyRegistry.onCurrencyConfigSet = function (callback) {
         onCurrencyConfigSetCallbacks.push(callback);
     };
@@ -797,6 +927,7 @@ var CurrencyRegistry = (function () {
     };
     CurrencyRegistry.Bitcoin = Bitcoin;
     CurrencyRegistry.Ethereum = Ethereum;
+    CurrencyRegistry.Polygon = Polygon;
     CurrencyRegistry.Cardano = Cardano;
     CurrencyRegistry.BitcoinCash = BitcoinCash;
     CurrencyRegistry.BitcoinSV = BitcoinSV;
@@ -816,6 +947,7 @@ var CurrencyRegistry = (function () {
     CurrencyRegistry.Terra = Terra;
     CurrencyRegistry.Cosmos = Cosmos;
     CurrencyRegistry.BitcoinValue = BitcoinValue;
+    CurrencyRegistry.Solana = Solana;
     return CurrencyRegistry;
 }());
 exports.CurrencyRegistry = CurrencyRegistry;
