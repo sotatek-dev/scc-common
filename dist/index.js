@@ -53,6 +53,7 @@ __export(require("./src/Logger"));
 __export(require("./src/RedisChannel"));
 __export(require("./src/registries"));
 __export(require("./src/Mailer"));
+__export(require("./src/SolanaBasedGateway"));
 var bignumber_js_1 = __importDefault(require("bignumber.js"));
 exports.BigNumber = bignumber_js_1.default;
 //# sourceMappingURL=index.js.map

@@ -1,5 +1,5 @@
 import { getLogger } from '../Logger';
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token, ITrc20Token } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token, ITrc20Token, ISplToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType, TransactionBaseType } from '../enums';
 
@@ -21,6 +21,7 @@ const allBep20Tokens: IBep20Token[] = [];
 const allTerraTokens: ITerraToken[] = [];
 const allCosmosTokens: ICosmosToken[] = [];
 const allTronTrc20Tokens: ITrc20Token[] = [];
+const allSplToken: ISplToken[] = [];
 
 const onCurrencyRegisteredCallbacks: Array<(currency: ICurrency) => void> = [];
 const onSpecificCurrencyRegisteredCallbacks = new Map<string, Array<() => void>>();
@@ -37,6 +38,7 @@ const eventCallbacks = {
   'terra-token-registered': Array<(asset: ITerraToken) => void>(),
   'cosmos-token-registered': Array<(asset: ICosmosToken) => void>(),
   'tronTrc20-registered': Array<(asset: ITrc20Token) => void>(),
+  'spl-token-registered': Array<(asset: ISplToken) => void>(),
 };
 
 /**
@@ -268,6 +270,7 @@ const BinanceCoin = {
   humanReadableScale: 18,
     nativeScale: 0,
   hasMemo: false,
+  family: BlockchainPlatform.Ethereum,
 };
 
 const Terra = {
@@ -310,6 +313,18 @@ const BitcoinValue = {
   hasMemo: false,
 };
 
+const Solana = {
+  symbol: BlockchainPlatform.Solana,
+  networkSymbol: BlockchainPlatform.Solana,
+  name: 'Solana',
+  platform: BlockchainPlatform.Solana,
+  isNative: true,
+  isUTXOBased: false,
+  humanReadableScale: 9,
+  nativeScale: 0,
+  hasMemo: false,
+};
+
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
@@ -333,6 +348,7 @@ const nativeCurrencies: ICurrency[] = [
   Terra,
   Cosmos,
   BitcoinValue,
+  Solana,
 ];
 
 export class CurrencyRegistry {
@@ -358,7 +374,7 @@ export class CurrencyRegistry {
   public static readonly Terra: ICurrency = Terra;
   public static readonly Cosmos: ICurrency = Cosmos;
   public static readonly BitcoinValue: ICurrency = BitcoinValue;
-
+  public static readonly Solana: ICurrency = Solana;
   /**
    * Register a currency on environment data
    * Native assets have been registered above
@@ -604,6 +620,7 @@ export class CurrencyRegistry {
       humanReadableScale: decimals,
       nativeScale: 0,
       hasMemo: false,
+      family: BlockchainPlatform.Ethereum,
     };
 
     allBep20Tokens.push(currency);
@@ -723,6 +740,45 @@ export class CurrencyRegistry {
     CurrencyRegistry.unregisterCurrency(symbol);
   }
 
+  public static registerSplToken(programId: string, networkSymbol: string, name: string, decimals: number): boolean {
+    logger.info(`register spltoken: programId=${programId}, networkSymbol=${networkSymbol}, name=${name}, decimals=${decimals}`);
+    const platform = BlockchainPlatform.Solana;
+    const symbol = [TokenType.SPLTOKEN, programId].join('.');
+    const currency: ISplToken = {
+      symbol,
+      networkSymbol,
+      tokenType: TokenType.SPLTOKEN,
+      name,
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      programId,
+      decimals,
+      humanReadableScale: decimals,
+      nativeScale: 0,
+      hasMemo: false,
+    };
+
+    allSplToken.push(currency);
+    eventCallbacks['spl-token-registered'].forEach((callback) => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
+  public static unregisterSplToken(programId: string) {
+    logger.info(`unregister Spltoken: programId=${programId}`);
+    const symbol = [TokenType.SPLTOKEN, programId].join('.');
+    for (let i = 0; i < allSplToken.length; i++) {
+      const token = allSplToken[i];
+      if (token.programId.toLowerCase() === programId.toLowerCase()) {
+        allSplToken.splice(i, 1);
+        break;
+      }
+    }
+
+    CurrencyRegistry.unregisterCurrency(symbol);
+  }
+
   public static getOneOmniAsset(propertyId: number): IOmniAsset {
     const symbol = [TokenType.OMNI, propertyId].join('.');
     return CurrencyRegistry.getOneCurrency(symbol) as IOmniAsset;
@@ -805,8 +861,12 @@ export class CurrencyRegistry {
     return CurrencyRegistry.getOneCurrency(symbol) as ITrc20Token;
   }
 
-  public static getAllTronTrc20Tokens() : ITrc20Token[] {
+  public static getAllTronTrc20Tokens(): ITrc20Token[] {
     return allTronTrc20Tokens;
+  }
+
+  public static getAllSplTokens(): ISplToken[] {
+    return allSplToken;
   }
 
   /**
@@ -922,6 +982,10 @@ export class CurrencyRegistry {
       case BlockchainPlatform.Tron:
         result.push(Tron);
         result.push(...CurrencyRegistry.getAllTronTrc20Tokens());
+        break;
+      case BlockchainPlatform.Solana:
+        result.push(Solana);
+        result.push(...CurrencyRegistry.getAllSplTokens());
         break;
 
       default:
@@ -1137,6 +1201,21 @@ export class CurrencyRegistry {
   
       eventCallbacks['tronTrc20-registered'].push(callback);
     }
+
+  /**
+   * Add listener that is triggerred when an Spl token (Solana blockchain) is registered
+   *
+   * @param callback
+   */
+  public static onSplTokenRegistered(callback: (token: ISplToken) => void) {
+    if (allSplToken.length > 0) {
+      allSplToken.forEach((token) => {
+        callback(token);
+      });
+    }
+
+    eventCallbacks['spl-token-registered'].push(callback);
+  }
 
   /**
    * Add listener that is triggerred when a currency config is setup

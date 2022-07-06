@@ -13,6 +13,7 @@ export interface ICurrency {
     readonly nativeScale: number;
     readonly hdPath?: string;
     readonly hasMemo: boolean;
+    readonly family?: BlockchainPlatform;
 }
 export default ICurrency;
 export interface IToken extends ICurrency {
@@ -52,5 +53,9 @@ export interface ICosmosToken extends IToken {
 }
 export interface ITrc20Token extends IToken {
     readonly contractAddress: Address;
+    readonly decimals: number;
+}
+export interface ISplToken extends IToken {
+    readonly programId: string;
     readonly decimals: number;
 }

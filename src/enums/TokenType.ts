@@ -9,4 +9,5 @@ export enum TokenType {
   TERRA = 'terra',
   COSMOS = 'cosmos',
   TRC20 = 'tronTrc20',
+  SPLTOKEN = 'spl'
 }

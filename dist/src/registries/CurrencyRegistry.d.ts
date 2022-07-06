@@ -1,4 +1,4 @@
-import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token, ITrc20Token } from '../interfaces/ICurrency';
+import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token, ITrc20Token, ISplToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform } from '../enums';
 export declare class CurrencyRegistry {
@@ -24,6 +24,7 @@ export declare class CurrencyRegistry {
     static readonly Terra: ICurrency;
     static readonly Cosmos: ICurrency;
     static readonly BitcoinValue: ICurrency;
+    static readonly Solana: ICurrency;
     static registerCurrency(c: ICurrency): boolean;
     static registerOmniAsset(propertyId: number, networkSymbol: string, name: string, scale: number): boolean;
     static registerErc20Token(contractAddress: string, networkSymbol: string, name: string, decimals: number): boolean;
@@ -39,6 +40,8 @@ export declare class CurrencyRegistry {
     static registerCosmosToken(code: string, networkSymbol: string, scale: number): boolean;
     static registerTronTrc20Token(contractAddress: string, networkSymbol: string, name: string, decimals: number): boolean;
     static unregisterTronTrc20Token(contractAddress: string): void;
+    static registerSplToken(programId: string, networkSymbol: string, name: string, decimals: number): boolean;
+    static unregisterSplToken(programId: string): void;
     static getOneOmniAsset(propertyId: number): IOmniAsset;
     static getAllOmniAssets(): IOmniAsset[];
     static getOneErc20Token(contractAddress: string): IErc20Token;
@@ -58,6 +61,7 @@ export declare class CurrencyRegistry {
     static getAllCosmosTokens(): ICosmosToken[];
     static getOneTronTrc20Token(contractAddress: string): ITrc20Token;
     static getAllTronTrc20Tokens(): ITrc20Token[];
+    static getAllSplTokens(): ISplToken[];
     static getOneCurrency(symbol: string): ICurrency;
     static getOneNativeCurrency(platform: BlockchainPlatform): ICurrency;
     static getCurrenciesOfPlatform(platform: BlockchainPlatform): ICurrency[];
@@ -75,6 +79,7 @@ export declare class CurrencyRegistry {
     static onTerraTokenRegistered(callback: (token: ITerraToken) => void): void;
     static onCosmosTokenRegistered(callback: (token: ICosmosToken) => void): void;
     static onTronTrc20TokenRegistered(callback: (token: ITrc20Token) => void): void;
+    static onSplTokenRegistered(callback: (token: ISplToken) => void): void;
     static onCurrencyConfigSet(callback: (currency: ICurrency, config: ICurrencyConfig) => void): void;
     protected static unregisterCurrency(symbol: string): boolean;
 }
