@@ -390,11 +390,11 @@ var CurrencyRegistry = (function () {
     CurrencyRegistry.registerPolErc20Token = function (contractAddress, networkSymbol, name, decimals) {
         logger.info("register polErc20: contract=" + contractAddress + ", networkSymbol=" + networkSymbol + ", name=" + name + ", decimals=" + decimals);
         var platform = enums_1.BlockchainPlatform.Polygon;
-        var symbol = [enums_1.TokenType.ERC20, contractAddress].join('.');
+        var symbol = [enums_1.TokenType.POLERC20, contractAddress].join('.');
         var currency = {
             symbol: symbol,
             networkSymbol: networkSymbol,
-            tokenType: enums_1.TokenType.ERC20,
+            tokenType: enums_1.TokenType.POLERC20,
             name: name,
             platform: platform,
             isNative: false,
@@ -411,7 +411,7 @@ var CurrencyRegistry = (function () {
     };
     CurrencyRegistry.unregisterPolErc20Token = function (contractAddress) {
         logger.info("unregister polErc20: contract=" + contractAddress);
-        var symbol = [enums_1.TokenType.ERC20, contractAddress].join('.');
+        var symbol = [enums_1.TokenType.POLERC20, contractAddress].join('.');
         for (var i = 0; i < allPolErc20Tokens.length; i++) {
             var token = allErc20Tokens[i];
             if (token.contractAddress.toLowerCase() === contractAddress.toLowerCase()) {
