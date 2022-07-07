@@ -482,11 +482,11 @@ export class CurrencyRegistry {
       `register polErc20: contract=${contractAddress}, networkSymbol=${networkSymbol}, name=${name}, decimals=${decimals}`
     );
     const platform = BlockchainPlatform.Polygon;
-    const symbol = [TokenType.ERC20, contractAddress].join('.');
+    const symbol = [TokenType.POLERC20, contractAddress].join('.');
     const currency: IErc20Token = {
       symbol,
       networkSymbol,
-      tokenType: TokenType.ERC20,
+      tokenType: TokenType.POLERC20,
       name,
       platform,
       isNative: false,
@@ -506,7 +506,7 @@ export class CurrencyRegistry {
 
   public static unregisterPolErc20Token(contractAddress: string) {
     logger.info(`unregister polErc20: contract=${contractAddress}`);
-    const symbol = [TokenType.ERC20, contractAddress].join('.');
+    const symbol = [TokenType.POLERC20, contractAddress].join('.');
     for (let i = 0; i < allPolErc20Tokens.length; i++) {
       const token = allErc20Tokens[i];
       if (token.contractAddress.toLowerCase() === contractAddress.toLowerCase()) {
