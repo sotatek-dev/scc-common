@@ -2,6 +2,7 @@ import { getLogger } from '../Logger';
 import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token, ITrc20Token, ISplToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType, TransactionBaseType } from '../enums';
+import { Block } from '../types';
 
 /**
  * Environment data is usually loaded from database at runtime
@@ -29,6 +30,7 @@ const onCurrencyConfigSetCallbacks: Array<(currency: ICurrency, config: ICurrenc
 
 const eventCallbacks = {
   'erc20-registered': Array<(token: IErc20Token) => void>(),
+  'polErc20-registered': Array<(token: IErc20Token) => void>(),
   'trc20-registered': Array<(token: IErc20TokenTomo) => void>(),
   'omni-registered': Array<(asset: IOmniAsset) => void>(),
   'eos-token-registered': Array<(asset: IEosToken) => void>(),
@@ -327,6 +329,7 @@ const Solana = {
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
+  Polygon,
   Cardano,
   BitcoinCash,
   BitcoinSV,
@@ -901,6 +904,10 @@ export class CurrencyRegistry {
         result.push(Ethereum);
         result.push(...CurrencyRegistry.getAllErc20Tokens());
         break;
+
+      case BlockchainPlatform.Polygon:
+        result.push(Polygon);
+        result.push(...CurrencyRegistry.getAllPolErc20Tokens());
 
       case BlockchainPlatform.Tomo:
         result.push(Tomo);
