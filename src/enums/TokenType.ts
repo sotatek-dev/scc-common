@@ -1,5 +1,6 @@
 export enum TokenType {
   ERC20 = 'erc20',
+  POLERC20 = 'polerc20',
   ERC20Tomo = 'trc20',
   OMNI = 'omni',
   NEP5 = 'nep5',
