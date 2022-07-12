@@ -50,6 +50,7 @@ export declare class CurrencyRegistry {
     static getAllBep20Tokens(): IBep20Token[];
     static getOneBep20Token(contractAddress: string): IBep20Token;
     static getAllErc20Tokens(): IErc20Token[];
+    static getAllPolErc20Tokens(): IErc20Token[];
     static getAllTrc20Tokens(): IErc20Token[];
     static getOneEosToken(contractAddress: string): IEosToken;
     static getAllEosTokens(): IEosToken[];

@@ -656,6 +656,9 @@ var CurrencyRegistry = (function () {
     CurrencyRegistry.getAllErc20Tokens = function () {
         return allErc20Tokens;
     };
+    CurrencyRegistry.getAllPolErc20Tokens = function () {
+        return allPolErc20Tokens;
+    };
     CurrencyRegistry.getAllTrc20Tokens = function () {
         return allTrc20Tokens;
     };
