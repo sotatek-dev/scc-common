@@ -4,6 +4,7 @@ import { BlockchainPlatform } from '../enums';
 export declare class CurrencyRegistry {
     static readonly Bitcoin: ICurrency;
     static readonly Ethereum: ICurrency;
+    static readonly Polygon: ICurrency;
     static readonly Cardano: ICurrency;
     static readonly BitcoinCash: ICurrency;
     static readonly BitcoinSV: ICurrency;
@@ -28,6 +29,8 @@ export declare class CurrencyRegistry {
     static registerOmniAsset(propertyId: number, networkSymbol: string, name: string, scale: number): boolean;
     static registerErc20Token(contractAddress: string, networkSymbol: string, name: string, decimals: number): boolean;
     static unregisterErc20Token(contractAddress: string): void;
+    static registerPolErc20Token(contractAddress: string, networkSymbol: string, name: string, decimals: number): boolean;
+    static unregisterPolErc20Token(contractAddress: string): void;
     static registerTrc20Token(contractAddress: string, networkSymbol: string, name: string, decimals: number): boolean;
     static registerEosToken(code: string, networkSymbol: string, scale: number): boolean;
     static registerBepToken(originSymbol: string, networkSymbol: string, scale: number): boolean;
@@ -42,6 +45,7 @@ export declare class CurrencyRegistry {
     static getOneOmniAsset(propertyId: number): IOmniAsset;
     static getAllOmniAssets(): IOmniAsset[];
     static getOneErc20Token(contractAddress: string): IErc20Token;
+    static getOnePolErc20Token(contractAddress: string): IErc20Token;
     static getAllBepTokens(): IBepToken[];
     static getAllBep20Tokens(): IBep20Token[];
     static getOneBep20Token(contractAddress: string): IBep20Token;
@@ -65,6 +69,7 @@ export declare class CurrencyRegistry {
     static onCurrencyRegistered(callback: (currency: ICurrency) => void): void;
     static onSpecificCurrencyRegistered(currency: ICurrency, callback: () => void): void;
     static onERC20TokenRegistered(callback: (token: IErc20Token) => void): void;
+    static onPolERC20TokenRegistered(callback: (token: IErc20Token) => void): void;
     static onTRC20TokenRegistered(callback: (token: IErc20TokenTomo) => void): void;
     static onOmniAssetRegistered(callback: (asset: IOmniAsset) => void): void;
     static onEOSTokenRegistered(callback: (token: IEosToken) => void): void;

@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CurrencyRegistry = void 0;
 var Logger_1 = require("../Logger");
 var enums_1 = require("../enums");
 var logger = Logger_1.getLogger('CurrencyRegistry');
 var allCurrencies = new Map();
 var allCurrencyConfigs = new Map();
 var allErc20Tokens = [];
+var allPolErc20Tokens = [];
 var allTrc20Tokens = [];
 var allOmniAssets = [];
 var allEosTokens = [];
@@ -47,6 +47,17 @@ var Ethereum = {
     networkSymbol: enums_1.BlockchainPlatform.Ethereum,
     name: 'Ethereum',
     platform: enums_1.BlockchainPlatform.Ethereum,
+    isNative: true,
+    isUTXOBased: false,
+    humanReadableScale: 18,
+    nativeScale: 0,
+    hasMemo: false,
+};
+var Polygon = {
+    symbol: enums_1.BlockchainPlatform.Polygon,
+    networkSymbol: enums_1.BlockchainPlatform.Polygon,
+    name: 'Polygon',
+    platform: enums_1.BlockchainPlatform.Polygon,
     isNative: true,
     isUTXOBased: false,
     humanReadableScale: 18,
@@ -374,6 +385,40 @@ var CurrencyRegistry = (function () {
         }
         CurrencyRegistry.unregisterCurrency(symbol);
     };
+    CurrencyRegistry.registerPolErc20Token = function (contractAddress, networkSymbol, name, decimals) {
+        logger.info("register polErc20: contract=" + contractAddress + ", networkSymbol=" + networkSymbol + ", name=" + name + ", decimals=" + decimals);
+        var platform = enums_1.BlockchainPlatform.Polygon;
+        var symbol = [enums_1.TokenType.POLERC20, contractAddress].join('.');
+        var currency = {
+            symbol: symbol,
+            networkSymbol: networkSymbol,
+            tokenType: enums_1.TokenType.POLERC20,
+            name: name,
+            platform: platform,
+            isNative: false,
+            isUTXOBased: false,
+            contractAddress: contractAddress,
+            decimals: decimals,
+            humanReadableScale: decimals,
+            nativeScale: 0,
+            hasMemo: false,
+        };
+        allPolErc20Tokens.push(currency);
+        eventCallbacks['polErc20-registered'].forEach(function (callback) { return callback(currency); });
+        return CurrencyRegistry.registerCurrency(currency);
+    };
+    CurrencyRegistry.unregisterPolErc20Token = function (contractAddress) {
+        logger.info("unregister polErc20: contract=" + contractAddress);
+        var symbol = [enums_1.TokenType.POLERC20, contractAddress].join('.');
+        for (var i = 0; i < allPolErc20Tokens.length; i++) {
+            var token = allErc20Tokens[i];
+            if (token.contractAddress.toLowerCase() === contractAddress.toLowerCase()) {
+                allPolErc20Tokens.splice(i, 1);
+                break;
+            }
+        }
+        CurrencyRegistry.unregisterCurrency(symbol);
+    };
     CurrencyRegistry.registerTrc20Token = function (contractAddress, networkSymbol, name, decimals) {
         logger.info("register trc20: contract=" + contractAddress + ", networkSymbol=" + networkSymbol + ", name=" + name + ", decimals=" + decimals);
         var platform = enums_1.BlockchainPlatform.Tomo;
@@ -594,6 +639,10 @@ var CurrencyRegistry = (function () {
         var symbol = [enums_1.TokenType.ERC20, contractAddress].join('.');
         return CurrencyRegistry.getOneCurrency(symbol);
     };
+    CurrencyRegistry.getOnePolErc20Token = function (contractAddress) {
+        var symbol = [enums_1.TokenType.ERC20, contractAddress].join('.');
+        return CurrencyRegistry.getOneCurrency(symbol);
+    };
     CurrencyRegistry.getAllBepTokens = function () {
         return allBepTokens;
     };
@@ -778,6 +827,14 @@ var CurrencyRegistry = (function () {
         }
         eventCallbacks['erc20-registered'].push(callback);
     };
+    CurrencyRegistry.onPolERC20TokenRegistered = function (callback) {
+        if (allPolErc20Tokens.length > 0) {
+            allPolErc20Tokens.forEach(function (token) {
+                callback(token);
+            });
+        }
+        eventCallbacks['polErc20-registered'].push(callback);
+    };
     CurrencyRegistry.onTRC20TokenRegistered = function (callback) {
         if (allTrc20Tokens.length > 0) {
             allTrc20Tokens.forEach(function (token) {
@@ -862,6 +919,7 @@ var CurrencyRegistry = (function () {
     };
     CurrencyRegistry.Bitcoin = Bitcoin;
     CurrencyRegistry.Ethereum = Ethereum;
+    CurrencyRegistry.Polygon = Polygon;
     CurrencyRegistry.Cardano = Cardano;
     CurrencyRegistry.BitcoinCash = BitcoinCash;
     CurrencyRegistry.BitcoinSV = BitcoinSV;

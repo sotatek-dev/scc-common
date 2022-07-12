@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TokenType = void 0;
 var TokenType;
 (function (TokenType) {
     TokenType["ERC20"] = "erc20";
+    TokenType["POLERC20"] = "polerc20";
     TokenType["ERC20Tomo"] = "trc20";
     TokenType["OMNI"] = "omni";
     TokenType["NEP5"] = "nep5";

@@ -36,7 +36,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BaseIntervalWorker = void 0;
 var Logger_1 = require("./Logger");
 var logger = Logger_1.getLogger('BaseIntervalWorker');
 var BaseIntervalWorker = (function () {
