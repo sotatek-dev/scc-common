@@ -813,6 +813,10 @@ export class CurrencyRegistry {
     return allErc20Tokens;
   }
 
+  public static getAllPolErc20Tokens(): IErc20Token[] {
+    return allPolErc20Tokens;
+  }
+
   public static getAllTrc20Tokens(): IErc20Token[] {
     return allTrc20Tokens;
   }
