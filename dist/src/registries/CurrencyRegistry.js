@@ -21,6 +21,7 @@ var onSpecificCurrencyRegisteredCallbacks = new Map();
 var onCurrencyConfigSetCallbacks = [];
 var eventCallbacks = {
     'erc20-registered': Array(),
+    'polErc20-registered': Array(),
     'trc20-registered': Array(),
     'omni-registered': Array(),
     'eos-token-registered': Array(),
@@ -292,6 +293,7 @@ var Solana = {
 var nativeCurrencies = [
     Bitcoin,
     Ethereum,
+    Polygon,
     Cardano,
     BitcoinCash,
     BitcoinSV,
@@ -719,6 +721,9 @@ var CurrencyRegistry = (function () {
                 result.push(Ethereum);
                 result.push.apply(result, CurrencyRegistry.getAllErc20Tokens());
                 break;
+            case enums_1.BlockchainPlatform.Polygon:
+                result.push(Polygon);
+                result.push.apply(result, CurrencyRegistry.getAllPolErc20Tokens());
             case enums_1.BlockchainPlatform.Tomo:
                 result.push(Tomo);
                 result.push.apply(result, CurrencyRegistry.getAllTrc20Tokens());
