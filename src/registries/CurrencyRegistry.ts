@@ -908,7 +908,7 @@ export class CurrencyRegistry {
       case BlockchainPlatform.Polygon:
         result.push(Polygon);
         result.push(...CurrencyRegistry.getAllPolErc20Tokens());
-
+        break;
       case BlockchainPlatform.Tomo:
         result.push(Tomo);
         result.push(...CurrencyRegistry.getAllTrc20Tokens());
