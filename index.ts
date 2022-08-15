@@ -41,6 +41,7 @@ export * from './src/Logger';
 export * from './src/RedisChannel';
 export * from './src/registries';
 export * from './src/Mailer';
+export * from './src/SolanaBasedGateway';
 
 // External dependencies
 import BigNumber from 'bignumber.js';
