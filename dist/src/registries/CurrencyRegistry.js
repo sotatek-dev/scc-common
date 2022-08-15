@@ -724,6 +724,7 @@ var CurrencyRegistry = (function () {
             case enums_1.BlockchainPlatform.Polygon:
                 result.push(Polygon);
                 result.push.apply(result, CurrencyRegistry.getAllPolErc20Tokens());
+                break;
             case enums_1.BlockchainPlatform.Tomo:
                 result.push(Tomo);
                 result.push.apply(result, CurrencyRegistry.getAllTrc20Tokens());
