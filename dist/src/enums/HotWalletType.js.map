@@ -1,1 +1,1 @@
-{"version":3,"file":"HotWalletType.js","sourceRoot":"","sources":["../../../src/enums/HotWalletType.ts"],"names":[],"mappings":";;;AAAA,IAAY,aAIX;AAJD,WAAY,aAAa;IACvB,kCAAiB,CAAA;IACjB,8BAAa,CAAA;IACb,sCAAqB,CAAA;AACvB,CAAC,EAJW,aAAa,GAAb,qBAAa,KAAb,qBAAa,QAIxB"}
+{"version":3,"file":"HotWalletType.js","sourceRoot":"","sources":["../../../src/enums/HotWalletType.ts"],"names":[],"mappings":";;AAAA,IAAY,aAIX;AAJD,WAAY,aAAa;IACvB,kCAAiB,CAAA;IACjB,8BAAa,CAAA;IACb,sCAAqB,CAAA;AACvB,CAAC,EAJW,aAAa,GAAb,qBAAa,KAAb,qBAAa,QAIxB"}

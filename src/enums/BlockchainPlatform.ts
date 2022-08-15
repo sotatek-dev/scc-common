@@ -1,6 +1,7 @@
 export enum BlockchainPlatform {
   Bitcoin = 'btc',
   Ethereum = 'eth',
+  Polygon = 'matic',
   Ripple = 'xrp',
   BitcoinCash = 'bch',
   BitcoinSV = 'bsv',

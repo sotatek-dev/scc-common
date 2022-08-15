@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Transaction = void 0;
 var Transaction = (function () {
     function Transaction(props, block) {
         Object.assign(this, props);
