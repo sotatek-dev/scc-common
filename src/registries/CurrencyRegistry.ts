@@ -2,6 +2,7 @@ import { getLogger } from '../Logger';
 import { ICurrency, IEosToken, IErc20TokenTomo, IBepToken, ITerraToken, ICosmosToken, IBep20Token, ITrc20Token, ISplToken } from '../interfaces/ICurrency';
 import { ICurrencyConfig, IOmniAsset, IErc20Token } from '../interfaces';
 import { BlockchainPlatform, TokenType, TransactionBaseType } from '../enums';
+import { Block } from '../types';
 
 /**
  * Environment data is usually loaded from database at runtime
@@ -12,6 +13,7 @@ const logger = getLogger('CurrencyRegistry');
 const allCurrencies = new Map<string, ICurrency>();
 const allCurrencyConfigs = new Map<string, ICurrencyConfig>();
 const allErc20Tokens: IErc20Token[] = [];
+const allPolErc20Tokens: IErc20Token[] = [];
 const allTrc20Tokens: IErc20TokenTomo[] = [];
 const allOmniAssets: IOmniAsset[] = [];
 const allEosTokens: IEosToken[] = [];
@@ -28,6 +30,7 @@ const onCurrencyConfigSetCallbacks: Array<(currency: ICurrency, config: ICurrenc
 
 const eventCallbacks = {
   'erc20-registered': Array<(token: IErc20Token) => void>(),
+  'polErc20-registered': Array<(token: IErc20Token) => void>(),
   'trc20-registered': Array<(token: IErc20TokenTomo) => void>(),
   'omni-registered': Array<(asset: IOmniAsset) => void>(),
   'eos-token-registered': Array<(asset: IEosToken) => void>(),
@@ -65,6 +68,18 @@ const Ethereum = {
   nativeScale: 0,
   hasMemo: false,
 };
+
+const Polygon = {
+  symbol: BlockchainPlatform.Polygon,
+  networkSymbol: BlockchainPlatform.Polygon,
+  name: 'Polygon',
+  platform: BlockchainPlatform.Polygon,
+  isNative: true,
+  isUTXOBased: false,
+  humanReadableScale: 18,
+  nativeScale: 0,
+  hasMemo: false,
+}
 
 const Cardano = {
   symbol: BlockchainPlatform.Cardano,
@@ -314,6 +329,7 @@ const Solana = {
 const nativeCurrencies: ICurrency[] = [
   Bitcoin,
   Ethereum,
+  Polygon,
   Cardano,
   BitcoinCash,
   BitcoinSV,
@@ -339,6 +355,7 @@ const nativeCurrencies: ICurrency[] = [
 export class CurrencyRegistry {
   public static readonly Bitcoin: ICurrency = Bitcoin;
   public static readonly Ethereum: ICurrency = Ethereum;
+  public static readonly Polygon: ICurrency = Polygon;
   public static readonly Cardano: ICurrency = Cardano;
   public static readonly BitcoinCash: ICurrency = BitcoinCash;
   public static readonly BitcoinSV: ICurrency = BitcoinSV;
@@ -449,6 +466,52 @@ export class CurrencyRegistry {
       const token = allErc20Tokens[i];
       if (token.contractAddress.toLowerCase() === contractAddress.toLowerCase()) {
         allErc20Tokens.splice(i, 1);
+        break;
+      }
+    }
+
+    CurrencyRegistry.unregisterCurrency(symbol);
+  }
+
+  public static registerPolErc20Token(
+    contractAddress: string,
+    networkSymbol: string,
+    name: string,
+    decimals: number
+  ): boolean {
+    logger.info(
+      `register polErc20: contract=${contractAddress}, networkSymbol=${networkSymbol}, name=${name}, decimals=${decimals}`
+    );
+    const platform = BlockchainPlatform.Polygon;
+    const symbol = [TokenType.POLERC20, contractAddress].join('.');
+    const currency: IErc20Token = {
+      symbol,
+      networkSymbol,
+      tokenType: TokenType.POLERC20,
+      name,
+      platform,
+      isNative: false,
+      isUTXOBased: false,
+      contractAddress,
+      decimals,
+      humanReadableScale: decimals,
+      nativeScale: 0,
+      hasMemo: false,
+    };
+
+    allPolErc20Tokens.push(currency);
+    eventCallbacks['polErc20-registered'].forEach(callback => callback(currency));
+
+    return CurrencyRegistry.registerCurrency(currency);
+  }
+
+  public static unregisterPolErc20Token(contractAddress: string) {
+    logger.info(`unregister polErc20: contract=${contractAddress}`);
+    const symbol = [TokenType.POLERC20, contractAddress].join('.');
+    for (let i = 0; i < allPolErc20Tokens.length; i++) {
+      const token = allErc20Tokens[i];
+      if (token.contractAddress.toLowerCase() === contractAddress.toLowerCase()) {
+        allPolErc20Tokens.splice(i, 1);
         break;
       }
     }
@@ -731,6 +794,11 @@ export class CurrencyRegistry {
     return CurrencyRegistry.getOneCurrency(symbol) as IErc20Token;
   }
 
+  public static getOnePolErc20Token(contractAddress: string): IErc20Token {
+    const symbol = [TokenType.ERC20, contractAddress].join('.');
+    return CurrencyRegistry.getOneCurrency(symbol) as IErc20Token;
+  }
+
   public static getAllBepTokens(): IBepToken[] {
     return allBepTokens;
   }
@@ -746,6 +814,10 @@ export class CurrencyRegistry {
 
   public static getAllErc20Tokens(): IErc20Token[] {
     return allErc20Tokens;
+  }
+
+  public static getAllPolErc20Tokens(): IErc20Token[] {
+    return allPolErc20Tokens;
   }
 
   public static getAllTrc20Tokens(): IErc20Token[] {
@@ -833,6 +905,10 @@ export class CurrencyRegistry {
         result.push(...CurrencyRegistry.getAllErc20Tokens());
         break;
 
+      case BlockchainPlatform.Polygon:
+        result.push(Polygon);
+        result.push(...CurrencyRegistry.getAllPolErc20Tokens());
+        break;
       case BlockchainPlatform.Tomo:
         result.push(Tomo);
         result.push(...CurrencyRegistry.getAllTrc20Tokens());
@@ -1010,6 +1086,21 @@ export class CurrencyRegistry {
 
     eventCallbacks['erc20-registered'].push(callback);
   }
+
+    /**
+   * Add listener that is triggerred when an PolERC20 token is registered
+   *
+   * @param callback
+   */
+     public static onPolERC20TokenRegistered(callback: (token: IErc20Token) => void) {
+      if (allPolErc20Tokens.length > 0) {
+        allPolErc20Tokens.forEach(token => {
+          callback(token);
+        });
+      }
+  
+      eventCallbacks['polErc20-registered'].push(callback);
+    }
 
   /**
    * Add listener that is triggerred when an TRC20 token is registered

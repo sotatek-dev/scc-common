@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BlockchainPlatform = void 0;
 var BlockchainPlatform;
 (function (BlockchainPlatform) {
     BlockchainPlatform["Bitcoin"] = "btc";
     BlockchainPlatform["Ethereum"] = "eth";
+    BlockchainPlatform["Polygon"] = "matic";
     BlockchainPlatform["Ripple"] = "xrp";
     BlockchainPlatform["BitcoinCash"] = "bch";
     BlockchainPlatform["BitcoinSV"] = "bsv";
